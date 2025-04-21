@@ -326,6 +326,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     echo "</td>";
                     echo "<td>";
                     echo $payment->updated_at;
+                    echo (empty($payment->updated_at))? $payment->created_at : $payment->updated_at;
+                    
                  
                   echo "</td>";
                     echo "<td>";
