@@ -252,8 +252,8 @@ class User_model extends CI_Model{
 
         $query = $this->db->get();
 
-        // $lastQuery = $this->db->last_query();
-        // echo $lastQuery;
+        $lastQuery = $this->db->last_query();
+        echo $lastQuery;
         
         if($query->num_rows()>0){
             $result = $query->result();

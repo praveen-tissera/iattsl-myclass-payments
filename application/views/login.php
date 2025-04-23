@@ -276,7 +276,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                  echo "<table class='table table-sm table-striped'>";
                  echo "<tr class='bg-success text-white' >";
                   echo "<th >";
-                    echo "Recepit Number";
+                    echo "Invoice Number";
                   echo "</th>";
                   echo "<th>";
                     echo "Paid Month";
@@ -325,8 +325,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                     echo "</td>";
                     echo "<td>";
-
-                    echo (empty($payment->updated_at))? $payment->created_at : $payment->updated_at;
+                    // if paid return receipt payment date
+                    echo $student_data['payment_completion'][$index]->created_at;
+                    // echo (empty($payment->updated_at))? $payment->created_at : $payment->updated_at;
                     
                  
                   echo "</td>";

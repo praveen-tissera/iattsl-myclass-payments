@@ -233,6 +233,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   echo "</tr>";
                  }else{
                   $rowNumber = 1;
+                  // print_r($income_summary);
                   foreach ($income_summary as $key => $payment) {
                     echo "<tr>";
                       echo "<td>";
