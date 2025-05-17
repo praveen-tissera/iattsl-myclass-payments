@@ -26,7 +26,7 @@ class Welcome extends CI_Controller {
         // $this->user_model->get_usreData();
         $this->load->view('login',$data);
     }
-     public function idValidator($student_id=0){
+     public function idValidator($student_id=0, $branch='IATTSL'){
        
         $success = $this->session->userdata('success_message_display');
       
@@ -34,13 +34,17 @@ class Welcome extends CI_Controller {
         if ($student_id == 0) {
             $this->form_validation->set_rules('studentid', 'Class ID', 'required');
             if ($this->form_validation->run() == FALSE){
-                echo 'test';
+                
                 $this->load->view('login');
             }
             else{
- 
-                 $student_id = 'IATTSL/'.trim($_POST['studentid']);
+                if(isset($_POST['center'])){
+                     $student_id = $_POST['center'].'/'.trim($_POST['studentid']);
+                }
+                
+               
                 $result = $this->User_model->get_usreData($student_id);
+
                 if($result == 0){
                     $data['message'] = "No results found";
                     $this->load->view('login',$data);
@@ -54,8 +58,8 @@ class Welcome extends CI_Controller {
         }
 
        else{  
-
-        $student_id = 'IATTSL/'.$student_id;       
+        
+        $student_id = $branch.'/'.$student_id;       
         $result = $this->User_model->get_usreData($student_id);
 
         if($result == 0){
@@ -145,10 +149,13 @@ class Welcome extends CI_Controller {
                 $student_id_array = explode('/', $student_id);
                 // get last element of array
                 $student_id = end($student_id_array);
+                // get student branch from $student_if_array's first element
+                $student_branch = $student_id_array[0];
+                
 
                 $this->session->set_userdata('success_message_display', 'Payment Updated sucessfully');
 
-                redirect('/welcome/idValidator/'.$student_id);
+                redirect('/welcome/idValidator/'.$student_id.'/'.$student_branch);
 
             } else if($result == 0){
                 echo "error";

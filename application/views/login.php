@@ -126,6 +126,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <tr>
                         <td>
                           <?php 
+                         
                             if (!empty($student_data['profile'][0]->admission_number)) {
                               $student_id_array = explode('/', $student_data['profile'][0]->admission_number);
                               $student_id = end($student_id_array);
@@ -137,7 +138,31 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                           
                           ?>
-                           
+                          <br>
+                         
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="PEL" value="IATTSL"> <label class="form-check-label" for="PEL">PELAWATTA</label> 
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="MAH" value="MAH" > <label class="form-check-label" for="MAH">MAHARAGAMA</label>
+                          </div>
+                            <?php 
+                            if (!empty($student_data['profile'][0]->admission_number)) {
+                              $student_id_array = explode('/', $student_data['profile'][0]->admission_number);
+                              $student_branch = $student_id_array[0];
+                              // base on student_brach place checked on radio btn
+                              if($student_branch == 'IATTSL'){
+                                echo '<script>document.getElementById("PEL").checked = true;</script>';
+                              }elseif($student_branch == 'MAH'){
+                                echo '<script>document.getElementById("MAH").checked = true;</script>';
+                              }else{
+                                echo '<script>document.getElementById("PEL").checked = true;</script>';
+                              }
+                            }else{
+                              echo '<script>document.getElementById("PEL").checked = true;</script>';
+                            }
+                          
+                          ?>
 
                         </td>
                     </tr>
