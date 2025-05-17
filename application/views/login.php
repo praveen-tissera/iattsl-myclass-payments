@@ -146,6 +146,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="center" id="MAH" value="MAH" > <label class="form-check-label" for="MAH">MAHARAGAMA</label>
                           </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="HRI" value="HRI" > <label class="form-check-label" for="HRI">HRIPITIYA</label>
+                          </div>
                             <?php 
                             if (!empty($student_data['profile'][0]->admission_number)) {
                               $student_id_array = explode('/', $student_data['profile'][0]->admission_number);
@@ -155,7 +158,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo '<script>document.getElementById("PEL").checked = true;</script>';
                               }elseif($student_branch == 'MAH'){
                                 echo '<script>document.getElementById("MAH").checked = true;</script>';
-                              }else{
+                              }elseif($student_branch == 'HRI'){
+                                echo '<script>document.getElementById("HRI").checked = true;</script>';
+                              }
+                              else{
                                 echo '<script>document.getElementById("PEL").checked = true;</script>';
                               }
                             }else{
