@@ -187,6 +187,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <th scope="col">Part 01</th>
                             <th scope="col">Part 02</th>
                             <th scope="col">Total</th>
+                             <th scope="col">Grade</th>
                             <th scope="col">Paper Link</th>
 
                         </tr>
@@ -206,28 +207,46 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             }
                             echo "<td>";
                             if(isset($student->marks) && $student->marks != null){
-                                echo "<input type='number' class='form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$student->marks->part1}'>";
+                                echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$student->marks->part1}'>";
                             }else{
-                            echo "<input type='number' class='form-control' name='part1_{$student->ID}'  min='0' max='100'>";
+                            echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100'>";
                             }
                             echo "</td>";
                             echo "<td>";
                             if(isset($student->marks) && $student->marks != null){
-                                echo "<input type='number' class='form-control' name='part2_{$student->ID}'  min='0' max='100' value='{$student->marks->part2}'>";
+                                echo "<input  type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100' value='{$student->marks->part2}'>";
                             }else{
-                            echo "<input type='number' class='form-control' name='part2_{$student->ID}'  min='0' max='100'>";
+                            echo "<input type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100'>";
                             }
                             echo "</td>";
                             echo "<td>";
                             if(isset($student->marks) && $student->marks != null){
-                                echo "<input type='number' class='form-control' name='total_{$student->ID}'  min='0' max='100' value='{$student->marks->total}'>";
+                                echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' value='{$student->marks->total}'>";
                             }else{
-                            echo "<input type='number' class='form-control' name='total_{$student->ID}'  min='0' max='100' >";
+                            echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' >";
                             }
                             echo "</td>";
                             echo "<td>";
+                           if(isset($student->marks) && $student->marks != null){
+                                if($student->marks->total >= 75){
+                                    echo "<p class='gradeVal'>A</p>";
+                                }else if($student->marks->total >= 65){
+                                    echo "<p class='gradeVal'>B</p>";
+                                }else if($student->marks->total >= 55){
+                                    echo "<p class='gradeVal'>C</p>";
+                                }else if($student->marks->total >= 40){
+                                    echo "<p class='gradeVal'>S</p>";
+                                }else if($student->marks->total > 0){
+                                    echo "<p class='gradeVal'>F</p>";
+                                }
+                           }else{
+                           
+                            echo "<p class='gradeVal'></p>";
+                          }
+                            echo "</td>";
+                            echo "<td>";
                             if(isset($student->marks) && $student->marks != null){
-                                echo "<input type='url' class='form-control' name='link_{$student->ID}'  min='0' max='100' value='{$student->marks->link}'>";
+                                echo "<input type='url'  class='form-control' name='link_{$student->ID}'  min='0' max='100' value='{$student->marks->link}'>";
                               ?>
                               <?php if($student->marks->link != null){ ?>
                               <a href="#" onclick="openSmallWindow(`<?php echo $student->marks->link; ?>`); return false;">Open</a>
@@ -276,4 +295,58 @@ function changeButtonText() {
     <script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
     <script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>
 </script>
+
+ <script>
+        $(document).ready(function() {
+            $(".totalTrigger").focus(function() {
+
+                var row = $(this).closest("tr");
+                var val1 = row.find(".input1").val();
+                var val2 = row.find(".input2").val();
+                if (val1 !== "" && val2 !== "") {
+                    
+                    var total = parseFloat(val1) + parseFloat(val2);
+                    row.find(".totalTrigger").val(total);
+                    
+                    // check total and set grade base of criteria
+                    if (total >= 75) {
+                        row.find(".gradeVal").text('A');
+                    } else if (total >= 65) {
+                        row.find(".gradeVal").text('B');
+                    } else if (total >= 55) {
+                        row.find(".gradeVal").text('C');
+                    } else if (total >= 40) {
+                        row.find(".gradeVal").text('S');
+                    } else {
+                        row.find(".gradeVal").text('F');
+                    }
+                } 
+
+
+
+
+
+
+
+                
+                // if (val1 !== "" && val2 !== "") {
+                //     $("#total").val(parseFloat(val1) + parseFloat(val2));
+                //     // check total and set grade base of criteria
+                //     if (parseFloat(val1) + parseFloat(val2) >= 75) {
+                //         $("#gradeVal").text('A');
+                //     } else if (parseFloat(val1) + parseFloat(val2) >= 65) {
+                //         $("#gradeVal").text('B');
+                //     }else if (parseFloat(val1) + parseFloat(val2) >= 55) {
+                //         $("#gradeVal").text('C');
+                //     }else if (parseFloat(val1) + parseFloat(val2) >= 45) {
+                //         $("#gradeVal").text('B');
+                //     }else {
+                //         $("#gradeVal").text('F');
+                //     }
+
+                // }
+            });
+        });
+    </script>
+
 </html>
