@@ -141,6 +141,7 @@ class Mark extends CI_Controller {
                 $part2 = $this->input->post('part2_'.$student->ID);
                 $total = $this->input->post('total_'.$student->ID);
                 $link = $this->input->post('link_'.$student->ID);
+                $branch = explode('/', $student->admission_number)[0];
                 // print_r($part1);
                 // print_r($part2);
                 // print_r($total);
@@ -149,6 +150,7 @@ class Mark extends CI_Controller {
                     'student_id' => $student->ID,
                     'admission_number' => $student->admission_number,
                     'name' => $student->name,
+                    'branch' => $branch,
                     'term' => 'Term 1',
                     'class_id' => $selectclassid,
                     'class_name' => $selectclass,

@@ -26,7 +26,7 @@ class Welcome extends CI_Controller {
         // $this->user_model->get_usreData();
         $this->load->view('login',$data);
     }
-     public function idValidator($student_id=0, $branch='IATTSL'){
+     public function idValidator($student_id=0, $branch='PEL'){
        
         $success = $this->session->userdata('success_message_display');
       

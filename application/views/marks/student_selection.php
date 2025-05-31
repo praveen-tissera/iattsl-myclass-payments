@@ -238,6 +238,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     echo "<p class='gradeVal'>S</p>";
                                 }else if($student->marks->total > 0){
                                     echo "<p class='gradeVal'>F</p>";
+                                }else{
+                                    echo "<p class='gradeVal'>N/A</p>";
                                 }
                            }else{
                            

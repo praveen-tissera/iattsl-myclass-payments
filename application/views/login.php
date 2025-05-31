@@ -144,7 +144,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <br>
                          
                           <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="center" id="PEL" value="IATTSL"> <label class="form-check-label" for="PEL">PELAWATTA</label> 
+                            <input class="form-check-input" type="radio" name="center" id="PEL" value="PEL"> <label class="form-check-label" for="PEL">PELAWATTA</label> 
                           </div>
                           <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="center" id="MAH" value="MAH" > <label class="form-check-label" for="MAH">MAHARAGAMA</label>
@@ -157,7 +157,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               $student_id_array = explode('/', $student_data['profile'][0]->admission_number);
                               $student_branch = $student_id_array[0];
                               // base on student_brach place checked on radio btn
-                              if($student_branch == 'IATTSL'){
+                              if($student_branch == 'PEL'){
                                 echo '<script>document.getElementById("PEL").checked = true;</script>';
                               }elseif($student_branch == 'MAH'){
                                 echo '<script>document.getElementById("MAH").checked = true;</script>';
