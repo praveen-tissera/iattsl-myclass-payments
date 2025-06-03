@@ -129,6 +129,9 @@ class Mark extends CI_Controller {
         $selectclass = $this->input->post('selectclass');
         $selectsubjectid = $this->input->post('selectsubjectid');
         $selectsubject = $this->input->post('selectsubject');
+         $term_test_date = $this->input->post('term_test_date');
+         $practical_test_date = $this->input->post('practical_test_date');
+       
         
 
         // print_r($_POST);
@@ -140,6 +143,7 @@ class Mark extends CI_Controller {
                 $part1 = $this->input->post('part1_'.$student->ID);
                 $part2 = $this->input->post('part2_'.$student->ID);
                 $total = $this->input->post('total_'.$student->ID);
+                $practical_test_grade = $this->input->post('practical_test_'.$student->ID);
                 $link = $this->input->post('link_'.$student->ID);
                 $branch = explode('/', $student->admission_number)[0];
                 // print_r($part1);
@@ -161,6 +165,9 @@ class Mark extends CI_Controller {
                     'part2' => $part2,
                     'total' => $total,
                     'link' => $link,
+                    'practical_test' => $practical_test_grade,
+                    'term_test_date' => $term_test_date,
+                    'practical_test_date' => $practical_test_date,
                     'created_at' => date('Y-m-d H:i:s')
                     
                 );

@@ -159,13 +159,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <div class="row">
             <div class="col">
               
-
-
-
-
-
-
-
               <?php 
               $attributes = array('id' => 'studentMarkList');
               echo form_open('mark/studentsSubmit', $attributes) ?>
@@ -176,6 +169,55 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
                 <input type="hidden" class="form-control" value="<?php echo $subject_name; ?>" name="selectsubject">
                 
+              <br>
+              <div class="row">
+              <?php 
+              $termtest_date = false;
+              $practicaltest_date = false;
+              date_default_timezone_set('Asia/Colombo');
+              
+                        foreach ($students as $student) {
+                            if (isset($student->marks) && $student->marks != null && $student->marks->term_test_date != null && $termtest_date == false) {
+                                $termtest_date = true;
+                                 ?>
+                                  <div class="col-6">
+                                     <label>Term Test Date</label>
+                                    <input class="form-control" required type="date" name="term_test_date" value="<?php echo $student->marks->term_test_date; ?>">
+                                  </div>
+                                 
+
+                            <?php }
+                      
+                             if ( isset($student->marks) && $student->marks != null && $student->marks->practical_test_date != null) {
+                            
+                                $practicaltest_date = true;
+                                ?>
+                                <div class="col-6">
+                                  <label>Practical Test Date</label>
+                                <input class="form-control" required type="date" name="practical_test_date" value="<?php echo $student->marks->practical_test_date; ?>">
+                                </div>
+
+
+                            <?php break;  }
+                        }
+
+                        if (!$termtest_date) { ?>
+                        <div class="col-6">
+                          <?php  $currentDate = date("Y-m-d"); ?>
+                          <label>Term Test Date</label>
+                            <input class="form-control" required type="date" name="term_test_date" value="<?php echo $currentDate; ?>" >
+                        </div>
+                        <?php }
+                        if (!$practicaltest_date) { ?>
+                        <div class="col-6">
+                          <?php  $currentDate = date("Y-m-d"); ?>
+                           <label>Practical Test Date</label>
+                            <input class="form-control" required type="date" name="practical_test_date"  value="<?php echo $currentDate; ?>">
+                        </div>
+                        <?php }
+              
+              ?>
+              </div>
               <br>
                 <table class="table table-bordered table-striped">
                     <thead>
@@ -188,13 +230,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <th scope="col">Part 02</th>
                             <th scope="col">Total</th>
                              <th scope="col">Grade</th>
+                              <th scope="col">Practical Test Grade</th>
                             <th scope="col">Paper Link</th>
+                             
+                            
 
                         </tr>
                     </thead>
                     <tbody>
                         <?php
+                      
                         $i = 1;
+                        $termtest_date = false;
                         foreach ($students as $student) {
                             echo "<tr>";
                             echo "<td>" . $i . "</td>";
@@ -245,6 +292,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                            
                             echo "<p class='gradeVal'></p>";
                           }
+                            echo "</td>";
+                            echo "<td>";
+                         
+                            // create a select dropdown for practical test grade
+                            echo "<select class='form-control' name='practical_test_{$student->ID}'>";
+                            echo "<option value=''>Select Grade</option>";
+                             echo "<option value='AB' " . (isset($student->marks) && $student->marks->practical_test == 'AB' ? 'selected' : '') . ">AB</option>";
+                            echo "<option value='A' " . (isset($student->marks) && $student->marks->practical_test == 'A' ? 'selected' : '') . ">A</option>";
+                            echo "<option value='B' " . (isset($student->marks) && $student->marks->practical_test == 'B' ? 'selected' : '') . ">B</option>";
+                            echo "<option value='C' " . (isset($student->marks) && $student->marks->practical_test == 'C' ? 'selected' : '') . ">C</option>";
+                            echo "<option value='S' " . (isset($student->marks) && $student->marks->practical_test == 'S' ? 'selected' : '') . ">S</option>";
+                            echo "<option value='F' " . (isset($student->marks) && $student->marks->practical_test == 'W' ? 'selected' : '') . ">W</option>";
+                            echo "</select>";
+                          
                             echo "</td>";
                             echo "<td>";
                             if(isset($student->marks) && $student->marks != null){
