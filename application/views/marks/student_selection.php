@@ -15,7 +15,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       font-size: .9rem;
     }
     /* change input field font size */
-    input[type=text], input[type=number], input[type=email], input[type=password], input[type=url], select, option, .from-control {
+    input[type=text], input[type=number], input[type=email], input[type=password], input[type=url],[type=date], select, option, .from-control {
       font-size: .6rem !important;
     }
     /* change table font size */
@@ -175,46 +175,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
               $termtest_date = false;
               $practicaltest_date = false;
               date_default_timezone_set('Asia/Colombo');
-              
-                        foreach ($students as $student) {
-                            if (isset($student->marks) && $student->marks != null && $student->marks->term_test_date != null && $termtest_date == false) {
-                                $termtest_date = true;
-                                 ?>
-                                  <div class="col-6">
-                                     <label>Term Test Date</label>
-                                    <input class="form-control" required type="date" name="term_test_date" value="<?php echo $student->marks->term_test_date; ?>">
-                                  </div>
-                                 
-
-                            <?php }
+              $currentDate = date("Y-m-d");
                       
-                             if ( isset($student->marks) && $student->marks != null && $student->marks->practical_test_date != null) {
-                            
-                                $practicaltest_date = true;
-                                ?>
-                                <div class="col-6">
-                                  <label>Practical Test Date</label>
-                                <input class="form-control" required type="date" name="practical_test_date" value="<?php echo $student->marks->practical_test_date; ?>">
-                                </div>
 
-
-                            <?php break;  }
-                        }
-
-                        if (!$termtest_date) { ?>
-                        <div class="col-6">
-                          <?php  $currentDate = date("Y-m-d"); ?>
-                          <label>Term Test Date</label>
-                            <input class="form-control" required type="date" name="term_test_date" value="<?php echo $currentDate; ?>" >
-                        </div>
-                        <?php }
-                        if (!$practicaltest_date) { ?>
-                        <div class="col-6">
-                          <?php  $currentDate = date("Y-m-d"); ?>
-                           <label>Practical Test Date</label>
-                            <input class="form-control" required type="date" name="practical_test_date"  value="<?php echo $currentDate; ?>">
-                        </div>
-                        <?php }
               
               ?>
               </div>
@@ -231,6 +194,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <th scope="col">Total</th>
                              <th scope="col">Grade</th>
                               <th scope="col">Practical Test Grade</th>
+                              <th scope="col">Written Exam Date</th>
+                              <th scope="col">Practical Exam Date</th>
                             <th scope="col">Paper Link</th>
                              
                             
@@ -308,6 +273,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           
                             echo "</td>";
                             echo "<td>";
+                          
+                            // show term_test_date date if exists or current date
+                            if(isset($student->marks) && $student->marks != null && $student->marks->term_test_date != null){
+                                echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$student->marks->term_test_date}'>";
+                            }else{
+                                echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$currentDate}'>";
+                            }
+
+                            echo "</td>";
+
+                            echo "<td>";
+                            // show practical_test_date date if exists or current date  
+                            if(isset($student->marks) && $student->marks != null && $student->marks->practical_test_date != null){
+                                echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$student->marks->practical_test_date}'>";
+                            }else{
+                                echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$currentDate}'>";
+                            }
+                            echo "</td>";
+                             echo "<td>";
                             if(isset($student->marks) && $student->marks != null){
                                 echo "<input type='url'  class='form-control' name='link_{$student->ID}'  min='0' max='100' value='{$student->marks->link}'>";
                               ?>
