@@ -103,4 +103,85 @@ class Mark_model extends CI_Model{
         // }
     }
 
+    // create a function to get all students from wp_wlsm_student_records base on subject_id and session_id and admission_number start with 'BAT', 'PEL', 'MAT'
+    public function get_students_by_branch($subject_id, $session_id, $branch){  
+        $this->db->select('*');
+        $this->db->from('wp_wlsm_student_records');
+        $this->db->where('section_id', $subject_id);
+        $this->db->where('session_id', $session_id);
+        $this->db->like('admission_number', $branch, 'after'); // 'after' means it will match the beginning of the string
+        $query = $this->db->get();
+        //PRINT query string
+        // echo $this->db->last_query();
+
+        
+        if($query->num_rows() > 0){
+            // crete loop to get each student previous marks from wp_wlsm_student_paper_marks_iattsl table filter by student_id, subject_id, session_id
+            foreach($query->result() as $key => $student){
+                $condition = "student_id ='{$student->enrollment_number}' AND subject_id = '{$subject_id}' AND session_id = '{$session_id}'";
+                $marks_query = $this->db->select('*')
+                                        ->where($condition)
+                                        ->get('wp_wlsm_student_paper_marks_iattsl');
+                if($marks_query->num_rows() > 0){
+                    $query->result()[$key]->marks = $marks_query->result();
+                }else{
+                    $query->result()[$key]->marks = null;
+                }
+            }
+            return $query->result();
+        }else{
+            return 0;
+        }
+    }
+
+    // insert paper class marks to wp_wlsm_student_paper_marks_iattsl table
+    public function insert_paper_marks($data){
+        // print_r($data);
+
+        // insert data into wp_wlsm_student_paper_marks_iattsl table
+        // check if record already exists baseed on following condition
+        // paper_date, Student_id, subject_id, session_id, if exists update the record else insert
+        $this->db->trans_begin();
+        foreach($data as $key => $value){
+             $this->db->select('*');
+            $this->db->from('wp_wlsm_student_paper_marks_iattsl');
+            $this->db->where('paper_date', $value['paper_date']);
+            $this->db->where('subject_id', $value['subject_id']);
+            $this->db->where('session_id', $value['session_id']);
+            $this->db->where('student_id', $value['student_id']);
+           
+            $query = $this->db->get();
+            // print_r($this->db->last_query());
+                    echo "<br>";
+                if($query->num_rows() > 0){
+                // update the record
+                    $this->db->where('paper_date', $value['paper_date']);
+                    $this->db->where('subject_id', $value['subject_id']);
+                    $this->db->where('session_id', $value['session_id']);
+                    $this->db->where('student_id', $value['student_id']);
+                    $this->db->update('wp_wlsm_student_paper_marks_iattsl', $value);
+                    
+                    if( $this->db->trans_status() === FALSE ){
+                        $this->db->trans_rollback();
+                        return(0);
+                    }else{
+                        $this->db->trans_commit();
+                    }
+                    
+                }else{
+                    // insert the record
+                    $this->db->insert('wp_wlsm_student_paper_marks_iattsl', $value);
+                    if( $this->db->trans_status() === FALSE ){
+                        $this->db->trans_rollback();
+                        return(0);
+                    }else{
+                        $this->db->trans_commit();
+                    }
+                    
+                }
+
+        }
+        return 2;
+    }
+
 }

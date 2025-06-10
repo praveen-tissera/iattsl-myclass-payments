@@ -78,6 +78,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
      <li class="nav-item active">
       <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks <span class="sr-only">(current)</span></a>
      </li>
+      <li class="nav-item ">
+      <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks </a>
+     </li>
      <li class="nav-item">
       <a class="nav-link" target="_blank" href="https://iattsl.edu.lk/iattslstudent">Student Report Card</a>
      </li>

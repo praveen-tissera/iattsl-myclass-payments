@@ -14,6 +14,7 @@ class Mark extends CI_Controller {
         date_default_timezone_set("Asia/colombo");
 	}
     public function index(){
+        
         $success = $this->session->flashdata('success');
 		$error = $this->session->flashdata('error');
         $data = [];
@@ -26,8 +27,204 @@ class Mark extends CI_Controller {
         $grades = $this->Mark_model->get_classes();
         $data['grades'] = $grades;
         // print_r($data);
-        $this->load->view('marks/class_selection',$data);
+           
+            $this->load->view('marks/class_selection',$data);   
+             
+        
+       
     }
+
+     public function paper(){
+        
+        $success = $this->session->flashdata('success');
+		$error = $this->session->flashdata('error');
+        $data = [];
+        if (!empty($success)) {
+            $data['success'] = $success;
+        }
+        if (!empty($error)) {
+            $data['error'] = $error;
+        }
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        // print_r($data);
+           
+            $this->load->view('marks/paperclass_marks',$data);   
+             
+        
+       
+    }
+
+    public function paperStudents(){
+        $success = $this->session->flashdata('success');
+        $error = $this->session->flashdata('error');
+        // get form data input name grade
+        $date = $this->input->post('date');
+        $branch = $this->input->post('branch');
+        $class_detail = $this->input->post('class');
+       
+        $session_id = 3;  
+        $class_array = explode('*', $class_detail);
+        $class_id = $class_array[0];
+        $class_name = $class_array[1];
+
+         $subjects = $this->Mark_model->get_subjecs($class_id);
+        //  print_r($subjects);
+        //  check whether ICT lable eixists in subjects array and return ID index value
+        $ict_subject_id = 0;
+        $subject_name;
+        foreach($subjects as $subject){
+            if($subject->label == 'ICT'){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
+        }
+        
+        if($ict_subject_id == 0){
+            $data['message'] = "ICT subject not found in this class";
+            $this->load->view('marks/paperclass_marks',$data);
+        }else{
+         $students = $this->Mark_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
+        // print_r($students);
+
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        $data['students'] = $students;
+        $data['date'] = $date;
+        $data['branch'] = $branch;
+        $data['pclass_id'] = $class_id;
+        $data['pclass_name'] = $class_name;
+        $data['subject_id'] = $ict_subject_id;
+        $data['subject_name'] = $subject_name;
+        // print_r($data);
+           
+            $this->load->view('marks/paperclass_marks',$data);   
+        // $data['subjects'] = $subjects;
+        // $data['class_detail'] = $class_detail;
+             
+        //     $this->load->view('marks/paper_subject_selection',$data);
+        
+        // print_r($grades);
+        }
+    }
+
+    public function paperMarksSubmit() {
+        echo "Loading........................";
+        date_default_timezone_set('Asia/Colombo');
+        $success = $this->session->flashdata('success');
+        $error = $this->session->flashdata('error');
+
+        $pclass_id = $this->input->post('selectclassid');
+        $pclass_name = $this->input->post('selectclassname');
+        $subject_id = $this->input->post('selectsubjectid');
+        $subject_name = $this->input->post('selectsubjectname');
+        $date = $this->input->post('date');
+         $branch = $this->input->post('branch');
+
+        // get students by branch
+        $session_id = 3; 
+        $students = $this->Mark_model->get_students_by_branch($subject_id, $session_id ,$branch);
+        // print_r($students);
+            foreach ($students as $student) {
+                $papertype = $this->input->post('papertype_'.$student->ID);
+                $part1 = $this->input->post('part1_'.$student->ID);
+                $part2 = $this->input->post('part2_'.$student->ID);
+                $total = $this->input->post('total_'.$student->ID);
+                $paperlink = $this->input->post('paperlink_'.$student->ID);
+                // print_r($marks);
+                // print_r($part2);
+                // print_r($total);
+                // print_r($link);
+                $data[] = array(
+                    'student_id' => $student->ID,
+                    'admission_number' => $student->admission_number,
+                    'name' => $student->name,
+                    'branch' => explode('/', $student->admission_number)[0],
+                    'paper_date' => $date,
+                    'paper_type' => $papertype,
+                    'class_id' => $pclass_id,
+                    'class_name' => $pclass_name,
+                    'subject_id' => $subject_id,
+                    'subject_name' => $subject_name,
+                    'session_id' => 3,
+                    'part1' => $part1,
+                    'part2' => $part2,
+                    'total' => $total,
+                    'link' => $paperlink,                   
+                    'created_at' => date('Y-m-d H:i:s')
+                    
+                );
+                
+            }
+            // print_r($data);
+             $students_marks_insert = $this->Mark_model->insert_paper_marks($data);
+            if($students_marks_insert > 0){
+            //     $this->session->set_flashdata('success', 'Marks Added Successfully');
+                redirect('mark/paperStudentsAfterSubmit/'.$pclass_id.'/'.$pclass_name.'/'.$subject_name.'/'.$date.'/'.$subject_id.'/'.$session_id.'/'.$branch.'/success');
+            }else{
+                $this->session->set_flashdata('error', 'Error on Marks Adding');
+                 redirect('mark/paperStudentsAfterSubmit/'.$pclass_id.'/'.$pclass_name.'/'.$subject_name.'/'.$date.'/'.$subject_id.'/'.$session_id.'/'.$branch.'/error');
+            }
+           
+    }
+
+        public function paperStudentsAfterSubmit($class_id,$class_name,$subject_name,$date,$ict_subject_id, $session_id , $branch, $status = null){
+        $success = $this->session->flashdata('success');
+        $error = $this->session->flashdata('error');
+        // get form data input name grade
+        // $date = $this->input->post('date');
+        // $branch = $this->input->post('branch');
+        // $class_detail = $this->input->post('class');
+       
+        $session_id = 3;  
+        // $class_array = explode('*', $class_detail);
+        // $class_id = $class_array[0];
+        // $class_name = $class_array[1];
+
+        //  $subjects = $this->Mark_model->get_subjecs($class_id);
+        // //  print_r($subjects);
+        // //  check whether ICT lable eixists in subjects array and return ID index value
+        // $ict_subject_id = 0;
+        // $subject_name;
+        // foreach($subjects as $subject){
+        //     if($subject->label == 'ICT'){
+        //         $ict_subject_id = $subject->ID;
+        //         $subject_name = $subject->label;
+        //         break;
+        //     }
+        // }
+        
+        
+         $students = $this->Mark_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
+        // print_r($students);
+
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        $data['students'] = $students;
+        $data['date'] = $date;
+        $data['branch'] = $branch;
+        $data['pclass_id'] = $class_id;
+        $data['pclass_name'] = $class_name;
+        $data['subject_id'] = $ict_subject_id;
+        $data['subject_name'] = $subject_name;
+        if($status == 'success'){
+            $data['success'] = "Paper Marks Added Successfully";
+        }elseif($status == 'error'){
+            $data['error'] = "Error on Paper Marks Adding";
+        }
+        // print_r($data);
+           
+            $this->load->view('marks/paperclass_marks',$data);   
+        // $data['subjects'] = $subjects;
+        // $data['class_detail'] = $class_detail;
+             
+        //     $this->load->view('marks/paper_subject_selection',$data);
+        
+        // print_r($grades);
+        
+    }
+
 
     public function subjects(){
         $success = $this->session->flashdata('success');
@@ -40,10 +237,12 @@ class Mark extends CI_Controller {
          $subjects = $this->Mark_model->get_subjecs($class_id);
         $data['subjects'] = $subjects;
         $data['class_detail'] = $class_detail;
-    
-       $this->load->view('marks/subject_selection',$data);
+             
+            $this->load->view('marks/subject_selection',$data);
+        
         // print_r($grades);
     }
+
 
     public function students(){
         $success = $this->session->flashdata('success');
