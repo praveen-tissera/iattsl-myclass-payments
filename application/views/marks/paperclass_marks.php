@@ -15,7 +15,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       font-size: .9rem;
     }
     /* change input field font size */
-     input[type=date],input[type=text], input[type=number], input[type=email], input[type=password], input[type=url], select, option, .from-control {
+      button[type=button],input[type=date],input[type=text], input[type=number], input[type=email], input[type=password], input[type=url], select, option, .from-control {
       font-size: .6rem !important;
     }
     /* change table font size */
@@ -176,6 +176,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <select class="form-control" id="branch" name="branch" required>
                               <option value="BAT">Battaramulla</option>
                               <option value="PEL">Pellawatta</option>
+                              <option value="HRI">Hripitiya</option>
+                              <option value="MAH">Maharagama</option>
                               <option value="MAT">Mattegoda</option>
                             </select>
                         </td>
@@ -197,7 +199,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 echo form_open('mark/paperMarksSubmit', $attributes);
                 if (isset($students) && is_array($students)) { 
                   ?>
-                <h2 class="text-center">Enter Marks for <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?> Date: <?php echo $date; ?></h2>
+                <h2 class="text-center">Enter Marks for <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?> Date: <?php echo $date; ?></h2>
                 <input type="hidden" class="form-control" value="<?php echo $pclass_id; ?>" name="selectclassid">
                 <input type="hidden" class="form-control" value="<?php echo $pclass_name; ?>" name="selectclassname">  
                 <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
@@ -258,6 +260,77 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             echo "<td>" . $student->name . "</td>";
                             echo "<td>";
                             echo "<input  type='text' class='form-control' name='papertype_{$student->ID}' value='{$papertype}' >";
+                            ?>
+
+
+                          <!-- Button trigger modal -->
+<button type="button" class="btn btn-link btn-sm" data-toggle="modal" data-target="#prevMarksModal<?php echo $student->ID; ?>">
+  Previous Marks
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="prevMarksModal<?php echo $student->ID; ?>" tabindex="-1"  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" ><?php echo $student->ID; ?></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Paper Date</th>
+              <th scope="col">Paper Type</th>
+              <th scope="col">Part 01</th>
+              <th scope="col">Part 02</th>
+              <th scope="col">Total</th>
+              <th scope="col">Paper Link</th>
+
+
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            if (isset($marks) && is_array($marks)) {
+                $j = 1;
+                foreach ($marks as $mark) {
+                    echo "<tr>";
+                    echo "<td>" . $j . "</td>";
+                    echo "<td>" . $mark->paper_date . "</td>";
+                    echo "<td>" . $mark->paper_type . "</td>";
+                    echo "<td>" . $mark->part1 . "</td>";
+                    echo "<td>" . $mark->part2 . "</td>";
+                    echo "<td>" . $mark->total . "</td>";
+                    echo "<td>";
+                     if(!empty($mark->link)) { ?>
+                                <a href="#" onclick="openSmallWindow(`<?php echo $mark->link; ?>`); return false;">Open</a>
+                           <?php } 
+                    echo "</td>";
+                    echo "</tr>";
+                    $j++;
+                }
+            } else {
+                echo "<tr><td colspan='7'>No previous marks found.</td></tr>";
+            }
+            ?>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+                            <?php
                             echo "</td>";
                             echo "<td>";
                             echo "<input type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$part1}' >";
@@ -269,10 +342,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             echo "<input type='number' class='totalTrigger form-control' name='total_{$student->ID}' min='0' max='100' value='{$total}'>";
                             echo "</td>";
                             echo "<td>";
+                           if(isset($total) && $total != null){
+                                if($total >= 75){
+                                    echo "<p class='gradeVal'>A</p>";
+                                }else if($total >= 65){
+                                    echo "<p class='gradeVal'>B</p>";
+                                }else if($total >= 55){
+                                    echo "<p class='gradeVal'>C</p>";
+                                }else if($total >= 40){
+                                    echo "<p class='gradeVal'>S</p>";
+                                }else if($total > 0){
+                                    echo "<p class='gradeVal'>F</p>";
+                                }else{
+                                    echo "<p class='gradeVal'>N/A</p>";
+                                }
+                           }else{
+                           
                             echo "<p class='gradeVal'></p>";
+                          }
                             echo "</td>";
                             echo "<td>";
                             echo "<input type='text' class='form-control' name='paperlink_{$student->ID}' placeholder='Enter Paper Link' value='{$paperlink}' >";
+                            if(!empty($paperlink)) { ?>
+                                <a href="#" onclick="openSmallWindow(`<?php echo $paperlink; ?>`); return false;">Open</a>
+                           <?php } 
                             echo "</td>";
                             echo "</tr>";
                             $i++;
@@ -300,6 +393,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       </div>
     </div>
 </body>
+<script>
+function openSmallWindow(url) {
+    window.open(url, '_blank', 'width=700,height=800,resizable=yes,scrollbars=yes');
+}
+
+function changeButtonText() {
+    var btn = document.getElementById("submitBtn");
+    btn.value = "Processing...";
+    btn.disabled = true; // Optional: Disable button to prevent multiple clicks
+    document.getElementById("studentMarkList").submit();
+}
+
+</script>
     <script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
     <script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>
 </script>

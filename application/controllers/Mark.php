@@ -79,17 +79,23 @@ class Mark extends CI_Controller {
                 $subject_name = $subject->label;
                 break;
             }
+            if($subject->label == $branch){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
         }
-        
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
         if($ict_subject_id == 0){
-            $data['message'] = "ICT subject not found in this class";
+            $data['message'] = "No Student Found for this class";
             $this->load->view('marks/paperclass_marks',$data);
         }else{
          $students = $this->Mark_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
         // print_r($students);
 
-        $grades = $this->Mark_model->get_classes();
-        $data['grades'] = $grades;
+      
+        
         $data['students'] = $students;
         $data['date'] = $date;
         $data['branch'] = $branch;
