@@ -76,6 +76,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary</a>
      </li>
      <li class="nav-item">
+      <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Payment Summary <span class="sr-only">(current)</span></a>
+     </li>
+     <li class="nav-item">
       <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks <span class="sr-only">(current)</span></a>
      </li>
       <li class="nav-item ">
@@ -155,6 +158,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="center" id="HRI" value="HRI" > <label class="form-check-label" for="HRI">HRIPITIYA</label>
                           </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="BAT" value="BAT" > <label class="form-check-label" for="BAT">BATTARAMULLA</label>
+                          </div>
+
                             <?php 
                             if (!empty($student_data['profile'][0]->admission_number)) {
                               $student_id_array = explode('/', $student_data['profile'][0]->admission_number);
@@ -166,6 +173,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo '<script>document.getElementById("MAH").checked = true;</script>';
                               }elseif($student_branch == 'HRI'){
                                 echo '<script>document.getElementById("HRI").checked = true;</script>';
+                              }elseif($student_branch == 'BAT'){
+                                echo '<script>document.getElementById("BAT").checked = true;</script>';
                               }
                               else{
                                 echo '<script>document.getElementById("PEL").checked = true;</script>';

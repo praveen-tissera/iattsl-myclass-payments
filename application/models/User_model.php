@@ -267,4 +267,35 @@ class User_model extends CI_Model{
 
     }
 
+    // get payment summary for each student in the given grade
+       public function get_students_by_branch($subject_id, $session_id, $branch){  
+        $this->db->select('*');
+        $this->db->from('wp_wlsm_student_records');
+        $this->db->where('section_id', $subject_id);
+        $this->db->where('session_id', $session_id);
+        $this->db->like('admission_number', $branch, 'after'); // 'after' means it will match the beginning of the string
+        $query = $this->db->get();
+        //PRINT query string
+        // echo $this->db->last_query();
+
+        
+        if($query->num_rows() > 0){
+            // crete loop to get each student previous marks from wp_wlsm_student_paper_marks_iattsl table filter by student_id, subject_id, session_id
+            foreach($query->result() as $key => $student){
+                $condition = "student_record_id  ='{$student->ID}'";
+                $marks_query = $this->db->select('*')
+                                        ->where($condition)
+                                        ->get('wp_wlsm_invoices');
+                if($marks_query->num_rows() > 0){
+                    $query->result()[$key]->payment_history = $marks_query->result();
+                }else{
+                    $query->result()[$key]->payment_history = null;
+                }
+            }
+            return $query->result();
+        }else{
+            return 0;
+        }
+    }
+
 }

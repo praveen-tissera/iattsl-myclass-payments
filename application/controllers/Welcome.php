@@ -8,6 +8,7 @@ class Welcome extends CI_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
         $this->load->model('User_model');
+        $this->load->model('Mark_model');
         $this->load->library('session');
         //load url library
 		$this->load->helper('url');
@@ -213,6 +214,85 @@ class Welcome extends CI_Controller {
             // print_r($data);
             $this->load->view('income',$data);
         
+    }
+
+
+    // payment history
+        public function paymenthistory(){
+        
+        $success = $this->session->flashdata('success');
+		$error = $this->session->flashdata('error');
+        $data = [];
+        if (!empty($success)) {
+            $data['success'] = $success;
+        }
+        if (!empty($error)) {
+            $data['error'] = $error;
+        }
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        // print_r($data);
+           
+            $this->load->view('student_payment',$data);   
+             
+        
+       
+    }
+
+
+
+    public function gradewisepaymentSumamry(){
+        $success = $this->session->flashdata('success');
+        $error = $this->session->flashdata('error');
+        // get form data input name grade
+        // $date = $this->input->post('date');
+        $branch = $this->input->post('branch');
+        $class_detail = $this->input->post('class');
+       
+        $session_id = 3;  
+        $class_array = explode('*', $class_detail);
+        $class_id = $class_array[0];
+        $class_name = $class_array[1];
+
+         $subjects = $this->Mark_model->get_subjecs($class_id);
+        //  print_r($subjects);
+        //  check whether ICT lable eixists in subjects array and return ID index value
+        $ict_subject_id = 0;
+        $subject_name;
+        foreach($subjects as $subject){
+            if($subject->label == 'ICT'){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
+            if($subject->label == $branch){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
+        }
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        if($ict_subject_id == 0){
+            $data['message'] = "No Student Found for this class";
+            $this->load->view('student_payment',$data);
+        }else{
+         $students = $this->User_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
+        // print_r($students);
+
+      
+        
+        $data['students'] = $students;
+        // $data['date'] = $date;
+        $data['branch'] = $branch;
+        $data['pclass_id'] = $class_id;
+        $data['pclass_name'] = $class_name;
+        $data['subject_id'] = $ict_subject_id;
+        $data['subject_name'] = $subject_name;
+       
+        $this->load->view('student_payment',$data);   
+        
+        }
     }
 
 }

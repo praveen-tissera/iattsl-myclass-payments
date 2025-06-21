@@ -11,6 +11,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
    
     <title>Income Summary</title>
   <style>
+    .fix-col{
+      position: sticky; top: 0; background: #f8f8f8; z-index: 2; padding: 8px; border: 1px solid #ccc;
+    }
     body{
       font-size: .9rem;
     }
@@ -75,14 +78,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
      <li class="nav-item">
       <a class="nav-link" target="_blank" href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary </a>
      </li>
-      <li class="nav-item">
+     <li class="nav-item active">
       <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Payment Summary <span class="sr-only">(current)</span></a>
      </li>
      <li class="nav-item ">
       <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks </a>
      </li>
-     <li class="nav-item active">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks <span class="sr-only">(current)</span></a>
+     <li class="nav-item">
+      <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks </a>
      </li>
      <li class="nav-item">
       <a class="nav-link" target="_blank" href="https://iattsl.edu.lk/iattslstudent">Student Report Card</a>
@@ -106,7 +109,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
 
                 ?>
-                <h1 class="text-center display-4" style="font-size:3rem">Paper Class Marks</h1>
+                <h1 class="text-center display-4" style="font-size:3rem">Student Payment Summary</h1>
                 <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                 <?php
                   if(isset($message)){
@@ -130,24 +133,24 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
                 ?>
 
-                <?php echo form_open('mark/paperStudents') ?>
+                <?php echo form_open('welcome/gradewisepaymentSumamry') ?>
                 <table class="table table-borderless">
                     <tr>
-                      <td>
+                      <!-- <td> -->
+                        
+                        <!-- create date form group set to current date -->
+                        <!-- <div class="form-group">
+                          <label for="date">Date</label>
+                          <input type="date" class="form-control" id="date" name="date" value="<?php echo date('Y-m-d'); ?>" required>
+                        </div> -->
+
+                      <!-- </td> -->
+                        <td>
                         <?php
                          date_default_timezone_set('Asia/Colombo');
                             $currentDate = date("Y-m-d"); // Format: YYYY-MM-DD
                             
                         ?>
-                        <!-- create date form group set to current date -->
-                        <div class="form-group">
-                          <label for="date">Date</label>
-                          <input type="date" class="form-control" id="date" name="date" value="<?php echo date('Y-m-d'); ?>" required>
-                        </div>
-
-                      </td>
-                        <td>
-                        
 
                         <div class="form-group">
                           <label for="class">Select Class</label>
@@ -186,7 +189,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         </td>
                         <td>
                           <br>
-                            <input class="btn btn-danger btn-block mt-2" type="submit" name="submit" value="NEXT">
+                            <input class="btn btn-danger btn-block mt-2" type="submit" name="submit" value="SEARCH">
                         </td>
                     </tr>
                 </table>
@@ -196,37 +199,46 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
         </div>
         <div class="row">
-            <div class="col">
+            <div class="col table-responsive" style="overflow-x: auto; max-width: 100%; height: 450px; overflow-y: auto;">
                 <?php
                 $attributes = array('id' => 'studentMarkList');
                 echo form_open('mark/paperMarksSubmit', $attributes);
                 if (isset($students) && is_array($students)) { 
                   ?>
-                <h2 class="text-center">Enter Marks for <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?> Date: <?php echo $date; ?></h2>
+                <h2 class="text-center">Payment Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?></h2>
                 <input type="hidden" class="form-control" value="<?php echo $pclass_id; ?>" name="selectclassid">
                 <input type="hidden" class="form-control" value="<?php echo $pclass_name; ?>" name="selectclassname">  
                 <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
                 <input type="hidden" class="form-control" value="<?php echo $subject_name; ?>" name="selectsubjectname">
 
-                  <input type="hidden" class="form-control" value="<?php echo $date; ?>" name="date">
+
                   <input type="hidden" class="form-control" value="<?php echo $branch; ?>" name="branch">
 
-
-                <input class="btn btn-primary btn-block mb-2" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn">
+<!-- 
+                <input class="btn btn-primary btn-block mb-2" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn"> -->
+                <?php
+                  $currentMonth = date("F");
+             
+                ?>
                    <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">Student ID</th>
-                            <th scope="col">Student Name</th>
-                            <th scope="col">Paper Type</th>
-                            <th scope="col">Part 01</th>
-                            <th scope="col">Part 02</th>
-                            <th scope="col">Total</th>
-                             <th scope="col">Grade</th>
-
-                            <th scope="col">Paper Link</th>
-                             
+                            <th scope="col" style="position: sticky; left: 0; background: #f2f2f2; z-index: 1;">Student Name</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'January') ?  'bg-warning fix-col' : ''; ?>">JAN</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'February') ?  'bg-warning' : ''; ?>" >FEB</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'March') ?  'bg-warning' : ''; ?>">MAR</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'April') ?  'bg-warning' : ''; ?>">APR</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'May') ?  'bg-warning' : ''; ?>">MAY</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'June') ?  'bg-warning fix-col' : ''; ?>">JUN</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'July') ?  'bg-warning' : ''; ?>">JUL</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'August') ?  'bg-warning' : ''; ?>">AUG</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'September') ?  'bg-warning' : ''; ?>">SEP</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'October') ?  'bg-warning' : ''; ?>">OCT</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'November') ?  'bg-warning' : ''; ?>">NOV</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'December') ?  'bg-warning' : ''; ?>">DEC</th>
+                        
                             
 
                         </tr>
@@ -235,142 +247,68 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                       <?php
                       
                         $i = 1;
+                        $months = [
+                                      "January", "February", "March", "April", "May", "June",
+                                      "July", "August", "September", "October", "November", "December"
+                                  ];
+
                         foreach ($students as $student) {
                             // check if student marks already exists
-                            $marks = $student->marks;
+                            $payments = $student->payment_history;
                             $part1 = null;
                             $part2 = null;
                             $total = null;
                             $papertype = null;
                             $paperlink = null;
                            
-                            if (isset($marks) && is_array($marks)) {
-                                // if marks exists then set the values to the input fields
-                             
-                                foreach ($marks as $mark) {
-                                  if($mark->paper_date == $date){
-                                    $part1 = $mark->part1;
-                                    $part2 = $mark->part2;
-                                    $total = $mark->total;
-                                    $papertype = $mark->paper_type;
-                                    $paperlink = $mark->link;
-                                }
-                            }
-                          }
+                           
                            echo "<tr>";
-                            echo "<td>" . $i . "</td>";
+                            echo "<td >" . $i . "</td>";
                             echo "<td>" . $student->admission_number . "</td>";
-                            echo "<td>" . $student->name . "</td>";
-                            echo "<td>";
-                            echo "<input  type='text' class='form-control' name='papertype_{$student->ID}' value='{$papertype}' >";
+                            echo "<td style='position: sticky; left: 0; background: #f2f2f2; z-index: 1;'>" . $student->name . "</td>";
+                            if (isset($payments) && is_array($payments)) {
+                                foreach ($months as $month) {
+                                    $found = false;
+                                    foreach ($payments as $payment) {
+                                        if (stripos($payment->label, $month) !== false) {
+                                            echo "<td>";
+                                            // echo $payment->label;
+                                            // echo "<br>";
+                                           
+                                            if($payment->status == 'paid'){
+                                                echo "<span class='badge badge-success'> Paid</span>";
+                                            }else if($payment->status == 'unpaid'){
+                                              $studentid = explode('/', $student->admission_number);
+                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'> Unpaid </a>";
+                                            }
+                                            echo "</td>";
+                                            $found = true;
+                                            break; // Exit the inner loop once a match is found
+                                        }
+                                    }
+                                    if (!$found) {
+                                        echo "<td> Not Found </td>"; // If no payment found for the month, display empty cell
+                                    }
+                                }
+                                // foreach ($student->payment_history as $payment) {
+                                //     if (stripos($payment->label, $months) !== false) {
+                                //       echo "<td>";
+                                //         echo $payment->label;
+                                //         echo "<br>";
+                                //         echo $payment->status;
+                                //       echo "</td>";
+                                //     }
+
+
+                                // }
+                            }
+                          echo "</tr>";
                             ?>
 
 
-                          <!-- Button trigger modal -->
-<button type="button" class="btn btn-link btn-sm" data-toggle="modal" data-target="#prevMarksModal<?php echo $student->ID; ?>">
-  Previous Marks
-</button>
-
-<!-- Modal -->
-<div class="modal fade" id="prevMarksModal<?php echo $student->ID; ?>" tabindex="-1"  aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" ><?php echo $student->name; ?></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Paper Date</th>
-              <th scope="col">Paper Type</th>
-              <th scope="col">Part 01</th>
-              <th scope="col">Part 02</th>
-              <th scope="col">Total</th>
-              <th scope="col">Paper Link</th>
-
-
-            </tr>
-          </thead>
-          <tbody>
-            <?php
-            if (isset($marks) && is_array($marks)) {
-                $j = 1;
-                foreach ($marks as $mark) {
-                    echo "<tr>";
-                    echo "<td>" . $j . "</td>";
-                    echo "<td>" . $mark->paper_date . "</td>";
-                    echo "<td>" . $mark->paper_type . "</td>";
-                    echo "<td>" . $mark->part1 . "</td>";
-                    echo "<td>" . $mark->part2 . "</td>";
-                    echo "<td>" . $mark->total . "</td>";
-                    echo "<td>";
-                     if(!empty($mark->link)) { ?>
-                                <a href="#" onclick="openSmallWindow(`<?php echo $mark->link; ?>`); return false;">Open</a>
-                           <?php } 
-                    echo "</td>";
-                    echo "</tr>";
-                    $j++;
-                }
-            } else {
-                echo "<tr><td colspan='7'>No previous marks found.</td></tr>";
-            }
-            ?>
-          </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
                             <?php
-                            echo "</td>";
-                            echo "<td>";
-                            echo "<input type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$part1}' >";
-                            echo "</td>";
-                            echo "<td>";
-                            echo "<input type='number' class='input2 form-control' name='part2_{$student->ID}' min='0' max='100' value='{$part2}' >";
-                            echo "</td>";
-                            echo "<td>";
-                            echo "<input type='number' class='totalTrigger form-control' name='total_{$student->ID}' min='0' max='100' value='{$total}'>";
-                            echo "</td>";
-                            echo "<td>";
-                           if(isset($total) && $total != null){
-                                if($total >= 75){
-                                    echo "<p class='gradeVal'>A</p>";
-                                }else if($total >= 65){
-                                    echo "<p class='gradeVal'>B</p>";
-                                }else if($total >= 55){
-                                    echo "<p class='gradeVal'>C</p>";
-                                }else if($total >= 40){
-                                    echo "<p class='gradeVal'>S</p>";
-                                }else if($total > 0){
-                                    echo "<p class='gradeVal'>F</p>";
-                                }else{
-                                    echo "<p class='gradeVal'>N/A</p>";
-                                }
-                           }else{
                            
-                            echo "<p class='gradeVal'></p>";
-                          }
-                            echo "</td>";
-                            echo "<td>";
-                            echo "<input type='text' class='form-control' name='paperlink_{$student->ID}' placeholder='Enter Paper Link' value='{$paperlink}' >";
-                            if(!empty($paperlink)) { ?>
-                                <a href="#" onclick="openSmallWindow(`<?php echo $paperlink; ?>`); return false;">Open</a>
-                           <?php } 
-                            echo "</td>";
-                            echo "</tr>";
+                           
                             $i++;
 
                         }

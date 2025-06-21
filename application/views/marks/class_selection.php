@@ -75,6 +75,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
      <li class="nav-item active">
       <a class="nav-link" target="_blank" href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary <span class="sr-only">(current)</span></a>
      </li>
+      <li class="nav-item">
+      <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Payment Summary <span class="sr-only">(current)</span></a>
+     </li>
      <li class="nav-item active">
       <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks <span class="sr-only">(current)</span></a>
      </li>
