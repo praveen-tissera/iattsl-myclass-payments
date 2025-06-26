@@ -145,7 +145,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
                 ?>
 
-                <?php echo form_open('welcome/incomesummary') ?>
+                <?php echo form_open('welcome/adminincomesummary') ?>
                 <table class="table table-borderless">
                     <tr>
                         <td>
@@ -160,14 +160,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <label class="btn btn-sm btn-secondary active">
                             <input type="radio" name="filteroptions" id="option1" value="custome" checked> Custom
                           </label>
-                          <!-- <label class="btn btn-sm btn-secondary">
+                          <label class="btn btn-sm btn-secondary">
                             <input type="radio" name="filteroptions" value="week" id="option2"> 07 Days
                           </label>
                           <label class="btn btn-sm btn-secondary">
                             <input type="radio" name="filteroptions" value="month" id="option3"> This Month
-                          </label> -->
+                          </label>
                         </div>
-                         
+                          <?php 
+                            // if (!empty($student_data['profile'][0]->admission_number)) {
+                            //   $student_id_array = explode('/', $student_data['profile'][0]->admission_number);
+                            //   $student_id = end($student_id_array);
+
+                            //   echo "<input class='form-control' type='date' name='studentid' placeholder='24-999' value='{$student_id}'>";
+                            // }else{
+                            //  echo '<input class="form-control" type="text" name="studentid" placeholder="24-999">';
+                            // }
+
+                          
+                          ?>
                            
 
                         </td>

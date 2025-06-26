@@ -143,7 +143,7 @@ class Welcome extends CI_Controller {
             $result = $this->User_model->insert_payment($data);
             // $result = 2;
             if($result > 1){
-                echo "success";
+                // echo "success";
                 // $this->session->set_flashdata('success_message_display', 'Payment Updated sucessfully');
                 $student_id = $_POST['student_id'];
                 // split $student_id using '/'
@@ -159,7 +159,7 @@ class Welcome extends CI_Controller {
                 redirect('/welcome/idValidator/'.$student_id.'/'.$student_branch);
 
             } else if($result == 0){
-                echo "error";
+                // echo "error";
                 $student_id = $_POST['student_id'];
                 // split $student_id using '/'
                 $student_id_array = explode('/', $student_id);
@@ -170,7 +170,7 @@ class Welcome extends CI_Controller {
 
                 redirect('/welcome/idValidator/'.$student_id);
             } else{
-                echo "default";
+                // echo "default";
                 $student_id = $_POST['student_id'];
                 // split $student_id using '/'
                 $student_id_array = explode('/', $student_id);
@@ -203,16 +203,66 @@ class Welcome extends CI_Controller {
     public function income(){
         $this->load->view('income');
     }
+    public function adminincome(){
+        $this->load->view('adminincome');
+    }
 
     public function incomesummary(){
+        date_default_timezone_set('Asia/Colombo');
+         if(empty($this->input->post('filteroptions'))){
+            
+            redirect('welcome/income');
+        }
         // print_r($_POST);
+        if($this->input->post('filteroptions') == 'week'){
+            $datedata[] = date('Y-m-d');
+            $datedata[] = date('Y-m-d', strtotime('-6 days'));
+            $date_range_string = $datedata[1] . ' - ' . $datedata[0];
+        }elseif($this->input->post('filteroptions') == 'month'){
+            $datedata[] = date('Y-m-d');
+            // Get the first day of the current month
+            $datedata[] = date('Y-m-01');
+            $date_range_string = $datedata[1] . ' - ' . $datedata[0];
+        }elseif($this->input->post('filteroptions') == 'custome'){
+            $datedata = $this->input->post('incomedate');
+            $date_range_string = $datedata;
+        }
 
-        $result = $this->User_model->get_payments($_POST['incomedate']);
+        $result = $this->User_model->get_payments( $datedata);
         
             $data['income_summary'] = $result;
-            $data['date_select'] = $_POST['incomedate'];
+            $data['date_select'] = $date_range_string;
             // print_r($data);
             $this->load->view('income',$data);
+        
+    }
+    public function adminincomesummary(){
+        date_default_timezone_set('Asia/Colombo');
+        // print_r($_POST);
+        if(empty($this->input->post('filteroptions'))){
+            
+            redirect('welcome/adminincome');
+        }
+        if($this->input->post('filteroptions') == 'week'){
+            $datedata[] = date('Y-m-d');
+            $datedata[] = date('Y-m-d', strtotime('-6 days'));
+            $date_range_string = $datedata[1] . ' - ' . $datedata[0];
+        }elseif($this->input->post('filteroptions') == 'month'){
+            $datedata[] = date('Y-m-d');
+            // Get the first day of the current month
+            $datedata[] = date('Y-m-01');
+            $date_range_string = $datedata[1] . ' - ' . $datedata[0];
+        }elseif($this->input->post('filteroptions') == 'custome'){
+            $datedata = $this->input->post('incomedate');
+            $date_range_string = $datedata;
+        }
+
+        $result = $this->User_model->get_payments( $datedata);
+        
+            $data['income_summary'] = $result;
+            $data['date_select'] = $date_range_string;
+            // print_r($data);
+            $this->load->view('adminincome',$data);
         
     }
 

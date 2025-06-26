@@ -245,7 +245,12 @@ class User_model extends CI_Model{
         $this->db->select('wp_wlsm_payments.*, wp_wlsm_student_records.name,wp_wlsm_student_records.admission_number');
         $this->db->from('wp_wlsm_payments');
         $this->db->join('wp_wlsm_student_records', 'wp_wlsm_payments.student_record_id = wp_wlsm_student_records.ID');
-        $this->db->where('DATE(wp_wlsm_payments.created_at)', $date);
+        if (is_array($date) && count($date) == 2) {
+            $this->db->where('DATE(wp_wlsm_payments.created_at) >=', $date[1]);
+            $this->db->where('DATE(wp_wlsm_payments.created_at) <=', $date[0]);
+        } else {
+            $this->db->where('DATE(wp_wlsm_payments.created_at)', $date);
+        }
 
 
 
@@ -253,7 +258,7 @@ class User_model extends CI_Model{
         $query = $this->db->get();
 
         $lastQuery = $this->db->last_query();
-        echo $lastQuery;
+       
         
         if($query->num_rows()>0){
             $result = $query->result();
