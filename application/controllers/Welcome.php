@@ -252,6 +252,13 @@ class Welcome extends CI_Controller {
             // Get the first day of the current month
             $datedata[] = date('Y-m-01');
             $date_range_string = $datedata[1] . ' - ' . $datedata[0];
+        }elseif($this->input->post('filteroptions') == 'lastmonth'){
+            // get last month date range
+            $datedata[] = date('Y-m-d', strtotime('last day of last month'));
+            $datedata[] = date('Y-m-d', strtotime('first day of last month'));
+            
+            // $datedata[] = date('Y-m-d', strtotime('-1 month'));
+            $date_range_string = $datedata[1] . ' - ' . $datedata[0];
         }elseif($this->input->post('filteroptions') == 'custome'){
             $datedata = $this->input->post('incomedate');
             $date_range_string = $datedata;

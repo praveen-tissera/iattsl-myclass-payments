@@ -166,6 +166,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <label class="btn btn-sm btn-secondary">
                             <input type="radio" name="filteroptions" value="month" id="option3"> This Month
                           </label>
+                          <label class="btn btn-sm btn-secondary">
+                            <input type="radio" name="filteroptions" value="lastmonth" id="option3"> Last Month
+                          </label>
                         </div>
                           <?php 
                             // if (!empty($student_data['profile'][0]->admission_number)) {
