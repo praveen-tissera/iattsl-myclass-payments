@@ -58,6 +58,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       border-radius: 50%;
       display: inline-block;
     }
+
+       /* copy admission num */
+    .admission-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .copy-icon {
+      margin-left: 8px;
+      cursor: pointer;
+      color: blue;
+    }
   </style>
 
 </head>
@@ -109,7 +121,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
 
                 ?>
-                <h1 class="text-center display-4" style="font-size:3rem">Student Payment Summary</h1>
+                <h1 class="text-center display-4" style="font-size:2.6rem">Student Payment Summary</h1>
                 <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                 <?php
                   if(isset($message)){
@@ -224,20 +236,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">Student ID</th>
+                            <th scope="col">ID</th>
                             <th scope="col" style="position: sticky; left: 0; background: #f2f2f2; z-index: 1;">Student Name</th>
                             <th scope="col" class = "<?php echo($currentMonth == 'January') ?  'bg-warning fix-col' : ''; ?>">JAN</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'February') ?  'bg-warning' : ''; ?>" >FEB</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'March') ?  'bg-warning' : ''; ?>">MAR</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'April') ?  'bg-warning' : ''; ?>">APR</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'May') ?  'bg-warning' : ''; ?>">MAY</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'February') ?  'bg-warning fix-col' : ''; ?>" >FEB</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'March') ?  'bg-warning fix-col' : ''; ?>">MAR</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'April') ?  'bg-warning fix-col' : ''; ?>">APR</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'May') ?  'bg-warning fix-col' : ''; ?>">MAY</th>
                             <th scope="col" class = "<?php echo ($currentMonth == 'June') ?  'bg-warning fix-col' : ''; ?>">JUN</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'July') ?  'bg-warning' : ''; ?>">JUL</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'August') ?  'bg-warning' : ''; ?>">AUG</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'September') ?  'bg-warning' : ''; ?>">SEP</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'October') ?  'bg-warning' : ''; ?>">OCT</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'November') ?  'bg-warning' : ''; ?>">NOV</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'December') ?  'bg-warning' : ''; ?>">DEC</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'July') ?  'bg-warning fix-col' : ''; ?>">JUL</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'August') ?  'bg-warning fix-col' : ''; ?>">AUG</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'September') ?  'bg-warning fix-col' : ''; ?>">SEP</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'October') ?  'bg-warning fix-col' : ''; ?>">OCT</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'November') ?  'bg-warning fix-col' : ''; ?>">NOV</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'December') ?  'bg-warning fix-col' : ''; ?>">DEC</th>
                         
                             
 
@@ -264,7 +276,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                            
                            echo "<tr>";
                             echo "<td >" . $i . "</td>";
-                            echo "<td>" . $student->admission_number . "</td>";
+                            echo "<td>";
+                            echo "<span class='admission'>" .$student->admission_number. "</span>";
+                            echo "<span class='copy-icon' onclick='copyCode(this)'>📋</span>";
+                            echo "</td>";
                             echo "<td style='position: sticky; left: 0; background: #f2f2f2; z-index: 1;'>" . $student->name . "</td>";
                             if (isset($payments) && is_array($payments)) {
                                 foreach ($months as $month) {
@@ -277,9 +292,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                            
                                             if($payment->status == 'paid'){
                                                 echo "<span class='badge badge-success'> Paid</span>";
+                                               
                                             }else if($payment->status == 'unpaid'){
                                               $studentid = explode('/', $student->admission_number);
-                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'> Unpaid </a>";
+                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
                                             }
                                             echo "</td>";
                                             $found = true;
@@ -334,6 +350,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       </div>
     </div>
 </body>
+
+<script>
+    function copyCode(icon) {
+      const fullText = icon.previousElementSibling.textContent;
+      const code = fullText.split('/')[1]; // Extracts 24-011
+      navigator.clipboard.writeText(code).then(() => {
+        icon.textContent = "✅"; // Visual feedback
+        setTimeout(() => icon.textContent = "📋", 1000);
+      });
+    }
+  </script>
 <script>
 function openSmallWindow(url) {
     window.open(url, '_blank', 'width=700,height=800,resizable=yes,scrollbars=yes');

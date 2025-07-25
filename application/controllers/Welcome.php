@@ -188,10 +188,34 @@ class Welcome extends CI_Controller {
 
     public function pdfgenerator(){
         $result = $this->User_model->get_payment_detail($_POST['invoiceid']);
+        $admission = $result[1]->admission_number;
+        // retrive branch code MAH/25-090
+        $branch_code = explode('/', $admission);
+        $branch_code = $branch_code[0];
+        switch($branch_code){
+            case 'MAH':
+                $branch_name = 'Maharagama Center';
+                break;
+            case 'PEL':
+                $branch_name = 'Pelawatta Center';
+                break;
+            case 'BAT':
+                $branch_name = 'Battaramulla Center';
+                break;
+            case 'MAT':
+                $branch_name = 'Mattegoda Center';
+                break;
+            case 'HRI':
+                $branch_name = 'Hiripitiya Center';
+                break;
+           default:
+                $branch_name = 'Unknown Center';
+                break;
+        }
         if($result[2]->invoice_payable < $result[0]->amount){
             $result[0]->status = 'Partially paid';
         }
-        $html =  "<table border='0' style='margin-top:40px;width:100%;border:0px black solid;border-collapse: collapse;'><thead ><tr><th style='padding:10px;text-align:left;font-size:24px;'> IATT|SL Pelawatta Center: {$result[0]->label}</th><th scope='col' style='text-align:right;font-size:16px'>  Invoice No: {$result[0]->invoice_number} </th></tr></thead><tbody></table><hr><table border='1' style='margin-top:10px;width:100%;border:1px black solid;border-collapse: collapse;font-family:arial;'><thead class='bg-primary'><tr><td scope='col' style='padding:10px;'>Invoice Title</td><td scope='col' style='padding:10px;'>{$result[0]->label}</td></tr><tr><td scope='col' style='padding:10px;'>Receipt Number</td><td scope='col' style='padding:10px;'>{$result[2]->receipt_number}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Date Issued</td><td scope='col' style='padding:10px;'>{$result[2]->created_at}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Student Name</td><td scope='col' style='padding:10px;'>{$result[1]->name}</td></tr><tr><td scope='col' style='padding:10px;'>Student Grade</td><td scope='col' style='padding:10px;'>{$_POST['grade']}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Amount (in LKR) </td><td scope='col' style='padding:10px;'>{$result[2]->invoice_payable}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Payment Status</td><td scope='col' style='padding:10px;'>{$result[0]->status}</td></tr></thead><tbody></table><table border='0' style='margin-top:20px;width:100%;border:0px black solid;border-collapse: collapse;'><thead ><tr><th style='padding:10px;text-align:right;font-size:14px;'> Phone: +94 74 080 7306 | +94 76 435 4111 Email: info@iattsl.edu.lk</th></tr></thead><tbody></table>";
+        $html =  "<table border='0' style='margin-top:40px;width:100%;border:0px black solid;border-collapse: collapse;'><thead ><tr><th style='padding:10px;text-align:left;font-size:18px;'> IATT|SL $branch_name : {$result[0]->label}</th><th scope='col' style='text-align:right;font-size:16px'>  Invoice No: {$result[0]->invoice_number} </th></tr></thead><tbody></table><hr><table border='1' style='margin-top:10px;width:100%;border:1px black solid;border-collapse: collapse;font-family:arial;'><thead class='bg-primary'><tr><td scope='col' style='padding:10px;'>Invoice Title</td><td scope='col' style='padding:10px;'>{$result[0]->label}</td></tr><tr><td scope='col' style='padding:10px;'>Student Name</td><td scope='col' style='padding:10px;'>{$result[1]->name}</td></tr><tr><td scope='col' style='padding:10px;'>Student ID</td><td scope='col' style='padding:10px;'>{$result[1]->admission_number}</td></tr><tr><td scope='col' style='padding:10px;'>Receipt Number</td><td scope='col' style='padding:10px;'>{$result[2]->receipt_number}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Date Issued</td><td scope='col' style='padding:10px;'>{$result[2]->created_at}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Student Grade</td><td scope='col' style='padding:10px;'>{$_POST['grade']}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Amount (in LKR) </td><td scope='col' style='padding:10px;'>{$result[2]->invoice_payable}</td></tr></tr><tr><td scope='col' style='padding:10px;'>Payment Status</td><td scope='col' style='padding:10px;'>{$result[0]->status}</td></tr></thead><tbody></table><table border='0' style='margin-top:20px;width:100%;border:0px black solid;border-collapse: collapse;'><thead ><tr><th style='padding:10px;text-align:right;font-size:14px;'> Phone: +94 74 080 7306 | +94 76 435 4111 Email: info@iattsl.edu.lk</th></tr></thead><tbody></table>";
         $this->load->library('pdf');
 		$this->dompdf->loadHtml($html);
 		$this->dompdf->setPaper('A4', 'portrait');

@@ -236,6 +236,100 @@ class User_model extends CI_Model{
 
     }
 
+
+
+
+    // get student course and grade deatils by provided admission number
+    public function get_student_course_grade($data){    
+        
+        
+        // SELECT * FROM `wp_wlsm_student_records` WHERE admission_number = 'G07/21-013' AND session_id='4';
+        // SELECT * FROM `wp_wlsm_sections` WHERE ID="7";
+        // SELECT * FROM `wp_wlsm_payments` WHERE student_record_id ='254';
+        // session table wp_wlsm_sessions
+        $condition = "admission_number='{$data}' && session_id='3'";
+        $query = $this->db->select('*')
+        ->where($condition)
+        ->get('wp_wlsm_student_records');
+        
+        if($query->num_rows() == 1){
+            $profileData = $query->result();
+            // print_r($profileData[0]->ID);
+            // get course Name:
+                    $condition = "ID='{$profileData[0]->section_id}'";
+                    $query_class = $this->db->select('*')
+                    ->where($condition)
+                    ->get('wp_wlsm_sections');
+                    if($query->num_rows() == 1){
+                        // print_r($query_class->result());
+                        $courseName = $query_class->result()[0]->label;
+                        // GET Grade 1. get ID 2. get grade label
+
+                        // SELECT wp_wlsm_classes.ID, wp_wlsm_classes.label FROM wp_wlsm_classes INNER JOIN wp_wlsm_class_school ON wp_wlsm_classes.ID=wp_wlsm_class_school.class_id WHERE wp_wlsm_class_school.ID = 7;
+
+                            $query_gradeID = $this->db->query("SELECT wp_wlsm_classes.ID, wp_wlsm_classes.label FROM wp_wlsm_classes INNER JOIN wp_wlsm_class_school ON wp_wlsm_classes.ID=wp_wlsm_class_school.class_id WHERE wp_wlsm_class_school.ID = {$query_class->result()[0]->class_school_id}");
+                            $grade = $query_gradeID->result();
+                        //    print_r($grade);
+
+                        // GET invoices FROM wp_wlsm_invoice
+                        // SELECT * FROM `wp_wlsm_invoice` WHERE student_record_id ='254' ORDER BY invoice_id DESC;
+                        
+                        
+                            // $condition = "student_record_id='{$profileData[0]->ID}'";
+                            // $query_invoicehistory = $this->db->select('*')
+                            // ->where($condition)
+                            // ->order_by("invoice_number", "desc")
+                            // ->get('wp_wlsm_invoices');
+                           
+                            // $paymentHistory = $query_invoicehistory->result();
+
+
+                            // print_r($invoiceHistory);
+                        // GET payment records
+                            // $condition = "student_record_id='{$profileData[0]->ID}'";
+                            // $query_paymenthistory = $this->db->select('*')
+                            // ->where($condition)
+                            // ->order_by("invoice_id", "desc")
+                            // ->get('wp_wlsm_payments');
+                            
+                            // $paymentCompletion = $query_paymenthistory->result();
+
+                    }
+
+
+
+                    
+                    $result_attendance = [];  
+                    // $condition = "student_id='{$profileData[0]->ID}' && course_name='{$courseName}'&& grade_id='{$grade[0]->ID}'";
+                    // $query = $this->db->select('*')
+                    // ->where($condition)
+                    // ->order_by("attend_date", "desc")
+                    // ->get('wp_wlsm_attendance'); 
+                                
+                                        // echo $query->num_rows();
+                        // if($query->num_rows() > 0){
+                        //     $result_attendance = $query->result();
+                            
+                        // }else{
+                        //     $result_attendance = [];  
+                        // }
+
+                        $data =  array ('profile'=> $profileData,
+                        'course'=>$courseName,
+                        'grade'=> $grade,
+                        // 'payment'=>$paymentHistory,
+                        // 'payment_completion'=>$paymentCompletion,
+                        'attendance'=>$result_attendance
+                    );
+                   
+                    return $data;
+
+        }else{
+            return(0);
+        }
+        // print_r($query->result());
+    }
+
     public function get_payments($date){
         // $this->db->where('DATE(created_at)', $date);
         // $query = $this->db->get('wp_wlsm_payments');
@@ -262,9 +356,21 @@ class User_model extends CI_Model{
         
         if($query->num_rows()>0){
             $result = $query->result();
-            return $result;
-
+            
+            // create loop to retrive admission_number form $result array object and take number 25-170 from BAT/25-170
+            foreach($result as $key => $payment){
+                // echo $payment->admission_number;
+                $admission_parts = explode('/', $payment->admission_number);
+                // print_r($admission_parts[1]);
+                
+                // call function get_student_course_grade on top on this same model
+                $student_course_grade = $this->get_student_course_grade($payment->admission_number);
+                $result[$key]->course = $student_course_grade['course'];
+                $result[$key]->grade = $student_course_grade['grade'][0]->label;
+                // print_r($student_course_grade);
+            }
             // print_r($result);
+            return $result;
         }elseif($query->num_rows() == 0){
             return(0);
         }

@@ -70,6 +70,49 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     .HRI{
       background-color: #FF8C33 !important;
     }
+
+
+
+/* print preview style */
+table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .print-preview {
+      display: none;
+    }
+    @media print {
+      body * {
+        visibility: visible !important;
+      }
+      .print-preview, .print-preview * {
+        visibility: visible;
+       
+      }
+      .print-preview {
+        position: absolute;
+        left: 0 !important;
+        top: 0 !important;
+      }
+    }
+
+    /* copy admission num */
+    .admission-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .copy-icon {
+      margin-left: 8px;
+      cursor: pointer;
+      color: blue;
+    }
+
   </style>
 
 </head>
@@ -294,10 +337,102 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
             <div class="tab-pane fade show <?php echo $tab_active; ?>" id="pills-<?php echo $branch; ?>" role="tabpanel" aria-labelledby="pills-<?php echo $branch; ?>-tab">
                             <!-- show payment table base on branch -->
-                            
-          <?php 
+                    <button class="btn btn-outline-success float-right mb-2 btn-sm" onclick="window.print()">Print</button>
+         
+                <?php 
                  
-                //  print_r($income_summary);
+
+                 echo "<table class='table table-sm table-striped'>";
+                    echo "<tr class='bg-success text-white' >";
+                    echo "<th >";
+                        echo "#";
+                      echo "</th>";
+                      echo "<th >";
+                        echo "Recepit Number";
+                      echo "</th>";
+                      echo "<th>";
+                      echo "Student ID";
+                    echo "</th>";
+                    echo "<th>";
+                      echo "Course";
+                    echo "</th>";
+                    echo "<th>";
+                    echo "Student Name";
+                  echo "</th>";
+                      echo "<th>";
+                        echo "Paid Month";
+                      echo "</th>";
+                      echo "<th>";
+                      echo "Invoice Amount";
+                    echo "</th>";
+                    echo "<th>";
+                    echo "Created Date";
+                  echo "</th>";
+                      echo "<th>";
+                      echo "Last updated";
+                    echo "</th>";
+                    
+                 echo "</tr>";
+                 if($income_summary == 0){
+                  echo "<tr>";
+                  echo "<td colspan='7'>";
+                    echo "No records found";
+                  echo "</td>";
+                  echo "</tr>";
+                 }else{
+                  $rowNumber = 1;
+                  // print_r($income_summary);
+                  foreach ($payments as $key => $payment) {
+                    echo "<tr>";
+                      echo "<td>";
+                      echo $rowNumber;
+                        $rowNumber += 1;
+                      echo "</td>";
+                      echo "<td>";
+                        echo $payment->receipt_number;
+                      echo "</td>";
+                      echo "<td>";
+                      echo "<span class='admission'>" .$payment->admission_number. "</span>";
+                      echo "<span class='copy-icon' onclick='copyCode(this)'>📋</span>";
+
+                      echo "</td>";
+                      echo "<td>";
+                      echo $payment->course . ' | ' .$payment->grade; 
+                      echo "</td>";
+                      echo "<td>";
+                      echo $payment->name;
+                      echo "</td>";
+                      echo "<td>";
+                      echo $payment->invoice_label;
+                      echo "</td>";
+                      echo "<td>";
+                      echo $payment->invoice_payable;
+                      echo "</td>";
+                      echo "<td>";
+                      echo $payment->created_at;
+                      echo "</td>";
+                      echo "<td>";
+                      echo $payment->updated_at;
+                      echo "</td>";
+  
+                    echo "</tr>";
+                  
+                   }
+                 }
+                
+                 echo "</table>";
+
+                  ?>
+
+                  <!-- end of payment table -->
+
+
+
+
+                  <div class="print-preview" id="previewArea">
+                  <?php 
+                 
+
                  echo "<table class='table table-sm table-striped'>";
                     echo "<tr class='bg-success text-white' >";
                     echo "<th >";
@@ -371,9 +506,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                  echo "</table>";
 
                   ?>
-                  <!-- end of payment table -->
-
-
+                  </div>
 
 
                 </div>
@@ -405,6 +538,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       </div>
     </div>
 </body>
+<script>
+    function copyCode(icon) {
+      const fullText = icon.previousElementSibling.textContent;
+      const code = fullText.split('/')[1]; // Extracts 24-011
+      navigator.clipboard.writeText(code).then(() => {
+        icon.textContent = "✅"; // Visual feedback
+        setTimeout(() => icon.textContent = "📋", 1000);
+      });
+    }
+  </script>
+
     <script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
     <script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>
 </script>
