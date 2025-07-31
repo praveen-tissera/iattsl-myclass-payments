@@ -262,7 +262,8 @@ class Mark extends CI_Controller {
         $subject_name = $subject_array[1];
         // print_r($subject_id);
         $session_id = 3;  
-        $term = 'Term 1';   
+     
+
          $students = $this->Mark_model->get_students($subject_id, $session_id);
         //  print_r($students);
          if($students == 0){
@@ -271,13 +272,25 @@ class Mark extends CI_Controller {
             
          }else{
             
-            $data['students'] = $students;
+            // $data['term1'] = $students;
+            //  $data['term2'] = $students;
+            //  $data['term3'] = $students;
             $data['class_id'] = $class_id;
             $data['class_name'] = $class_name;
             $data['subject_id'] = $subject_id;
             $data['subject_name'] = $subject_name;
             // print_r($data);
-            $data['students'] = $this->Mark_model->get_student_marks($subject_id, $session_id, $term, $students);
+            
+            $term1 = $this->Mark_model->get_student_marks($subject_id, $session_id, 'Term 1', $students);
+            $students = $this->Mark_model->get_students($subject_id, $session_id);
+            $term2  = $this->Mark_model->get_student_marks($subject_id, $session_id, 'Term 2', $students);
+            $students = $this->Mark_model->get_students($subject_id, $session_id);
+            $term3  = $this->Mark_model->get_student_marks($subject_id, $session_id, 'Term 3', $students);
+            
+            $data['term1'] = $term1;
+            $data['term2'] = $term2;
+            $data['term3'] = $term3;
+            
             $this->load->view('marks/student_selection',$data);
          }
     }
@@ -295,7 +308,9 @@ class Mark extends CI_Controller {
        
         // print_r($subject_id);
         $session_id = 3; 
-        $term = 'Term 1';   
+        $term1 = 'Term 1'; 
+        $term2 = 'Term 2'; 
+        $term3 = 'Term 3';   
          $students = $this->Mark_model->get_students($subject_id, $session_id);
         //  print_r($students);
          if($students == 0){
@@ -317,7 +332,12 @@ class Mark extends CI_Controller {
             $data['subject_name'] = $subject_name;
             // print_r($students);
             // create foreach loop for students array and get eache sudent marks and update the array use get_student_marks model
-            $data['students'] = $this->Mark_model->get_student_marks($subject_id, $session_id, $term, $students);
+            $students = $this->Mark_model->get_students($subject_id, $session_id);
+            $data['term1'] = $this->Mark_model->get_student_marks($subject_id, $session_id, $term1, $students);
+            $students = $this->Mark_model->get_students($subject_id, $session_id);
+            $data['term2'] = $this->Mark_model->get_student_marks($subject_id, $session_id, $term2, $students);
+            $students = $this->Mark_model->get_students($subject_id, $session_id);
+            $data['term3'] = $this->Mark_model->get_student_marks($subject_id, $session_id, $term3, $students);
           
             // print_r($data);
             $this->load->view('marks/student_selection',$data);
@@ -334,9 +354,10 @@ class Mark extends CI_Controller {
         $selectclass = $this->input->post('selectclass');
         $selectsubjectid = $this->input->post('selectsubjectid');
         $selectsubject = $this->input->post('selectsubject');
+        $selectterm = $this->input->post('term');
 
        
-        
+        // print_r($_POST);
 
         // print_r($_POST);
         $subject_id = $this->input->post('selectsubjectid');
@@ -361,7 +382,7 @@ class Mark extends CI_Controller {
                     'admission_number' => $student->admission_number,
                     'name' => $student->name,
                     'branch' => $branch,
-                    'term' => 'Term 1',
+                    'term' => $selectterm,
                     'class_id' => $selectclassid,
                     'class_name' => $selectclass,
                     'subject_id' => $subject_id,

@@ -86,6 +86,7 @@ class Mark_model extends CI_Model{
                     $query = $this->db->select('*')
                     ->where($condition)
                     ->get('wp_wlsm_student_marks_iattsl');
+
             if($query->num_rows() > 0){
                 // print_r($query->result());
                 $students[$key]->marks = $query->result()[0];

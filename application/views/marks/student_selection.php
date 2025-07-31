@@ -164,159 +164,527 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </div>
         <div class="row">
             <div class="col">
-              
-              <?php 
-              $attributes = array('id' => 'studentMarkList');
-              echo form_open('mark/studentsSubmit', $attributes) ?>
-              
-              <input class="btn btn-primary btn-block" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn">
-                <input type="hidden" class="form-control" value="<?php echo $class_id; ?>" name="selectclassid">
-                <input type="hidden" class="form-control" value="<?php echo $class_name; ?>" name="selectclass">  
-                <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
-                <input type="hidden" class="form-control" value="<?php echo $subject_name; ?>" name="selectsubject">
-                
-              <br>
-              <div class="row">
-              <?php 
-              $termtest_date = false;
-              $practicaltest_date = false;
-              date_default_timezone_set('Asia/Colombo');
-              $currentDate = date("Y-m-d");
-                      
 
-              
-              ?>
-              </div>
-              <br>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Student ID</th>
-                            <th scope="col">Student Name</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Part 01</th>
-                            <th scope="col">Part 02</th>
-                            <th scope="col">Total</th>
-                             <th scope="col">Grade</th>
-                              <th scope="col">Practical Test Grade</th>
-                              <th scope="col">Written Exam Date</th>
-                              <th scope="col">Practical Exam Date</th>
-                            <th scope="col">Paper Link</th>
-                             
+                  <!-- Nav Tab head -->
+                      <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link active" data-toggle="tab" data-target="#term1" type="button" role="tab" aria-controls="term1" aria-selected="true">TERM 01</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link"  data-toggle="tab" data-target="#term2" type="button" role="tab"  aria-selected="false">TERM 02</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" data-toggle="tab" data-target="#term3" type="button" role="tab" aria-controls="term3" aria-selected="false">TERM 03</button>
+                        </li>
+                      </ul>
+
+                  <!-- end of Nav Tab head -->
+
+
+                  <!-- tab content -->
+
+                  <div class="tab-content pt-3" id="myTabContent">
+                    <div class="tab-pane fade show active" id="term1" role="tabpanel" aria-labelledby="home-tab">
+
+                            <?php 
+                            $attributes = array('id' => 'studentMarkList');
+                            echo form_open('mark/studentsSubmit', $attributes) ?>
                             
+                            <input class="btn btn-primary btn-block" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn">
+                              <input type="hidden" class="form-control" value="<?php echo $class_id; ?>" name="selectclassid">
+                              <input type="hidden" class="form-control" value="<?php echo $class_name; ?>" name="selectclass">  
+                              <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
+                              <input type="hidden" class="form-control" value="<?php echo $subject_name; ?>" name="selectsubject">
+                              <input type="hidden" class="form-control" value="Term 1" name="term">
+                              
+                            <br>
+                            <div class="row">
+                            <?php 
+                            $termtest_date = false;
+                            $practicaltest_date = false;
+                            date_default_timezone_set('Asia/Colombo');
+                            $currentDate = date("Y-m-d");
+                                    
 
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                      
-                        $i = 1;
-                        $termtest_date = false;
-                        foreach ($students as $student) {
-                            echo "<tr>";
-                            echo "<td>" . $i . "</td>";
-                            echo "<td>" . $student->admission_number . "</td>";
-                            echo "<td>" . $student->name . "</td>";
-                            if ($student->is_active == 1) {
-                                echo "<td><span class='dot-active'></span></td>";
-                            } else {
-                                echo "<td><span class='dot-inactive'></span></td>";
-                            }
-                            echo "<td>";
-                            if(isset($student->marks) && $student->marks != null){
-                                echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$student->marks->part1}'>";
-                            }else{
-                            echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100'>";
-                            }
-                            echo "</td>";
-                            echo "<td>";
-                            if(isset($student->marks) && $student->marks != null){
-                                echo "<input  type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100' value='{$student->marks->part2}'>";
-                            }else{
-                            echo "<input type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100'>";
-                            }
-                            echo "</td>";
-                            echo "<td>";
-                            if(isset($student->marks) && $student->marks != null){
-                                echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' value='{$student->marks->total}'>";
-                            }else{
-                            echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' >";
-                            }
-                            echo "</td>";
-                            echo "<td>";
-                           if(isset($student->marks) && $student->marks != null){
-                                if($student->marks->total >= 75){
-                                    echo "<p class='gradeVal'>A</p>";
-                                }else if($student->marks->total >= 65){
-                                    echo "<p class='gradeVal'>B</p>";
-                                }else if($student->marks->total >= 55){
-                                    echo "<p class='gradeVal'>C</p>";
-                                }else if($student->marks->total >= 40){
-                                    echo "<p class='gradeVal'>S</p>";
-                                }else if($student->marks->total > 0){
-                                    echo "<p class='gradeVal'>F</p>";
-                                }else{
-                                    echo "<p class='gradeVal'>N/A</p>";
-                                }
-                           }else{
-                           
-                            echo "<p class='gradeVal'></p>";
-                          }
-                            echo "</td>";
-                            echo "<td>";
-                         
-                            // create a select dropdown for practical test grade
-                            echo "<select class='form-control' name='practical_test_{$student->ID}'>";
-                            echo "<option value=''>Select Grade</option>";
-                             echo "<option value='AB' " . (isset($student->marks) && $student->marks->practical_test == 'AB' ? 'selected' : '') . ">AB</option>";
-                            echo "<option value='A' " . (isset($student->marks) && $student->marks->practical_test == 'A' ? 'selected' : '') . ">A</option>";
-                            echo "<option value='B' " . (isset($student->marks) && $student->marks->practical_test == 'B' ? 'selected' : '') . ">B</option>";
-                            echo "<option value='C' " . (isset($student->marks) && $student->marks->practical_test == 'C' ? 'selected' : '') . ">C</option>";
-                            echo "<option value='S' " . (isset($student->marks) && $student->marks->practical_test == 'S' ? 'selected' : '') . ">S</option>";
-                            echo "<option value='F' " . (isset($student->marks) && $student->marks->practical_test == 'W' ? 'selected' : '') . ">W</option>";
-                            echo "</select>";
-                          
-                            echo "</td>";
-                            echo "<td>";
-                          
-                            // show term_test_date date if exists or current date
-                            if(isset($student->marks) && $student->marks != null && $student->marks->term_test_date != null){
-                                echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$student->marks->term_test_date}'>";
-                            }else{
-                                echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$currentDate}'>";
-                            }
-
-                            echo "</td>";
-
-                            echo "<td>";
-                            // show practical_test_date date if exists or current date  
-                            if(isset($student->marks) && $student->marks != null && $student->marks->practical_test_date != null){
-                                echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$student->marks->practical_test_date}'>";
-                            }else{
-                                echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$currentDate}'>";
-                            }
-                            echo "</td>";
-                             echo "<td>";
-                            if(isset($student->marks) && $student->marks != null){
-                                echo "<input type='url'  class='form-control' name='link_{$student->ID}'  min='0' max='100' value='{$student->marks->link}'>";
-                              ?>
-                              <?php if($student->marks->link != null){ ?>
-                              <a href="#" onclick="openSmallWindow(`<?php echo $student->marks->link; ?>`); return false;">Open</a>
-                              <?php } ?>
-                              <?php
-                            }else{
-                            echo "<input type='url' class='form-control' name='link_{$student->ID}'  min='0' max='100' >";
-                            }
-                            echo "</td>";
-                            echo "</tr>";
                             
-                            $i++;
-                        }
-                        ?>
-                    </tbody>
-                </table>
-              <?php echo form_close(); ?>
+                            ?>
+                            </div>
+                            <br>
+                            
+                              <table class="table table-bordered table-striped">
+                                  <thead>
+                                      <tr>
+                                          <th scope="col">#</th>
+                                          <th scope="col">Student ID</th>
+                                          <th scope="col">Student Name</th>
+                                          <th scope="col">Status</th>
+                                          <th scope="col">Part 01</th>
+                                          <th scope="col">Part 02</th>
+                                          <th scope="col">Total</th>
+                                          <th scope="col">Grade</th>
+                                            <th scope="col">Practical Test Grade</th>
+                                            <th scope="col">Written Exam Date</th>
+                                            <th scope="col">Practical Exam Date</th>
+                                          <th scope="col">Paper Link</th>
+                                          
+                                          
+
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      <?php
+                                    
+                                      $i = 1;
+                                      $termtest_date = false;
+                                      foreach ($term1 as $student) {
+                                          echo "<tr>";
+                                          echo "<td>" . $i . "</td>";
+                                          echo "<td>" . $student->admission_number . "</td>";
+                                          echo "<td>" . $student->name . "</td>";
+                                          if ($student->is_active == 1) {
+                                              echo "<td><span class='dot-active'></span></td>";
+                                          } else {
+                                              echo "<td><span class='dot-inactive'></span></td>";
+                                          }
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$student->marks->part1}'>";
+                                          }else{
+                                          echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100' value='{$student->marks->part2}'>";
+                                          }else{
+                                          echo "<input type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' value='{$student->marks->total}'>";
+                                          }else{
+                                          echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' >";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                        if(isset($student->marks) && $student->marks != null){
+                                              if($student->marks->total >= 75){
+                                                  echo "<p class='gradeVal'>A</p>";
+                                              }else if($student->marks->total >= 65){
+                                                  echo "<p class='gradeVal'>B</p>";
+                                              }else if($student->marks->total >= 55){
+                                                  echo "<p class='gradeVal'>C</p>";
+                                              }else if($student->marks->total >= 40){
+                                                  echo "<p class='gradeVal'>S</p>";
+                                              }else if($student->marks->total > 0){
+                                                  echo "<p class='gradeVal'>F</p>";
+                                              }else{
+                                                  echo "<p class='gradeVal'>N/A</p>";
+                                              }
+                                        }else{
+                                        
+                                          echo "<p class='gradeVal'></p>";
+                                        }
+                                          echo "</td>";
+                                          echo "<td>";
+                                      
+                                          // create a select dropdown for practical test grade
+                                          echo "<select class='form-control' name='practical_test_{$student->ID}'>";
+                                          echo "<option value=''>Select Grade</option>";
+                                          echo "<option value='AB' " . (isset($student->marks) && $student->marks->practical_test == 'AB' ? 'selected' : '') . ">AB</option>";
+                                          echo "<option value='A' " . (isset($student->marks) && $student->marks->practical_test == 'A' ? 'selected' : '') . ">A</option>";
+                                          echo "<option value='B' " . (isset($student->marks) && $student->marks->practical_test == 'B' ? 'selected' : '') . ">B</option>";
+                                          echo "<option value='C' " . (isset($student->marks) && $student->marks->practical_test == 'C' ? 'selected' : '') . ">C</option>";
+                                          echo "<option value='S' " . (isset($student->marks) && $student->marks->practical_test == 'S' ? 'selected' : '') . ">S</option>";
+                                          echo "<option value='F' " . (isset($student->marks) && $student->marks->practical_test == 'W' ? 'selected' : '') . ">W</option>";
+                                          echo "</select>";
+                                        
+                                          echo "</td>";
+                                          echo "<td>";
+                                        
+                                          // show term_test_date date if exists or current date
+                                          if(isset($student->marks) && $student->marks != null && $student->marks->term_test_date != null){
+                                              echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$student->marks->term_test_date}'>";
+                                          }else{
+                                              echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$currentDate}'>";
+                                          }
+
+                                          echo "</td>";
+
+                                          echo "<td>";
+                                          // show practical_test_date date if exists or current date  
+                                          if(isset($student->marks) && $student->marks != null && $student->marks->practical_test_date != null){
+                                              echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$student->marks->practical_test_date}'>";
+                                          }else{
+                                              echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$currentDate}'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input type='url'  class='form-control' name='link_{$student->ID}'  min='0' max='100' value='{$student->marks->link}'>";
+                                            ?>
+                                            <?php if($student->marks->link != null){ ?>
+                                            <a href="#" onclick="openSmallWindow(`<?php echo $student->marks->link; ?>`); return false;">Open</a>
+                                            <?php } ?>
+                                            <?php
+                                          }else{
+                                          echo "<input type='url' class='form-control' name='link_{$student->ID}'  min='0' max='100' >";
+                                          }
+                                          echo "</td>";
+                                          echo "</tr>";
+                                          
+                                          $i++;
+                                      }
+                                      ?>
+                                  </tbody>
+                              </table>
+
+
+
+                            <?php echo form_close(); ?>
+
+                    </div>
+                    <div class="tab-pane fade" id="term2" role="tabpanel" aria-labelledby="profile-tab">
+
+                            <?php 
+                            $attributes = array('id' => 'studentMarkList');
+                            echo form_open('mark/studentsSubmit', $attributes) ?>
+                            
+                            <input class="btn btn-primary btn-block" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn">
+                              <input type="hidden" class="form-control" value="<?php echo $class_id; ?>" name="selectclassid">
+                              <input type="hidden" class="form-control" value="<?php echo $class_name; ?>" name="selectclass">  
+                              <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
+                              <input type="hidden" class="form-control" value="<?php echo $subject_name; ?>" name="selectsubject">
+                              <input type="hidden" class="form-control" value="Term 2" name="term">
+                              
+                            <br>
+                            <div class="row">
+                            <?php 
+                            $termtest_date = false;
+                            $practicaltest_date = false;
+                            date_default_timezone_set('Asia/Colombo');
+                            $currentDate = date("Y-m-d");
+                                    
+
+                            
+                            ?>
+                            </div>
+                            <br>
+                            
+                              <table class="table table-bordered table-striped">
+                                  <thead>
+                                      <tr>
+                                          <th scope="col">#</th>
+                                          <th scope="col">Student ID</th>
+                                          <th scope="col">Student Name</th>
+                                          <th scope="col">Status</th>
+                                          <th scope="col">Part 01</th>
+                                          <th scope="col">Part 02</th>
+                                          <th scope="col">Total</th>
+                                          <th scope="col">Grade</th>
+                                            <th scope="col">Practical Test Grade</th>
+                                            <th scope="col">Written Exam Date</th>
+                                            <th scope="col">Practical Exam Date</th>
+                                          <th scope="col">Paper Link</th>
+                                          
+                                          
+
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      <?php
+                                    
+                                      $i = 1;
+                                      $termtest_date = false;
+                                      foreach ($term2 as $student) {
+                                          echo "<tr>";
+                                          echo "<td>" . $i . "</td>";
+                                          echo "<td>" . $student->admission_number . "</td>";
+                                          echo "<td>" . $student->name . "</td>";
+                                          if ($student->is_active == 1) {
+                                              echo "<td><span class='dot-active'></span></td>";
+                                          } else {
+                                              echo "<td><span class='dot-inactive'></span></td>";
+                                          }
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$student->marks->part1}'>";
+                                          }else{
+                                          echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100' value='{$student->marks->part2}'>";
+                                          }else{
+                                          echo "<input type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' value='{$student->marks->total}'>";
+                                          }else{
+                                          echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' >";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                        if(isset($student->marks) && $student->marks != null){
+                                              if($student->marks->total >= 75){
+                                                  echo "<p class='gradeVal'>A</p>";
+                                              }else if($student->marks->total >= 65){
+                                                  echo "<p class='gradeVal'>B</p>";
+                                              }else if($student->marks->total >= 55){
+                                                  echo "<p class='gradeVal'>C</p>";
+                                              }else if($student->marks->total >= 40){
+                                                  echo "<p class='gradeVal'>S</p>";
+                                              }else if($student->marks->total > 0){
+                                                  echo "<p class='gradeVal'>F</p>";
+                                              }else{
+                                                  echo "<p class='gradeVal'>N/A</p>";
+                                              }
+                                        }else{
+                                        
+                                          echo "<p class='gradeVal'></p>";
+                                        }
+                                          echo "</td>";
+                                          echo "<td>";
+                                      
+                                          // create a select dropdown for practical test grade
+                                          echo "<select class='form-control' name='practical_test_{$student->ID}'>";
+                                          echo "<option value=''>Select Grade</option>";
+                                          echo "<option value='AB' " . (isset($student->marks) && $student->marks->practical_test == 'AB' ? 'selected' : '') . ">AB</option>";
+                                          echo "<option value='A' " . (isset($student->marks) && $student->marks->practical_test == 'A' ? 'selected' : '') . ">A</option>";
+                                          echo "<option value='B' " . (isset($student->marks) && $student->marks->practical_test == 'B' ? 'selected' : '') . ">B</option>";
+                                          echo "<option value='C' " . (isset($student->marks) && $student->marks->practical_test == 'C' ? 'selected' : '') . ">C</option>";
+                                          echo "<option value='S' " . (isset($student->marks) && $student->marks->practical_test == 'S' ? 'selected' : '') . ">S</option>";
+                                          echo "<option value='F' " . (isset($student->marks) && $student->marks->practical_test == 'W' ? 'selected' : '') . ">W</option>";
+                                          echo "</select>";
+                                        
+                                          echo "</td>";
+                                          echo "<td>";
+                                        
+                                          // show term_test_date date if exists or current date
+                                          if(isset($student->marks) && $student->marks != null && $student->marks->term_test_date != null){
+                                              echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$student->marks->term_test_date}'>";
+                                          }else{
+                                              echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$currentDate}'>";
+                                          }
+
+                                          echo "</td>";
+
+                                          echo "<td>";
+                                          // show practical_test_date date if exists or current date  
+                                          if(isset($student->marks) && $student->marks != null && $student->marks->practical_test_date != null){
+                                              echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$student->marks->practical_test_date}'>";
+                                          }else{
+                                              echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$currentDate}'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input type='url'  class='form-control' name='link_{$student->ID}'  min='0' max='100' value='{$student->marks->link}'>";
+                                            ?>
+                                            <?php if($student->marks->link != null){ ?>
+                                            <a href="#" onclick="openSmallWindow(`<?php echo $student->marks->link; ?>`); return false;">Open</a>
+                                            <?php } ?>
+                                            <?php
+                                          }else{
+                                          echo "<input type='url' class='form-control' name='link_{$student->ID}'  min='0' max='100' >";
+                                          }
+                                          echo "</td>";
+                                          echo "</tr>";
+                                          
+                                          $i++;
+                                      }
+                                      ?>
+                                  </tbody>
+                              </table>
+
+
+
+                            <?php echo form_close(); ?>
+
+
+
+
+                    </div>
+                    <div class="tab-pane fade" id="term3" role="tabpanel" aria-labelledby="contact-tab">
+                      
+                      
+                              <?php 
+                            $attributes = array('id' => 'studentMarkList');
+                            echo form_open('mark/studentsSubmit', $attributes) ?>
+                            
+                            <input class="btn btn-primary btn-block" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn">
+                              <input type="hidden" class="form-control" value="<?php echo $class_id; ?>" name="selectclassid">
+                              <input type="hidden" class="form-control" value="<?php echo $class_name; ?>" name="selectclass">  
+                              <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
+                              <input type="hidden" class="form-control" value="<?php echo $subject_name; ?>" name="selectsubject">
+                              <input type="hidden" class="form-control" value="Term 2" name="term">
+                              
+                            <br>
+                            <div class="row">
+                            <?php 
+                            $termtest_date = false;
+                            $practicaltest_date = false;
+                            date_default_timezone_set('Asia/Colombo');
+                            $currentDate = date("Y-m-d");
+                                    
+
+                            
+                            ?>
+                            </div>
+                            <br>
+                            
+                              <table class="table table-bordered table-striped">
+                                  <thead>
+                                      <tr>
+                                          <th scope="col">#</th>
+                                          <th scope="col">Student ID</th>
+                                          <th scope="col">Student Name</th>
+                                          <th scope="col">Status</th>
+                                          <th scope="col">Part 01</th>
+                                          <th scope="col">Part 02</th>
+                                          <th scope="col">Total</th>
+                                          <th scope="col">Grade</th>
+                                            <th scope="col">Practical Test Grade</th>
+                                            <th scope="col">Written Exam Date</th>
+                                            <th scope="col">Practical Exam Date</th>
+                                          <th scope="col">Paper Link</th>
+                                          
+                                          
+
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      <?php
+                                    
+                                      $i = 1;
+                                      $termtest_date = false;
+                                      foreach ($term3 as $student) {
+                                          echo "<tr>";
+                                          echo "<td>" . $i . "</td>";
+                                          echo "<td>" . $student->admission_number . "</td>";
+                                          echo "<td>" . $student->name . "</td>";
+                                          if ($student->is_active == 1) {
+                                              echo "<td><span class='dot-active'></span></td>";
+                                          } else {
+                                              echo "<td><span class='dot-inactive'></span></td>";
+                                          }
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100' value='{$student->marks->part1}'>";
+                                          }else{
+                                          echo "<input  type='number' class='input1 form-control' name='part1_{$student->ID}'  min='0' max='100'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100' value='{$student->marks->part2}'>";
+                                          }else{
+                                          echo "<input type='number' class=' input2 form-control' name='part2_{$student->ID}'  min='0' max='100'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' value='{$student->marks->total}'>";
+                                          }else{
+                                          echo "<input  type='number' class='totalTrigger form-control' name='total_{$student->ID}'  min='0' max='100' >";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                        if(isset($student->marks) && $student->marks != null){
+                                              if($student->marks->total >= 75){
+                                                  echo "<p class='gradeVal'>A</p>";
+                                              }else if($student->marks->total >= 65){
+                                                  echo "<p class='gradeVal'>B</p>";
+                                              }else if($student->marks->total >= 55){
+                                                  echo "<p class='gradeVal'>C</p>";
+                                              }else if($student->marks->total >= 40){
+                                                  echo "<p class='gradeVal'>S</p>";
+                                              }else if($student->marks->total > 0){
+                                                  echo "<p class='gradeVal'>F</p>";
+                                              }else{
+                                                  echo "<p class='gradeVal'>N/A</p>";
+                                              }
+                                        }else{
+                                        
+                                          echo "<p class='gradeVal'></p>";
+                                        }
+                                          echo "</td>";
+                                          echo "<td>";
+                                      
+                                          // create a select dropdown for practical test grade
+                                          echo "<select class='form-control' name='practical_test_{$student->ID}'>";
+                                          echo "<option value=''>Select Grade</option>";
+                                          echo "<option value='AB' " . (isset($student->marks) && $student->marks->practical_test == 'AB' ? 'selected' : '') . ">AB</option>";
+                                          echo "<option value='A' " . (isset($student->marks) && $student->marks->practical_test == 'A' ? 'selected' : '') . ">A</option>";
+                                          echo "<option value='B' " . (isset($student->marks) && $student->marks->practical_test == 'B' ? 'selected' : '') . ">B</option>";
+                                          echo "<option value='C' " . (isset($student->marks) && $student->marks->practical_test == 'C' ? 'selected' : '') . ">C</option>";
+                                          echo "<option value='S' " . (isset($student->marks) && $student->marks->practical_test == 'S' ? 'selected' : '') . ">S</option>";
+                                          echo "<option value='F' " . (isset($student->marks) && $student->marks->practical_test == 'W' ? 'selected' : '') . ">W</option>";
+                                          echo "</select>";
+                                        
+                                          echo "</td>";
+                                          echo "<td>";
+                                        
+                                          // show term_test_date date if exists or current date
+                                          if(isset($student->marks) && $student->marks != null && $student->marks->term_test_date != null){
+                                              echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$student->marks->term_test_date}'>";
+                                          }else{
+                                              echo "<input type='date' class='form-control' name='term_test_date_{$student->ID}' value='{$currentDate}'>";
+                                          }
+
+                                          echo "</td>";
+
+                                          echo "<td>";
+                                          // show practical_test_date date if exists or current date  
+                                          if(isset($student->marks) && $student->marks != null && $student->marks->practical_test_date != null){
+                                              echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$student->marks->practical_test_date}'>";
+                                          }else{
+                                              echo "<input type='date' class='form-control' name='practical_test_date_{$student->ID}' value='{$currentDate}'>";
+                                          }
+                                          echo "</td>";
+                                          echo "<td>";
+                                          if(isset($student->marks) && $student->marks != null){
+                                              echo "<input type='url'  class='form-control' name='link_{$student->ID}'  min='0' max='100' value='{$student->marks->link}'>";
+                                            ?>
+                                            <?php if($student->marks->link != null){ ?>
+                                            <a href="#" onclick="openSmallWindow(`<?php echo $student->marks->link; ?>`); return false;">Open</a>
+                                            <?php } ?>
+                                            <?php
+                                          }else{
+                                          echo "<input type='url' class='form-control' name='link_{$student->ID}'  min='0' max='100' >";
+                                          }
+                                          echo "</td>";
+                                          echo "</tr>";
+                                          
+                                          $i++;
+                                      }
+                                      ?>
+                                  </tbody>
+                              </table>
+
+
+
+                            <?php echo form_close(); ?>
+
+
+
+
+
+
+                    </div>
+                  </div>
+
+                  <!-- tab content end -->
+              
+                 
+
+
+
+                  
             </div>
 
         </div>
