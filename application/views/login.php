@@ -398,7 +398,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   echo form_close();
                   }
                   else if($payment->status == 'unpaid'){
-                    echo form_open('welcome/insertPayment');
+                    echo form_open('welcome/insertPayment' , ['onsubmit' => 'return confirmSubmit();']);
                         echo "<tr>";
                         echo "<td>";
                         echo "<input type='hidden' name='student_id' value='{$student_data['profile'][0]->admission_number}'>";
@@ -496,6 +496,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       </div>
     </div>
 </body>
+<script>
+  
+ function confirmSubmit() {
+    return confirm("Are you sure you want to update the payment?");
+  }
+
+</script>
     <script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
     <script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>
 </script>
