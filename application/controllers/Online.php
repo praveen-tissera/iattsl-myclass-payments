@@ -1,13 +1,13 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Welcome extends CI_Controller {
+class Online extends CI_Controller {
 
     public function __construct() {
 		parent::__construct();
         $this->load->helper('form');
         $this->load->library('form_validation');
-        $this->load->model('User_model');
+        $this->load->model('Online_User_model');
         $this->load->model('Mark_model');
         $this->load->library('session');
         //load url library
@@ -25,7 +25,7 @@ class Welcome extends CI_Controller {
             $data['error'] = $error;
         }
         // $this->user_model->get_usreData();
-        $this->load->view('login',$data);
+        $this->load->view('online-student',$data);
     }
      public function idValidator($student_id=0, $branch='PEL'){
        
@@ -33,26 +33,33 @@ class Welcome extends CI_Controller {
       
 
         if ($student_id == 0) {
+            
             $this->form_validation->set_rules('studentid', 'Class ID', 'required');
             if ($this->form_validation->run() == FALSE){
                 
-                $this->load->view('login');
+                $this->load->view('online-student');
             }
             else{
                 if(isset($_POST['center'])){
                      $student_id = $_POST['center'].'/'.trim($_POST['studentid']);
+                        if($_POST['center'] == 'ONL'){
+                            $session_id = 4;
+                        }else{
+                            $session_id = 3;
+                        }
+                     
                 }
                 
                
-                $result = $this->User_model->get_usreData($student_id);
+                $result = $this->Online_User_model->get_usreData($student_id,$session_id);
 
                 if($result == 0){
                     $data['message'] = "No results found";
-                    $this->load->view('login',$data);
+                    $this->load->view('online-student',$data);
                 }else{
                     $data['student_data'] = $result;
                     // print_r($data);
-                    $this->load->view('login',$data);
+                    $this->load->view('online-student',$data);
                 }
                 
             }
@@ -61,15 +68,20 @@ class Welcome extends CI_Controller {
        else{  
         
         $student_id = $branch.'/'.$student_id;       
-        $result = $this->User_model->get_usreData($student_id);
-
+       
+            if($branch == 'ONL'){
+                $session_id = 4;
+            }else{
+                $session_id = 3;
+            }
+        $result = $this->Online_User_model->get_usreData($student_id,$session_id);
         if($result == 0){
             $data['message'] = "No results found";
-            $this->load->view('login',$data);
+            $this->load->view('online-student',$data);
         }else{
             $data['student_data'] = $result;
             $data['message'] = "Updated successfully";
-            $this->load->view('login',$data);
+            $this->load->view('online-student',$data);
         }
 
 
@@ -90,7 +102,7 @@ class Welcome extends CI_Controller {
         );
         
         $url = $_POST['classlink'];
-        $result = $this->User_model->set_attendance($data);
+        $result = $this->Online_User_model->set_attendance($data);
         if($result == 1){
              header("Location:".$url);
         }else if($result == 0){
@@ -120,7 +132,7 @@ class Welcome extends CI_Controller {
         $this->form_validation->set_rules('label', 'Paid Month', 'required');
         $this->form_validation->set_rules('student_id', 'Student ID', 'required');
         if ($this->form_validation->run() == FALSE){
-            $this->load->view('login');
+            $this->load->view('online_student');
         }
         else{
             date_default_timezone_set('Asia/Colombo');
@@ -140,7 +152,7 @@ class Welcome extends CI_Controller {
                 );
 
                 // print_r($data);
-            $result = $this->User_model->insert_payment($data);
+            $result = $this->Online_User_model->insert_payment($data);
             // $result = 2;
             if($result > 1){
                 // echo "success";
@@ -152,11 +164,18 @@ class Welcome extends CI_Controller {
                 $student_id = end($student_id_array);
                 // get student branch from $student_if_array's first element
                 $student_branch = $student_id_array[0];
-                
-
+                            if($student_branch == 'ONL'){
+                                // remove ending number after hyphen
+                                $student_id = str_replace('ONL/', '', $student_id);
+                                $student_id_without_ending_number  = substr($student_id, 0, strrpos($student_id, '-'));
+                              }else{
+                                $student_id_without_ending_number = end($student_id_array);
+                            }
+                           
+                        
                 $this->session->set_userdata('success_message_display', 'Payment Updated sucessfully');
-
-                redirect('/welcome/idValidator/'.$student_id.'/'.$student_branch);
+               
+                redirect('/online/idValidator/'.$student_id_without_ending_number.'/'.$student_branch);
 
             } else if($result == 0){
                 // echo "error";
@@ -165,10 +184,20 @@ class Welcome extends CI_Controller {
                 $student_id_array = explode('/', $student_id);
                 // get last element of array
                 $student_id = end($student_id_array);
+                $student_branch = $student_id_array[0];
+                            if($student_branch == 'ONL'){
+                                // remove ending number after hyphen
+                                $student_id = str_replace('ONL/', '', $student_data[0]['profile']->admission_number);
+                                $student_id_without_ending_number  = substr($student_id, 0, strrpos($student_id, '-'));
+                              }else{
+                                $student_id_without_ending_number = end($student_id_array);
+                            }
 
+
+                
                 $this->session->set_userdata('error_message_display', 'Error on Payment Updated ');
 
-                redirect('/welcome/idValidator/'.$student_id);
+                redirect('/online/idValidator/'.$student_id);
             } else{
                 // echo "default";
                 $student_id = $_POST['student_id'];
@@ -179,7 +208,7 @@ class Welcome extends CI_Controller {
 
                 $this->session->set_userdata('error_message_display', 'Error on Payment Updated ');
 
-                redirect('/welcome/idValidator/'.$student_id);
+                redirect('/online/idValidator/'.$student_id);
             }
         }
 
@@ -187,7 +216,7 @@ class Welcome extends CI_Controller {
     }
 
     public function pdfgenerator(){
-        $result = $this->User_model->get_payment_detail($_POST['invoiceid']);
+        $result = $this->Online_User_model->get_payment_detail($_POST['invoiceid']);
         $admission = $result[1]->admission_number;
         // retrive branch code MAH/25-090
         $branch_code = explode('/', $admission);
@@ -232,15 +261,12 @@ class Welcome extends CI_Controller {
     }
 
     public function incomesummary(){
-        
-         
         date_default_timezone_set('Asia/Colombo');
          if(empty($this->input->post('filteroptions'))){
             
             redirect('welcome/income');
         }
         // print_r($_POST);
-        $session_id = $this->input->post('class_mode');
         if($this->input->post('filteroptions') == 'week'){
             $datedata[] = date('Y-m-d');
             $datedata[] = date('Y-m-d', strtotime('-6 days'));
@@ -255,7 +281,7 @@ class Welcome extends CI_Controller {
             $date_range_string = $datedata;
         }
 
-        $result = $this->User_model->get_payments( $datedata, $session_id);
+        $result = $this->Online_User_model->get_payments( $datedata);
         
             $data['income_summary'] = $result;
             $data['date_select'] = $date_range_string;
@@ -264,14 +290,12 @@ class Welcome extends CI_Controller {
         
     }
     public function adminincomesummary(){
-        
         date_default_timezone_set('Asia/Colombo');
         // print_r($_POST);
         if(empty($this->input->post('filteroptions'))){
             
             redirect('welcome/adminincome');
         }
-        $session_id = $this->input->post('class_mode');
         if($this->input->post('filteroptions') == 'week'){
             $datedata[] = date('Y-m-d');
             $datedata[] = date('Y-m-d', strtotime('-6 days'));
@@ -289,18 +313,11 @@ class Welcome extends CI_Controller {
             // $datedata[] = date('Y-m-d', strtotime('-1 month'));
             $date_range_string = $datedata[1] . ' - ' . $datedata[0];
         }elseif($this->input->post('filteroptions') == 'custome'){
-
-            $datedata[] = date('Y-m-d',strtotime($this->input->post('end_incomedate')));
-            $datedata[] = date('Y-m-d',strtotime($this->input->post('start_incomedate')));
-            
-            // $datedata[] = date('Y-m-d', strtotime('-1 month'));
-            $date_range_string = $datedata[1] . ' - ' . $datedata[0];
-
-            // $datedata = $this->input->post('incomedate');
-            // $date_range_string = $datedata;
+            $datedata = $this->input->post('incomedate');
+            $date_range_string = $datedata;
         }
 
-        $result = $this->User_model->get_payments( $datedata, $session_id);
+        $result = $this->Online_User_model->get_payments( $datedata);
         
             $data['income_summary'] = $result;
             $data['date_select'] = $date_range_string;
@@ -370,7 +387,7 @@ class Welcome extends CI_Controller {
             $data['message'] = "No Student Found for this class";
             $this->load->view('student_payment',$data);
         }else{
-         $students = $this->User_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
+         $students = $this->Online_User_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
         // print_r($students);
 
       

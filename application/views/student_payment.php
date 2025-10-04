@@ -291,8 +291,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             // echo "<br>";
                                            
                                             if($payment->status == 'paid'){
-                                                echo "<span class='badge badge-success'> Paid</span>";
-                                               
+                                              $studentid = explode('/', $student->admission_number);
+                                              echo "<a href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'>";
+                                                echo "<span class='badge badge-success' title='$payment->amount'> Paid ($payment->invoice_number)</span>";
+                                              echo "</a>";
                                             }else if($payment->status == 'unpaid'){
                                               $studentid = explode('/', $student->admission_number);
                                                 echo "<a class='badge badge-danger' href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";

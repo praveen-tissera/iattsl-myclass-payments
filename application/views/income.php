@@ -12,12 +12,39 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <title>Income Summary</title>
   <style>
     body{
-      font-size: .9rem;
-    }
-    /* change input field font size */
-    input[type=text], input[type=number], input[type=email], input[type=password], select {
       font-size: .6rem;
     }
+
+
+    /* change input field font size */
+    input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
+      font-size: .6rem;
+    }
+    span{
+      font-size: .6rem;
+    }
+   
+
+      @media (min-width: 768px) {
+        input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
+           font-size: .8rem;
+         } 
+
+          body,span{
+            font-size: .8rem;
+          }
+
+      }
+
+      @media (min-width: 992px) {
+        input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
+           font-size: .9rem;
+         } 
+         body,span{
+            font-size: .9rem;
+          }
+      }
+    
     /* change table font size */
     table {
       font-size: .6rem;
@@ -197,9 +224,29 @@ table {
                             $currentDate = date("Y-m-d"); // Format: YYYY-MM-DD
                         ?>
 
-                        <input class="form-control" type="date" name="incomedate" value="<?php echo $currentDate; ?>">
 
-                        <div class="btn-group btn-group-toggle mt-2" data-toggle="buttons">
+
+                    <div class="input-group mb-3">
+
+<div class="input-group">
+  <input type="date" class="form-control" name="incomedate" value="<?php echo $currentDate; ?>">
+
+  <div class="input-group-append">
+    <div class="btn-group" role="group" aria-label="Class Mode">
+      <label class="btn btn-outline-secondary">
+        <!-- 2025 IATTSL Pelawatta  -->
+        <input type="radio" name="class_mode" value="3" autocomplete="off" checked> <span>Physical<span>
+      </label>
+       <!-- 25/26 Iattsl EDEX/CAM ONLINE  -->
+      <label class="btn btn-outline-secondary">
+        <input type="radio" name="class_mode" value="4" autocomplete="off"> <span>Online</span>
+      </label>
+    </div>
+  </div>
+</div>
+                   
+</div>
+ <div class="btn-group btn-group-toggle mt-1" data-toggle="buttons">
                           <label class="btn btn-sm btn-secondary active">
                             <input type="radio" name="filteroptions" id="option1" value="custome" checked> Custom
                           </label>
@@ -210,6 +257,10 @@ table {
                             <input type="radio" name="filteroptions" value="month" id="option3"> This Month
                           </label> -->
                         </div>
+
+                        
+
+                        
                          
                            
 
@@ -234,7 +285,7 @@ table {
 
              
             //  create array of branches names PEL, BAT, MAT, MAH,HRI
-            $branch_list = array('PEL', 'BAT', 'MAT', 'MAH', 'HRI');
+            $branch_list = array('ONL','PEL', 'BAT', 'MAT', 'MAH', 'HRI');
             // create a loop through $income_summary arrya and crate seperate arrays for each branch
             $brancewise_income_summary = array();
             if(isset($income_summary) && !empty($income_summary)) {
@@ -550,6 +601,7 @@ table {
   </script>
 
     <script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
+     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>
 </script>
 </html>

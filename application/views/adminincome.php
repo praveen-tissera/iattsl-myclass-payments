@@ -146,17 +146,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 ?>
 
                 <?php echo form_open('welcome/adminincomesummary') ?>
-                <table class="table table-borderless">
-                    <tr>
-                        <td>
-                        <?php
+                <?php
                          date_default_timezone_set('Asia/Colombo');
                             $currentDate = date("Y-m-d"); // Format: YYYY-MM-DD
                         ?>
-
-                        <input class="form-control" type="date" name="incomedate" value="<?php echo $currentDate; ?>">
-
-                        <div class="btn-group btn-group-toggle mt-2" data-toggle="buttons">
+                <table class="table table-borderless">
+                    <tr>
+                        
+                    
+                    <td>
+                      <input type="date" class="form-control" name="start_incomedate" value="<?php echo $currentDate; ?>">
+                       <div class="btn-group btn-group-toggle mt-2" data-toggle="buttons">
                           <label class="btn btn-sm btn-secondary active">
                             <input type="radio" name="filteroptions" id="option1" value="custome" checked> Custom
                           </label>
@@ -170,6 +170,29 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <input type="radio" name="filteroptions" value="lastmonth" id="option3"> Last Month
                           </label>
                         </div>
+                    </td>
+                    
+                    <td>
+                        
+
+                       <div class="input-group">
+                          <input type="date" class="form-control" name="end_incomedate" value="<?php echo $currentDate; ?>">
+
+                          <div class="input-group-append">
+                            <div class="btn-group" role="group" aria-label="Class Mode">
+                              <label class="btn btn-outline-secondary">
+                                <!-- 2025 IATTSL Pelawatta  -->
+                                <input type="radio" name="class_mode" value="3" autocomplete="off" checked> Physical
+                              </label>
+                              <!-- 25/26 Iattsl EDEX/CAM ONLINE  -->
+                              <label class="btn btn-outline-secondary">
+                                <input type="radio" name="class_mode" value="4" autocomplete="off"> Online
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                       
                           <?php 
                             // if (!empty($student_data['profile'][0]->admission_number)) {
                             //   $student_id_array = explode('/', $student_data['profile'][0]->admission_number);
@@ -205,7 +228,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
              
             //  create array of branches names PEL, BAT, MAT, MAH,HRI
-            $branch_list = array('PEL', 'BAT', 'MAT', 'MAH', 'HRI');
+            $branch_list = array('ONL','PEL', 'BAT', 'MAT', 'MAH', 'HRI');
             // create a loop through $income_summary arrya and crate seperate arrays for each branch
             $brancewise_income_summary = array();
             if(isset($income_summary) && !empty($income_summary)) {
