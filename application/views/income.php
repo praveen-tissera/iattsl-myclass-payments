@@ -20,31 +20,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
       font-size: .6rem;
     }
-    span{
-      font-size: .6rem;
-    }
-   
-
-      @media (min-width: 768px) {
-        input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
-           font-size: .8rem;
-         } 
-
-          body,span{
-            font-size: .8rem;
-          }
-
-      }
-
-      @media (min-width: 992px) {
-        input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
-           font-size: .9rem;
-         } 
-         body,span{
-            font-size: .9rem;
-          }
-      }
-    
+  
     /* change table font size */
     table {
       font-size: .6rem;
@@ -57,6 +33,28 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     th, td {
       font-size: .6rem;
     }
+
+      @media (min-width: 768px) {
+        input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
+           font-size: .8rem;
+         } 
+
+          body,td,th{
+            font-size: .7rem;
+          }
+
+      }
+
+      @media (min-width: 992px) {
+        input[type=radio],input[type=text], input[type=number], input[type=email], input[type=password], select {
+           font-size: .9rem;
+         } 
+         body,td,th{
+            font-size: .9rem;
+          }
+      }
+    
+   
     /* change input field border */
     input[type=text], input[type=number], input[type=email], input[type=password], select {
       border: 1px solid #ccc;
