@@ -414,7 +414,7 @@ class Online_User_model extends CI_Model{
         $this->db->from('wp_wlsm_student_records');
         $this->db->where('section_id', $subject_id);
         $this->db->where('session_id', $session_id);
-        $this->db->like('admission_number', $branch, 'after'); // 'after' means it will match the beginning of the string
+        // $this->db->like('admission_number', $branch, 'after'); // 'after' means it will match the beginning of the string
         $query = $this->db->get();
         //PRINT query string
         // echo $this->db->last_query();

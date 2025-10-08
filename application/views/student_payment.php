@@ -232,8 +232,29 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   $currentMonth = date("F");
              
                 ?>
+
+                <?php
+                 foreach ($students as $student) {
+                            // check if student marks already exists
+                            $payments = $student->payment_history;
+                              if (isset($payments) && is_array($payments)) {
+
+                               foreach ($payments as $headerpaymenttype) {
+                                 if(stripos($headerpaymenttype->label, 'Installment') !== false){
+                                   $headerpapertype = 'installment';
+                                   break;
+                                 }else{
+                                   $headerpapertype = 'monthly';
+                                 }
+
+                               }
+                              }
+                  }
+                          
+                ?>
                    <table class="table table-bordered table-striped">
                     <thead>
+                      <?php if($headerpapertype == 'monthly'){ ?> 
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">ID</th>
@@ -254,6 +275,28 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             
 
                         </tr>
+                      <?php } else if($headerpapertype == 'installment'){ ?>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">ID</th>
+                            <th scope="col" style="position: sticky; left: 0; background: #f2f2f2; z-index: 1;">Student Name</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'January') ?  'bg-warning fix-col' : ''; ?>">Inst 1</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'February') ?  'bg-warning fix-col' : ''; ?>" >Inst 2</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'March') ?  'bg-warning fix-col' : ''; ?>">Inst 3</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'April') ?  'bg-warning fix-col' : ''; ?>">Inst 4</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'May') ?  'bg-warning fix-col' : ''; ?>">Inst 5</th>
+                            <th scope="col" class = "<?php echo ($currentMonth == 'June') ?  'bg-warning fix-col' : ''; ?>">Inst 6</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'July') ?  'bg-warning fix-col' : ''; ?>">Inst 7</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'August') ?  'bg-warning fix-col' : ''; ?>">Inst 8</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'September') ?  'bg-warning fix-col' : ''; ?>">Inst 9</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'October') ?  'bg-warning fix-col' : ''; ?>">Inst 10</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'November') ?  'bg-warning fix-col' : ''; ?>">Inst 11</th>
+                            <th scope="col" class = "<?php echo($currentMonth == 'December') ?  'bg-warning fix-col' : ''; ?>">Inst 12</th>
+                        
+                            
+
+                        </tr>
+                      <?php } ?>
                     </thead>
                     <tbody>
                       <?php
@@ -263,6 +306,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                       "January", "February", "March", "April", "May", "June",
                                       "July", "August", "September", "October", "November", "December"
                                   ];
+
+                           $installments = [
+                                      "Installment 1", "Installment 2", "Installment 3", "Installment 4", "Installment 5", "Installment 6",
+                                      "Installment 7", "Installment 8", "Installment 9", "Installment 10", "Installment 11", "Installment 12"
+                                  ];
+
 
                         foreach ($students as $student) {
                             // check if student marks already exists
@@ -281,11 +330,56 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             echo "<span class='copy-icon' onclick='copyCode(this)'>📋</span>";
                             echo "</td>";
                             echo "<td style='position: sticky; left: 0; background: #f2f2f2; z-index: 1;'>" . $student->name . "</td>";
+
+
+
+                            
                             if (isset($payments) && is_array($payments)) {
+
+                               foreach ($payments as $checkpaymenttype) {
+                                 if(stripos($checkpaymenttype->label, 'Installment') !== false){
+                                   $papertype = 'installment';
+                                   break;
+                                 }else{
+                                   $papertype = 'monthly';
+                                 }
+
+                               }
+
+                               if($papertype == 'monthly'){
                                 foreach ($months as $month) {
                                     $found = false;
                                     foreach ($payments as $payment) {
                                         if (stripos($payment->label, $month) !== false) {
+                                            echo "<td>";
+                                            // echo $payment->label;
+                                            // echo "<br>";
+                                           
+                                            if($payment->status == 'paid'){
+                                              $studentid = explode('/', $student->admission_number);
+                                              echo "<a href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'>";
+                                                echo "<span class='badge badge-success' title='$payment->amount'> Paid ($payment->invoice_number)</span>";
+                                              echo "</a>";
+                                            }else if($payment->status == 'unpaid'){
+                                              $studentid = explode('/', $student->admission_number);
+                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
+                                            }
+                                            echo "</td>";
+                                            $found = true;
+                                            break; // Exit the inner loop once a match is found
+                                        }
+                                      
+                                    }
+                                  
+                                    if (!$found) {
+                                        echo "<td> Not Found </td>"; // If no payment found for the month, display empty cell
+                                    }
+                                }
+                               }else if($papertype == 'installment'){
+                                foreach ($installments as $installment) {
+                                    $found = false;
+                                    foreach ($payments as $payment) {
+                                        if (stripos($payment->label, $installment) !== false) {
                                             echo "<td>";
                                             // echo $payment->label;
                                             // echo "<br>";
@@ -308,6 +402,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         echo "<td> Not Found </td>"; // If no payment found for the month, display empty cell
                                     }
                                 }
+                               }
+                                
+
+                                
+
+
+
+
                                 // foreach ($student->payment_history as $payment) {
                                 //     if (stripos($payment->label, $months) !== false) {
                                 //       echo "<td>";

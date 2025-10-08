@@ -69,15 +69,16 @@ class Online extends CI_Controller {
         
         $student_id = $branch.'/'.$student_id;       
        
-            if($branch == 'ONL'){
+            if($branch == 'onl' || $branch == 'ONL'){
                 $session_id = 4;
             }else{
                 $session_id = 3;
             }
+
         $result = $this->Online_User_model->get_usreData($student_id,$session_id);
         if($result == 0){
             $data['message'] = "No results found";
-            $this->load->view('online-student',$data);
+            // $this->load->view('online-student',$data);
         }else{
             $data['student_data'] = $result;
             $data['message'] = "Updated successfully";
@@ -328,7 +329,7 @@ class Online extends CI_Controller {
 
 
     // payment history
-        public function paymenthistory(){
+        public function onlinepaymenthistory(){
         
         $success = $this->session->flashdata('success');
 		$error = $this->session->flashdata('error');
@@ -343,7 +344,7 @@ class Online extends CI_Controller {
         $data['grades'] = $grades;
         // print_r($data);
            
-            $this->load->view('student_payment',$data);   
+            $this->load->view('online_student_payment',$data);   
              
         
        
@@ -359,7 +360,7 @@ class Online extends CI_Controller {
         $branch = $this->input->post('branch');
         $class_detail = $this->input->post('class');
        
-        $session_id = 3;  
+        $session_id = 4;  
         $class_array = explode('*', $class_detail);
         $class_id = $class_array[0];
         $class_name = $class_array[1];
@@ -370,25 +371,28 @@ class Online extends CI_Controller {
         $ict_subject_id = 0;
         $subject_name;
         foreach($subjects as $subject){
-            if($subject->label == 'ICT'){
-                $ict_subject_id = $subject->ID;
-                $subject_name = $subject->label;
-                break;
-            }
-            if($subject->label == $branch){
-                $ict_subject_id = $subject->ID;
-                $subject_name = $subject->label;
-                break;
-            }
+            // if($subject->label == 'Science'){
+            //     $ict_subject_id = $subject->ID;
+            //     $subject_name = $subject->label;
+            //     break;
+            // }
+            // if($subject->label == $branch){
+            //     $ict_subject_id = $subject->ID;
+            //     $subject_name = $subject->label;
+            //     break;
+            // }
+
+            $students[$subject->label] = $this->Online_User_model->get_students_by_branch($subject->ID, $session_id , $branch);
+
         }
         $grades = $this->Mark_model->get_classes();
         $data['grades'] = $grades;
-        if($ict_subject_id == 0){
-            $data['message'] = "No Student Found for this class";
-            $this->load->view('student_payment',$data);
-        }else{
-         $students = $this->Online_User_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
         // print_r($students);
+
+        
+            
+         
+        
 
       
         
@@ -397,12 +401,12 @@ class Online extends CI_Controller {
         $data['branch'] = $branch;
         $data['pclass_id'] = $class_id;
         $data['pclass_name'] = $class_name;
-        $data['subject_id'] = $ict_subject_id;
-        $data['subject_name'] = $subject_name;
-       
-        $this->load->view('student_payment',$data);   
+        // $data['subject_id'] = $ict_subject_id;
+        // $data['subject_name'] = $subject_name;
+    //    print_r($data);
+        $this->load->view('online_student_payment',$data);   
         
-        }
+        
     }
 
 }
