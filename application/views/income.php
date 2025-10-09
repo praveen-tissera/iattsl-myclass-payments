@@ -143,7 +143,7 @@ table {
 </head>
 
 <body>
-<nav class="navbar navbar-expand-lg navbar-light " style="background-color: #BEADFA;">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary ">
   <a class="navbar-brand" href="#">
     <img class="img-fluid" style="width:80px" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="Logo">
   </a>
@@ -155,12 +155,20 @@ table {
       <li class="nav-item ">
         <a class="nav-link" href="<?php echo base_url(); ?>">Enter Payments </a>
       </li>
-     <li class="nav-item active">
-      <a class="nav-link"  href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary <span class="sr-only">(current)</span></a>
+      <li class="nav-item active">
+      <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary</a>
      </li>
-      <li class="nav-item">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Payment Summary <span class="sr-only">(current)</span></a>
+     <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+          Payment Summary
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Physical Payments Summary </a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/online/onlinepaymenthistory">Online Payments Summary</a>
+          
+        </div>
      </li>
+     
      <li class="nav-item">
       <a class="nav-link"  href="<?php echo base_url(); ?>index.php/mark/">Enter Marks <span class="sr-only">(current)</span></a>
      </li>
