@@ -10,6 +10,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
    
     <title>Income Summary</title>
+     <style>
+      /* download icon styling */
+      
+      .nav-header {
+        display: flex;
+        justify-content: end;
+        margin-bottom: 10px;
+      }
+
+
+
+    </style>
   <style>
     .fix-col{
       position: sticky; top: 0; background: #f8f8f8; z-index: 2; padding: 8px; border: 1px solid #ccc;
@@ -221,7 +233,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             <div class="col table-responsive" style="overflow-x: auto; max-width: 100%; height: 450px; overflow-y: auto;">
                 <?php
                 $attributes = array('id' => 'studentMarkList');
-                echo form_open('mark/paperMarksSubmit', $attributes);
+               
                 if (isset($students) && is_array($students)) { 
                   ?>
                 <h2 class="text-center">Payment Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?></h2>
@@ -259,6 +271,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   }
                           
                 ?>
+                <div class="nav-header">
+                <button class="download-btn btn btn-outline-success btn-sm" onclick="downloadStudentInfo()"> 
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/> </svg>
+                     Student Info</button>
+                </div>
+
                    <table class="table table-bordered table-striped">
                     <thead>
                       <?php if($headerpapertype == 'monthly'){ ?> 
@@ -336,7 +356,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             echo "<span class='admission'>" .$student->admission_number. "</span>";
                             echo "<span class='copy-icon' onclick='copyCode(this)'>📋</span>";
                             echo "</td>";
-                            echo "<td style='position: sticky; left: 0; background: #f2f2f2; z-index: 1;'>" . $student->name . "</td>";
+                            echo "<td style='position: sticky; left: 0; background: #f2f2f2; z-index: 1;'>";
+                            echo $student->name;
+                            echo "<span class='copy-icon' title='Copy Email' value='$student->email' onclick='copyEmail(this)'>Email📋</span>";
+                            echo "</td>";
 
 
 
@@ -471,6 +494,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         setTimeout(() => icon.textContent = "📋", 1000);
       });
     }
+
+     function copyEmail(icon) {
+      // retrive value attribute
+      const iconValue = icon.getAttribute('value');
+    
+      
+      navigator.clipboard.writeText(iconValue).then(() => {
+        icon.textContent = "✅"; // Visual feedback
+        setTimeout(() => icon.textContent = "Email📋", 1000);
+      });
+    }
   </script>
 <script>
 function openSmallWindow(url) {
@@ -562,4 +596,35 @@ function changeButtonText() {
             });
         });
     </script>
+
+    <script>
+function downloadStudentInfo() {
+    const rows = document.querySelectorAll("table tr");
+    let csvContent = "Admission Number,Name,Email\n";
+
+    rows.forEach(row => {
+        const admissionSpan = row.querySelector(".admission");
+        const nameCell = row.cells[2];
+        const emailSpan = nameCell ? nameCell.querySelector(".copy-icon[title='Copy Email']") : null;
+
+        if (admissionSpan && nameCell && emailSpan) {
+            const admissionNumber = admissionSpan.textContent.trim();
+            const name = nameCell.childNodes[0].textContent.trim();
+            const email = emailSpan.getAttribute("value").trim();
+
+            csvContent += `"${admissionNumber}","${name}","${email}"\n`;
+        }
+    });
+
+    // Create a downloadable link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "student_info.csv";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
 </html>
