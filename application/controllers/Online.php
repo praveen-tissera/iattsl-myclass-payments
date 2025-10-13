@@ -132,8 +132,11 @@ class Online extends CI_Controller {
         $this->form_validation->set_rules('invoice_id', 'Receipt Number', 'required');
         $this->form_validation->set_rules('label', 'Paid Month', 'required');
         $this->form_validation->set_rules('student_id', 'Student ID', 'required');
+        // trim and use input xss cleaning and htmlspecialchars
+        $this->form_validation->set_rules('note', 'Note', 'trim|htmlspecialchars');
+        
         if ($this->form_validation->run() == FALSE){
-            $this->load->view('online_student');
+            $this->load->view('online-student');
         }
         else{
             date_default_timezone_set('Asia/Colombo');
@@ -150,6 +153,7 @@ class Online extends CI_Controller {
                 'student_record_id' => $_POST['student_record_id'],
                 'school_id' => '1',
                 'created_at' => $currentDate,
+                'note' => $_POST['note'],
                 );
 
                 // print_r($data);

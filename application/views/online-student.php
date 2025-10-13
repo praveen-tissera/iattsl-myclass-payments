@@ -290,7 +290,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <div class="row">
             <div class="col-12 col-sm-12 col-md-12 mt-2">
               <div class="card">
-                <div class="card-body">
+                <div class="card-body px-0 px-sm-0 px-md-2">
                   <div class="cart-title">Payment History</div>
 
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -336,7 +336,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo "<table class='table table-sm table-striped'>";
                                       echo "<tr class='bg-success text-white' >";
                                         echo "<th >";
-                                          echo "Invoice Number";
+                                          echo "Invoice #";
                                         echo "</th>";
                                         echo "<th>";
                                           echo "Paid Month";
@@ -346,6 +346,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                       echo "</th>";
                                         echo "<th style='min-width:60px'>";
                                           echo "Paid Amount";
+                                        echo "</th>";
+                                        echo "<th style='min-width:60px'>";
+                                          echo "Note";
                                         echo "</th>";
                                         echo "<th>";
                                         echo "Last updated";
@@ -371,6 +374,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                           echo "<td>";
                                           echo $payment->amount;
                                         echo "</td>";
+                                        
                                           echo "<td>";
                                           $invoiceIds = array_map(function($payment) {
                                             return $payment->invoice_id;
@@ -385,8 +389,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                                           echo "</td>";
                                           echo "<td>";
+                                            
+
+                                                 echo '<span class="badge badge-light text-wrap">';
+                                                  echo $student_detail['payment_completion'][$index]->note;
+                                                 echo '</span>';
+                                              echo "</td>";
+                                          echo "<td>";
                                           // if paid return receipt payment date
-                                          echo $student_detail['payment_completion'][$index]->created_at;
+                                          // echo $student_detail['payment_completion'][$index]->created_at;
+                                          $originalTime = $student_detail['payment_completion'][$index]->created_at;
+                                          $timestamp = strtotime($originalTime);
+                                          $newTime = date("y-m-d h:i A", $timestamp);
+                                          echo $newTime;
                                           // echo (empty($payment->updated_at))? $payment->created_at : $payment->updated_at;
                                           
                                       
@@ -398,11 +413,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         
                                         echo "<input type='hidden' name='grade' value='{$student_detail['grade'][0]->label}'>";
                                         echo "<input type='hidden' name='invoiceid' value='{$payment->invoice_number}'>";
-                                        echo "<input type='submit' class='btn btn-info btn-sm mr-1' value='Download' />";
+                                        echo "<input type='submit' class='btn btn-info btn-sm mr-1' value='Save' />";
                                       if(empty($student_detail['profile']->phone)){
                                         echo "<a class='disabled pt-0 pb-0 btn btn-success btn-sm' href='https://wa.me/{$student_detail['profile']->phone}?text={$payment->label}%20Approved'>Send</a>";
                                       }else{
-                                        echo "<a class='mt-1 pt-0 pb-0 btn btn-success btn-sm' href='https://wa.me/{$student_detail['profile']->phone}?text={$payment->label}%20Approved'>Send</a>";
+                                        echo "<a class='mt-1 mt-md-0 pt-0 pb-1 btn btn-success btn-sm' href='https://wa.me/{$student_detail['profile']->phone}?text={$payment->label}%20Approved'>";
+                                        echo "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-whatsapp' viewBox='0 0 16 16'>
+                                            <path d='M13.601 2.326A7.95 7.95 0 0 0 8.06.008a7.936 7.936 0 0 0-5.63 2.326A7.987 7.987 0 0 0 .37 8.06a7.96 7.96 0 0 0 1.169 4.019L.012 15.59l3.613-1.154a7.964 7.964 0 0 0 4.035 1.169h.004c2.11 0 4.102-.822 5.63-2.326a7.95 7.95 0 0 0 2.326-5.63c-.003-2.11-.825-4.102-2.326-5.63zM8.06 14.92h-.002a6.92 6.92 0 0 1-3.52-1.026l-.252-.15-2.144 .685 .72-2.09-.164-.27A6.92 6.92 0 0 1 .98 8.06c0-3.83 3.11-6.94 6.94-6.94a6.92 6.92 0 0 1 4.9 2.03c1.33 1.33 2.03 3.09 2.03 4.9a6.92 6.92 0 0 1-2.03 4.9c-1.33 1.33-3.09 2.03-4.9 2.03zm3-4.173c-.163-.081-.97-.479-1.12-.534-.15-.056-.26-.081-.37 .081s-.426 .534-.523 .644c-.097 .111-.195 .125-.358 .044-.163-.08-.687-.252-1.31-.808-.484-.43-.81-.961-.905-1.124-.095-.163-.01-.25 .07-.33 .072-.071 .163-.195 .244-.293 .081-.098 .108-.163 .163-.271 .054-.108 .027-.203-.014-.284-.04-.08-.37-.888-.508-1.216-.134-.319-.27-.276-.37-.276h-.317c-.108 0-.284 .04-.433 .195s-.567 .554-.567 1.352c0 .798 .58 1.57 .661 1.678 .081 .108 1.143 1.743 2.767 2.443 1.625 .7 1.625 .467 1.92 .439 .296-.027 1.02-.416 1.163-.818 .144-.403 .144-.747 .101-.818s-.163-.108-.326-.189z'/>
+                                          </svg>";
+                                        echo "</a>";
                                       }
                                       
 
@@ -430,23 +449,39 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             
                                                 echo $payment->amount;
                                               echo "</td>";
+                                              
                                               echo "<td>";
                                               echo "<input type='text' class='form-control' name='amount' value='$payment->amount'>";
 
                                               echo "<input type='hidden' name='student_record_id' value='$payment->student_record_id'>";
                                               echo "</td>";
+                                              
+                                              echo "<td>";
+                                            
+                                                 echo "<input type='text' name='note' class='form-control' placeholder='Enter Note'>";
+                                              echo "</td>";
                                               echo "<td>";
                                               if(empty($payment->updated_at)){
-                                                echo $payment->created_at;
+                                                // echo $payment->created_at;
+
+                                                 $originalTime =$payment->created_at;
+                                                  $timestamp = strtotime($originalTime);
+                                                  $newTime = date("y-m-d h:i A", $timestamp);
+                                                  echo $newTime;
+
                                               }else{
-                                                echo $payment->updated_at;
+                                                // echo $payment->updated_at;
+                                                $originalTime = $payment->updated_at;
+                                                  $timestamp = strtotime($originalTime);
+                                                  $newTime = date("y-m-d h:i A", $timestamp);
+                                                  echo $newTime;
                                               }
                                             echo "</td>";
                                               echo "<td>";
                                               echo $payment->status;
                                             echo "</td>";
                                             echo "<td>";
-                                            echo "<input type='submit' class='btn btn-danger btn-sm' value='Pay Now' />";
+                                            echo "<input type='submit' class='btn btn-danger btn-sm' value='Pay' />";
                                             echo "</td>";
                                             echo "</tr>";
                                           echo form_close();
@@ -488,6 +523,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         echo "<th style='min-width:60px'>";
                                           echo "Paid Amount";
                                         echo "</th>";
+                                        echo "<th style='min-width:60px'>";
+                                          echo "Note";
+                                        echo "</th>";
                                         echo "<th>";
                                         echo "Last updated";
                                       echo "</th>";
@@ -512,6 +550,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                           echo "<td>";
                                           echo $payment->amount;
                                         echo "</td>";
+                                         echo '<span class="badge badge-light text-wrap">';
+                                                  echo $student_detail['payment_completion'][$index]->note;
+                                                 echo '</span>';
                                           echo "<td>";
                                           $invoiceIds = array_map(function($payment) {
                                             return $payment->invoice_id;
@@ -526,6 +567,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                                           echo "</td>";
                                           echo "<td>";
+                                            
+
+                                                 echo '<span class="badge badge-light text-wrap">';
+                                                  echo $student_detail['payment_completion'][$index]->note;
+                                                 echo '</span>';
+                                              echo "</td>";
+                                          
+                                          echo "<td>";
                                           // if paid return receipt payment date
                                           echo $student_detail['payment_completion'][$index]->created_at;
                                           // echo (empty($payment->updated_at))? $payment->created_at : $payment->updated_at;
@@ -539,11 +588,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         
                                         echo "<input type='hidden' name='grade' value='{$student_detail['grade'][0]->label}'>";
                                         echo "<input type='hidden' name='invoiceid' value='{$payment->invoice_number}'>";
-                                        echo "<input type='submit' class='btn btn-info btn-sm mr-1' value='Download' />";
+                                        echo "<input type='submit' class='btn btn-info btn-sm mr-1' value='Save' />";
                                       if(empty($student_detail['profile']->phone)){
                                         echo "<a class='disabled pt-0 pb-0 btn btn-success btn-sm' href='https://wa.me/{$student_detail['profile']->phone}?text={$payment->label}%20Approved'>Send</a>";
                                       }else{
-                                        echo "<a class='mt-1 pt-0 pb-0 btn btn-success btn-sm' href='https://wa.me/{$student_detail['profile']->phone}?text={$payment->label}%20Approved'>Send</a>";
+                                        echo "<a class='mt-1 mt-md-0 pt-0 pb-1 btn btn-success btn-sm' href='https://wa.me/{$student_detail['profile']->phone}?text={$payment->label}%20Approved'>";
+                                        echo "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-whatsapp' viewBox='0 0 16 16'>
+                                            <path d='M13.601 2.326A7.95 7.95 0 0 0 8.06.008a7.936 7.936 0 0 0-5.63 2.326A7.987 7.987 0 0 0 .37 8.06a7.96 7.96 0 0 0 1.169 4.019L.012 15.59l3.613-1.154a7.964 7.964 0 0 0 4.035 1.169h.004c2.11 0 4.102-.822 5.63-2.326a7.95 7.95 0 0 0 2.326-5.63c-.003-2.11-.825-4.102-2.326-5.63zM8.06 14.92h-.002a6.92 6.92 0 0 1-3.52-1.026l-.252-.15-2.144 .685 .72-2.09-.164-.27A6.92 6.92 0 0 1 .98 8.06c0-3.83 3.11-6.94 6.94-6.94a6.92 6.92 0 0 1 4.9 2.03c1.33 1.33 2.03 3.09 2.03 4.9a6.92 6.92 0 0 1-2.03 4.9c-1.33 1.33-3.09 2.03-4.9 2.03zm3-4.173c-.163-.081-.97-.479-1.12-.534-.15-.056-.26-.081-.37 .081s-.426 .534-.523 .644c-.097 .111-.195 .125-.358 .044-.163-.08-.687-.252-1.31-.808-.484-.43-.81-.961-.905-1.124-.095-.163-.01-.25 .07-.33 .072-.071 .163-.195 .244-.293 .081-.098 .108-.163 .163-.271 .054-.108 .027-.203-.014-.284-.04-.08-.37-.888-.508-1.216-.134-.319-.27-.276-.37-.276h-.317c-.108 0-.284 .04-.433 .195s-.567 .554-.567 1.352c0 .798 .58 1.57 .661 1.678 .081 .108 1.143 1.743 2.767 2.443 1.625 .7 1.625 .467 1.92 .439 .296-.027 1.02-.416 1.163-.818 .144-.403 .144-.747 .101-.818s-.163-.108-.326-.189z'/>
+                                          </svg>";
+                                        // 
+                                        echo "</a>";
                                       }
                                       
 
@@ -576,6 +630,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                                               echo "<input type='hidden' name='student_record_id' value='$payment->student_record_id'>";
                                               echo "</td>";
+                                               echo "<td>";
+                                            
+                                                 echo "<input type='text' name='note' class='form-control' placeholder='Enter Note'>";
+                                              echo "</td>";
                                               echo "<td>";
                                               if(empty($payment->updated_at)){
                                                 echo $payment->created_at;
@@ -587,7 +645,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                               echo $payment->status;
                                             echo "</td>";
                                             echo "<td>";
-                                            echo "<input type='submit' class='btn btn-danger btn-sm' value='Pay Now' />";
+                                            echo "<input type='submit' class='btn btn-danger btn-sm' value='Pay' />";
                                             echo "</td>";
                                             echo "</tr>";
                                           echo form_close();

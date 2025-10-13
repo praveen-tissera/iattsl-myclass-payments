@@ -387,12 +387,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                            
                                             if($payment->status == 'paid'){
                                               $studentid = explode('/', $student->admission_number);
-                                              echo "<a href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'>";
+                                              echo "<a href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'>";
                                                 echo "<span class='badge badge-success' title='$payment->amount'> Paid ($payment->invoice_number)</span>";
                                               echo "</a>";
                                             }else if($payment->status == 'unpaid'){
                                               $studentid = explode('/', $student->admission_number);
-                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
+                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
                                             }
                                             echo "</td>";
                                             $found = true;
@@ -416,12 +416,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                            
                                             if($payment->status == 'paid'){
                                               $studentid = explode('/', $student->admission_number);
-                                              echo "<a href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'>";
+                                              echo "<a href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'>";
                                                 echo "<span class='badge badge-success' title='$payment->amount'> Paid ($payment->invoice_number)</span>";
                                               echo "</a>";
                                             }else if($payment->status == 'unpaid'){
                                               $studentid = explode('/', $student->admission_number);
-                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/welcome/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
+                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
                                             }
                                             echo "</td>";
                                             $found = true;
