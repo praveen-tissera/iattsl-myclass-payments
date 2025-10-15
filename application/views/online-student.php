@@ -550,10 +550,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                           echo "<td>";
                                           echo $payment->amount;
                                         echo "</td>";
-                                         echo '<span class="badge badge-light text-wrap">';
-                                                  echo $student_detail['payment_completion'][$index]->note;
-                                                 echo '</span>';
+                                         
                                           echo "<td>";
+                                       
                                           $invoiceIds = array_map(function($payment) {
                                             return $payment->invoice_id;
                                         }, $student_detail['payment_completion']);
