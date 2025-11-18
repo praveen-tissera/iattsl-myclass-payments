@@ -357,7 +357,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             echo "<span class='copy-icon' onclick='copyCode(this)'>📋</span>";
                             echo "</td>";
                             echo "<td style='position: sticky; left: 0; background: #f2f2f2; z-index: 1;'>";
-                            echo $student->name;
+                             // if is_active is 1 show green dot else red dot
+                                      if($student->is_active == 1){
+                                        echo " <span class='dot-active' title='Active'></span>";    
+                                      }else{
+                                        echo " <span class='dot-inactive' title='Inactive'></span>";
+                                      }
+                                      echo " <span class='align-top'>" . $student->name . "</span>";
+                                      
                             echo "<span class='copy-icon' title='Copy Email' value='$student->email' onclick='copyEmail(this)'>Email📋</span>";
                             echo "</td>";
 
