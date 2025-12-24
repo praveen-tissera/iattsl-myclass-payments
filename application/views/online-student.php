@@ -139,7 +139,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
 
                 ?>
-                <h1 class="text-center display-4 mt-3" style="font-size:3rem">Please  Enter ONLINE Student ID </h1>
+                <h1 class="text-center display-4 mt-3" style="font-size:3rem">Please Enter ONLINE Student ID </h1>
                 <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                 <?php
                   if(isset($message)){
@@ -166,7 +166,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <?php echo form_open('online/idValidator') ?>
                 <table class="table table-borderless">
                     <tr>
-                        <td>
+                        <td><label for="branch">Student ID</label>
+                           
                           <?php 
                          
                             if (!empty($student_data[0]['profile']->admission_number)) {
@@ -231,10 +232,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           ?>
 
                         </td>
+                        <td><label for="branch">Academic Year</label>
+                          <select class="form-control" name="academicyear">
+                            <?php 
+                              foreach ($academicyear as $year) {
+                                if (!empty($selected_academic_year) && $selected_academic_year == $year->ID) {
+                                  echo "<option value='{$year->ID}' selected>{$year->label}</option>";
+                                } else {
+                                  echo "<option value='{$year->ID}'>{$year->label}</option>";
+                                }
+                              }
+                            ?>
+                          </select>
+                        </td>
                     </tr>
 
                     <tr>
-                        <td>
+                        <td colspan="2">
                             <input class="btn btn-primary btn-block" type="submit" name="submit" value="Submit">
                         </td>
                     </tr>
@@ -435,6 +449,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                               echo "<tr>";
                                               echo "<td>";
                                               echo "<input type='hidden' name='student_id' value='{$student_detail['profile']->admission_number}'>";
+                                              echo "<input type='hidden' name='academicyear' value='{$selected_academic_year}'>";
 
                                             
                                               echo "<input type='hidden' name='invoice_id' value='$payment->ID'>";
@@ -610,7 +625,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                               echo "<tr>";
                                               echo "<td>";
                                               echo "<input type='hidden' name='student_id' value='{$student_detail['profile']->admission_number}'>";
-
+                                              echo "<input type='hidden' name='academicyear' value='{$selected_academic_year}'>";
                                             
                                               echo "<input type='hidden' name='invoice_id' value='$payment->ID'>";
 

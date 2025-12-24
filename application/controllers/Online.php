@@ -25,14 +25,19 @@ class Online extends CI_Controller {
             $data['error'] = $error;
         }
         // $this->user_model->get_usreData();
+        // list all acadamic yeares from acadamic year table
+         $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         $this->load->view('online-student',$data);
     }
-     public function idValidator($student_id=0, $branch='PEL'){
+     public function idValidator($student_id=0, $branch='PEL',$session_id=5){
        
         $success = $this->session->userdata('success_message_display');
       
 
         if ($student_id == 0) {
+                $result = $this->Online_User_model->get_acadamicyear();
+                $data['academicyear'] = $result;
             
             $this->form_validation->set_rules('studentid', 'Class ID', 'required');
             if ($this->form_validation->run() == FALSE){
@@ -42,17 +47,19 @@ class Online extends CI_Controller {
             else{
                 if(isset($_POST['center'])){
                      $student_id = $_POST['center'].'/'.trim($_POST['studentid']);
-                        if($_POST['center'] == 'ONL'){
-                            $session_id = 4;
-                        }else{
-                            $session_id = 3;
-                        }
+                     $session_id = $this->input->post('academicyear');
+                     $data['selected_academic_year'] = $session_id;
+                        // if($_POST['center'] == 'ONL'){
+                        //     $session_id = 4;
+                        // }else{
+                        //     $session_id = 5;
+                        // }
                      
                 }
                 
                
                 $result = $this->Online_User_model->get_usreData($student_id,$session_id);
-
+                
                 if($result == 0){
                     $data['message'] = "No results found";
                     $this->load->view('online-student',$data);
@@ -66,14 +73,16 @@ class Online extends CI_Controller {
         }
 
        else{  
-        
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
+        $data['selected_academic_year'] = $session_id;
         $student_id = $branch.'/'.$student_id;       
        
-            if($branch == 'onl' || $branch == 'ONL'){
-                $session_id = 4;
-            }else{
-                $session_id = 3;
-            }
+            // if($branch == 'onl' || $branch == 'ONL'){
+            //     $session_id = 4;
+            // }else{
+            //     $session_id = 3;
+            // }
 
         $result = $this->Online_User_model->get_usreData($student_id,$session_id);
         if($result == 0){
@@ -155,7 +164,7 @@ class Online extends CI_Controller {
                 'created_at' => $currentDate,
                 'note' => $_POST['note'],
                 );
-
+                    $session_id = $this->input->post('academicyear');
                 // print_r($data);
             $result = $this->Online_User_model->insert_payment($data);
             // $result = 2;
@@ -180,7 +189,7 @@ class Online extends CI_Controller {
                         
                 $this->session->set_userdata('success_message_display', 'Payment Updated sucessfully');
                
-                redirect('/online/idValidator/'.$student_id_without_ending_number.'/'.$student_branch);
+                redirect('/online/idValidator/'.$student_id_without_ending_number.'/'.$student_branch.'/'.$session_id);
 
             } else if($result == 0){
                 // echo "error";
@@ -338,6 +347,9 @@ class Online extends CI_Controller {
         $success = $this->session->flashdata('success');
 		$error = $this->session->flashdata('error');
         $data = [];
+
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         if (!empty($success)) {
             $data['success'] = $success;
         }
@@ -361,10 +373,13 @@ class Online extends CI_Controller {
         $error = $this->session->flashdata('error');
         // get form data input name grade
         // $date = $this->input->post('date');
+
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         $branch = $this->input->post('branch');
         $class_detail = $this->input->post('class');
        
-        $session_id = 4;  
+        $session_id = $this->input->post('academicyear');    
         $class_array = explode('*', $class_detail);
         $class_id = $class_array[0];
         $class_name = $class_array[1];
@@ -399,7 +414,7 @@ class Online extends CI_Controller {
         
 
       
-        
+        $data['selected_academic_year'] = $session_id;
         $data['students'] = $students;
         // $data['date'] = $date;
         $data['branch'] = $branch;

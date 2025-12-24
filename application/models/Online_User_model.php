@@ -439,4 +439,17 @@ class Online_User_model extends CI_Model{
         }
     }
 
+    // get acadamic year list from wp_wlsm_sessions table
+    public function get_acadamicyear(){
+        $query = $this->db->select('*')
+        ->get('wp_wlsm_sessions');
+       
+        if($query->num_rows() > 0){
+            return $query->result();
+        }else{
+            return(0);
+        }
+    }
+        
+
 }

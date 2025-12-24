@@ -185,18 +185,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                        <div class="input-group">
                           <input type="date" class="form-control" name="end_incomedate" value="<?php echo $currentDate; ?>">
 
-                          <div class="input-group-append">
+                          <!-- <div class="input-group-append">
                             <div class="btn-group" role="group" aria-label="Class Mode">
                               <label class="btn btn-outline-secondary">
-                                <!-- 2025 IATTSL Pelawatta  -->
+                                2025 IATTSL Pelawatta  
                                 <input type="radio" name="class_mode" value="3" autocomplete="off" checked> Physical
                               </label>
-                              <!-- 25/26 Iattsl EDEX/CAM ONLINE  -->
+                               25/26 Iattsl EDEX/CAM ONLINE  
                               <label class="btn btn-outline-secondary">
                                 <input type="radio" name="class_mode" value="4" autocomplete="off"> Online
                               </label>
                             </div>
-                          </div>
+                          </div> -->
                         </div>
 
                        
@@ -214,6 +214,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           ?>
                            
 
+                        </td>
+                        <td>
+                          <select class="form-control" name="academicyear">
+                            <?php 
+                              foreach ($academicyear as $year) {
+                                if (!empty($selected_academic_year) && $selected_academic_year == $year->ID) {
+                                  echo "<option value='{$year->ID}' selected>{$year->label}</option>";
+                                } else {
+                                  echo "<option value='{$year->ID}'>{$year->label}</option>";
+                                }
+                              }
+                            ?>
+                          </select>
                         </td>
                     </tr>
 

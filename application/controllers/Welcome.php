@@ -9,6 +9,7 @@ class Welcome extends CI_Controller {
         $this->load->library('form_validation');
         $this->load->model('User_model');
         $this->load->model('Mark_model');
+        $this->load->model('Online_User_model');
         $this->load->library('session');
         //load url library
 		$this->load->helper('url');
@@ -225,22 +226,30 @@ class Welcome extends CI_Controller {
 
 
     public function income(){
-        $this->load->view('income');
+
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
+
+        $this->load->view('income',$data);
     }
     public function adminincome(){
-        $this->load->view('adminincome');
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
+        $this->load->view('adminincome',$data);
     }
 
     public function incomesummary(){
         
-         
+         $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         date_default_timezone_set('Asia/Colombo');
          if(empty($this->input->post('filteroptions'))){
             
             redirect('welcome/income');
         }
         // print_r($_POST);
-        $session_id = $this->input->post('class_mode');
+        $session_id = $this->input->post('academicyear');
+        $data['selected_academic_year'] = $session_id;
         if($this->input->post('filteroptions') == 'week'){
             $datedata[] = date('Y-m-d');
             $datedata[] = date('Y-m-d', strtotime('-6 days'));
@@ -264,14 +273,16 @@ class Welcome extends CI_Controller {
         
     }
     public function adminincomesummary(){
-        
+         $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         date_default_timezone_set('Asia/Colombo');
         // print_r($_POST);
         if(empty($this->input->post('filteroptions'))){
             
             redirect('welcome/adminincome');
         }
-        $session_id = $this->input->post('class_mode');
+         $session_id = $this->input->post('academicyear');
+        $data['selected_academic_year'] = $session_id;
         if($this->input->post('filteroptions') == 'week'){
             $datedata[] = date('Y-m-d');
             $datedata[] = date('Y-m-d', strtotime('-6 days'));
@@ -316,6 +327,8 @@ class Welcome extends CI_Controller {
         $success = $this->session->flashdata('success');
 		$error = $this->session->flashdata('error');
         $data = [];
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         if (!empty($success)) {
             $data['success'] = $success;
         }
@@ -339,10 +352,13 @@ class Welcome extends CI_Controller {
         $error = $this->session->flashdata('error');
         // get form data input name grade
         // $date = $this->input->post('date');
+
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         $branch = $this->input->post('branch');
         $class_detail = $this->input->post('class');
        
-        $session_id = 3;  
+        $session_id = $this->input->post('academicyear');  
         $class_array = explode('*', $class_detail);
         $class_id = $class_array[0];
         $class_name = $class_array[1];
@@ -374,7 +390,7 @@ class Welcome extends CI_Controller {
         // print_r($students);
 
       
-        
+        $data['selected_academic_year'] = $session_id;
         $data['students'] = $students;
         // $data['date'] = $date;
         $data['branch'] = $branch;

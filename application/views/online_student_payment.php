@@ -210,6 +210,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                          
 
                         </td>
+                        <td>
+                          <label for="branch">Select Academic Year</label>
+                          <select class="form-control" name="academicyear">
+                            <?php 
+                              foreach ($academicyear as $year) {
+                                if (!empty($selected_academic_year) && $selected_academic_year == $year->ID) {
+                                  echo "<option value='{$year->ID}' selected>{$year->label}</option>";
+                                } else {
+                                  echo "<option value='{$year->ID}'>{$year->label}</option>";
+                                }
+                              }
+                            ?>
+                          </select>
+                        </td>
                         <!-- <td>
                           
                           <div class="form-group">
@@ -222,7 +236,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               <option value="MAT">Mattegoda</option>
                             </select>
                         </td> -->
-                        <td>
+                        <td colspan="2">
                           <br>
                             <input class="btn btn-danger btn-block mt-2" type="submit" name="submit" value="SEARCH">
                         </td>
@@ -372,7 +386,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         $stdID = explode('-', $studentid[1]);
                                                         array_pop($stdID);
                                                         $regNumber = implode('-', $stdID);
-                                                        echo "<a href='" . base_url() . "index.php/online/idValidator/{$regNumber}/{$branch}'>";
+                                                        echo "<a href='" . base_url() . "index.php/online/idValidator/{$regNumber}/{$branch}/{$selected_academic_year}'>";
                                                           echo "<span class='badge badge-success' title='$payment->amount'> Paid ($payment->invoice_number)</span>";
                                                         echo "</a>";
                                                       }else if($payment->status == 'unpaid'){
@@ -383,7 +397,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         $regNumber = implode('-', $stdID);
 
                                                         $studentid = explode('/', $student->admission_number);
-                                                          echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$regNumber}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
+                                                          echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$regNumber}/{$branch}/{$selected_academic_year}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
                                                       }
                                                       echo "</td>";
                                                       $found = true;

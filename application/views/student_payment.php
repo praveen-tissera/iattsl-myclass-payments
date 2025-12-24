@@ -218,7 +218,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               <option value="MAT">Mattegoda</option>
                             </select>
                         </td>
-                        <td>
+                        <td> 
+                          <label for="branch">Select Academic Year</label>
+                          <select class="form-control" name="academicyear">
+                            <?php 
+                              foreach ($academicyear as $year) {
+                                if (!empty($selected_academic_year) && $selected_academic_year == $year->ID) {
+                                  echo "<option value='{$year->ID}' selected>{$year->label}</option>";
+                                } else {
+                                  echo "<option value='{$year->ID}'>{$year->label}</option>";
+                                }
+                              }
+                            ?>
+                          </select>
+                        </td>
+                        <td colspan="2">
                           <br>
                             <input class="btn btn-danger btn-block mt-2" type="submit" name="submit" value="SEARCH">
                         </td>
@@ -307,18 +321,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <th scope="col">#</th>
                             <th scope="col">ID</th>
                             <th scope="col" style="position: sticky; left: 0; background: #f2f2f2; z-index: 1;">Student Name</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'January') ?  'bg-warning fix-col' : ''; ?>">Inst 1</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'February') ?  'bg-warning fix-col' : ''; ?>" >Inst 2</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'March') ?  'bg-warning fix-col' : ''; ?>">Inst 3</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'April') ?  'bg-warning fix-col' : ''; ?>">Inst 4</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'May') ?  'bg-warning fix-col' : ''; ?>">Inst 5</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'June') ?  'bg-warning fix-col' : ''; ?>">Inst 6</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'July') ?  'bg-warning fix-col' : ''; ?>">Inst 7</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'August') ?  'bg-warning fix-col' : ''; ?>">Inst 8</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'September') ?  'bg-warning fix-col' : ''; ?>">Inst 9</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'October') ?  'bg-warning fix-col' : ''; ?>">Inst 10</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'November') ?  'bg-warning fix-col' : ''; ?>">Inst 11</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'December') ?  'bg-warning fix-col' : ''; ?>">Inst 12</th>
+                            <th scope="col" class = "<?php echo($currentMonth) ?  'bg-warning fix-col' : ''; ?>">Inst 1</th>
+                            <th scope="col" class = "<?php echo ($currentMonth ) ?  'bg-warning fix-col' : ''; ?>" >Inst 2</th>
+                            <th scope="col" class = "<?php echo ($currentMonth) ?  'bg-warning fix-col' : ''; ?>">Inst 3</th>
+                            <th scope="col" class = "<?php echo($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 4</th>
+                            <th scope="col" class = "<?php echo($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 5</th>
+                            <th scope="col" class = "<?php echo ($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 6</th>
+                            <th scope="col" class = "<?php echo($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 7</th>
+                            <th scope="col" class = "<?php echo($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 8</th>
+                            <th scope="col" class = "<?php echo($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 9</th>
+                            <th scope="col" class = "<?php echo($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 10</th>
+                            <th scope="col" class = "<?php echo($currentMonth ) ?  'bg-warning fix-col' : ''; ?>">Inst 11</th>
+                            <th scope="col" class = "<?php echo($currentMonth) ?  'bg-warning fix-col' : ''; ?>">Inst 12</th>
+                             <th scope="col" class = "<?php echo($currentMonth) ?  'bg-warning fix-col' : ''; ?>">Inst 13</th>
+                             <th scope="col" class = "<?php echo($currentMonth) ?  'bg-warning fix-col' : ''; ?>">Inst 14</th>
+                           
                         
                             
 
@@ -336,7 +353,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                            $installments = [
                                       "Installment 1", "Installment 2", "Installment 3", "Installment 4", "Installment 5", "Installment 6",
-                                      "Installment 7", "Installment 8", "Installment 9", "Installment 10", "Installment 11", "Installment 12"
+                                      "Installment 7", "Installment 8", "Installment 9", "Installment 10", "Installment 11", "Installment 12","Installment 13", "Installment 14"
                                   ];
 
 
@@ -394,12 +411,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                            
                                             if($payment->status == 'paid'){
                                               $studentid = explode('/', $student->admission_number);
-                                              echo "<a href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'>";
+                                              echo "<a href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}/{$selected_academic_year}'>";
                                                 echo "<span class='badge badge-success' title='$payment->amount'> Paid ($payment->invoice_number)</span>";
                                               echo "</a>";
                                             }else if($payment->status == 'unpaid'){
                                               $studentid = explode('/', $student->admission_number);
-                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
+                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}/{$selected_academic_year}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
                                             }
                                             echo "</td>";
                                             $found = true;
@@ -423,12 +440,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                            
                                             if($payment->status == 'paid'){
                                               $studentid = explode('/', $student->admission_number);
-                                              echo "<a href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'>";
+                                              echo "<a href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}/{$selected_academic_year}'>";
                                                 echo "<span class='badge badge-success' title='$payment->amount'> Paid ($payment->invoice_number)</span>";
                                               echo "</a>";
                                             }else if($payment->status == 'unpaid'){
                                               $studentid = explode('/', $student->admission_number);
-                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
+                                                echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}/{$selected_academic_year}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
                                             }
                                             echo "</td>";
                                             $found = true;
