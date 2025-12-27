@@ -1,31 +1,79 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Welcome extends CI_Controller {
+class Guest extends CI_Controller {
 
     public function __construct() {
 		parent::__construct();
         $this->load->helper('form');
         $this->load->library('form_validation');
+        $this->load->library('WpHasher');
         $this->load->model('User_model');
         $this->load->model('Mark_model');
         $this->load->model('Online_User_model');
+    //    load session library
         $this->load->library('session');
         //load url library
 		$this->load->helper('url');
         date_default_timezone_set("Asia/colombo");
-
-        if (!$this->is_logged_in()) {
-            redirect('guest/loginview');
-        }
 	}
 
-     // implement login function to check user is logged in or not
-    public function is_logged_in() {
-        // echo "is logged in function called";
-        // // show session userdata 'logged_in' value
-        // echo $this->session->userdata('user_name');
-        return $this->session->userdata('logged_in') === TRUE;
+    // create login view function
+    public function loginview() {
+        if($this->session->userdata('logged_in') === TRUE){
+
+            $this->session->unset_userdata('logged_in');
+            $this->session->unset_userdata('user_id');
+            $this->session->unset_userdata('user_name');
+             $data['success'] = 'Logged out successfully';
+        }else{
+            $data = [];
+        }
+        
+       
+        $this->load->view('online_login', $data);
+    }
+
+
+      // implement function to get login from email and password and check in database
+    public function login() {
+        $this->load->model('User_model');
+
+        //clear session data if session exists
+       $this->session->unset_userdata('logged_in');
+        $this->session->unset_userdata('user_id');
+        $this->session->unset_userdata('user_name');
+
+
+        // create form validation rules
+        $this->form_validation->set_rules('email', 'Email', 'required');
+        $this->form_validation->set_rules('password', 'Password', 'required');
+        $email = $this->input->post('email');
+        $password = $this->input->post('password');
+    //    check form validation
+        if ($this->form_validation->run() == FALSE) {
+            // redirect to login view
+            $this->load->view('online_login');
+            return;
+        }else{
+            $user = $this->User_model->get_user_by_email_and_password($email, $password);
+            $stored = $user->user_pass;
+            if ($this->wphasher->check($password, $stored)) {
+                    $this->session->set_userdata('logged_in', TRUE);
+                    // $this->session->set_userdata('user_id', $user->id);
+                    $this->session->set_userdata('user_id', $user->ID);
+                    $this->session->set_userdata('user_name', $user->user_login);
+                    // redirect to online controller index function
+                    redirect('Online/index');
+                } else {
+                    echo 'Password is incorrect';
+                    redirect('guest/loginview');
+                }
+        }
+           
+
+        
+        
     }
     public function index(){
         $success = $this->session->flashdata('success');

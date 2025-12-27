@@ -120,6 +120,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
      <li class="nav-item">
       <a class="nav-link" target="_blank" href="https://iattsl.edu.lk/iattslstudent">Student Report Card</a>
      </li>
+     <li class="nav-item">
+        <?php  
+        // session check and if true show logout button else show login button
+        if(!$this->session->userdata('logged_in')) {
+            echo '<a class="nav-link" href="' . base_url() . 'index.php/guest/loginview">Login</a>';
+        } else {  
+           // create nice back hyperlink with bootstrap design
+           
+            // echo '<a class=" mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">Logout</a>';
+             echo '<a class=" mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">';
+             echo $this->session->userdata('user_name') . '<span class=" mx-1 badge badge-light"> Logout</span></a>';
+
+           
+        }
+        ?>
+        
+      </li>
     </ul>
   </div>
 </nav>

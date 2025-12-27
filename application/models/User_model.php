@@ -412,4 +412,32 @@ class User_model extends CI_Model{
         }
     }
 
+    // create get_user_by_email_and_password function ,  get user details from wp_users table
+    public function get_user_by_email_and_password($email, $password){
+        // check from user_login or user_email coloumn
+
+
+        $condition = "user_email='{$email}' OR user_login='{$email}'";
+        $query = $this->db->select('*')
+        ->where($condition)
+        ->get('wp_users');
+        // print_r($this->db->last_query());
+        if($query->num_rows() == 1){
+            $user = $query->result();
+            return $user[0];
+        //    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        //    echo $hashed_password;
+        //    echo "<br>";
+        //    echo $user[0]->user_pass;
+        //     // verify password
+        //     if (password_verify($hashed_password, $user[0]->user_pass)) {
+        //         return $user[0];
+        //     } else {
+        //         return 0;
+        //     }
+        }else{
+            return 0;
+        }
+    }
+
 }

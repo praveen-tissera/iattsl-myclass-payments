@@ -94,6 +94,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
      <li class="nav-item">
       <a class="nav-link" target="_blank" href="https://iattsl.edu.lk/iattslstudent">Student Report Card</a>
      </li>
+     <!-- create session check and if true show logout button else show login button -->
+      <li class="nav-item">
+        <?php  
+        // session check and if true show logout button else show login button
+        if(!$this->session->userdata('logged_in')) {
+            echo '<a class="nav-link" href="' . base_url() . 'index.php/guest/loginview">Login</a>';
+        } else {  
+            echo '<a class="nav-link" href="' . base_url() . 'index.php/online">Logout</a>';
+        }
+        ?>
+        
+      </li>
+
     </ul>
   </div>
 </nav>

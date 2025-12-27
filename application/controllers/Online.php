@@ -9,12 +9,34 @@ class Online extends CI_Controller {
         $this->load->library('form_validation');
         $this->load->model('Online_User_model');
         $this->load->model('Mark_model');
-        $this->load->library('session');
+
         //load url library
 		$this->load->helper('url');
         date_default_timezone_set("Asia/colombo");
+        // load session library
+        $this->load->library('session');
+        if (!$this->is_logged_in()) {
+            redirect('guest/loginview');
+        }
 	}
+    
+
+    // implement login function to check user is logged in or not
+    public function is_logged_in() {
+        // echo "is logged in function called";
+        // // show session userdata 'logged_in' value
+        // echo $this->session->userdata('user_name');
+        return $this->session->userdata('logged_in') === TRUE;
+    }
+
+  
+
     public function index(){
+        // check is_logged_in function to check user is logged in or not
+        // if (!$this->is_logged_in()) {
+        //     // echo "login testing";
+        //     redirect('guest/loginview');
+        // }
         $success = $this->session->flashdata('success');
 		$error = $this->session->flashdata('error');
         $data = [];
