@@ -440,4 +440,161 @@ class User_model extends CI_Model{
         }
     }
 
+
+
+    public function get_students_attendance_by_branch($subject_id, $session_id, $branch){  
+        $this->db->select('*');
+        $this->db->from('wp_wlsm_student_records');
+        $this->db->where('section_id', $subject_id);
+        $this->db->where('session_id', $session_id);
+        $this->db->like('admission_number', $branch, 'after'); // 'after' means it will match the beginning of the string
+        $query = $this->db->get();
+        //PRINT query string
+        // echo $this->db->last_query();
+
+        
+        if($query->num_rows() > 0){
+            // crete loop to get each student previous marks from wp_wlsm_student_paper_marks_iattsl table filter by student_id, subject_id, session_id
+            foreach($query->result() as $key => $student){
+                // change condition variable to oder by class_date jan to Dec order.
+
+
+                $condition = "student_record_id  ='{$student->ID}' order by class_date ASC";
+                $attendance_query = $this->db->select('*')
+                                        ->where($condition)
+                                        ->get('wp_wlsm_student_attendance_iattsl');
+                if($attendance_query->num_rows() > 0){
+                    // group attendace result in to an array which has Jan, Feb, Mar...Dec as keys
+                    $attendance_history = [];
+                    foreach($attendance_query->result() as $attendance){
+                        $month = date('M', strtotime($attendance->class_date));
+                        $attendance_history[$month][] = $attendance;
+                    }
+                    $query->result()[$key]->attendance_history = $attendance_history;
+                }else{
+                    $query->result()[$key]->attendance_history = null;
+                }
+            }
+            return $query->result();
+        }else{
+            return 0;
+        }
+    }
+
+
+    public function insert_student_attendace($data){
+        // ID
+// student_record_id
+// class_date
+// attendace
+// staff_id
+// created_at
+// create for multiple trasactions use approach using trans_commit and trans_rollback
+       
+
+        $attendance_data = array(); 
+
+        $this->db->trans_begin();
+        // loop through data array and attendace array to insert each record
+        foreach($data['attendace'] as $key => $record){
+           
+            // print_r($record);
+            $attendance_data['student_record_id'] = $key;
+            $attendance_data['class_date'] = $data['class_date'];
+            $attendance_data['attendace'] = $record;
+            $attendance_data['staff_id'] = $data['staff_id'];
+            $attendance_data['created_at'] = date('Y-m-d H:i:s');
+            // print_r($attendance_data);
+             $result_attendace = $this->db->insert('wp_wlsm_student_attendance_iattsl', $attendance_data);
+            if($this->db->affected_rows() != 1){
+                echo "Error";
+                $this->db->trans_rollback();
+                return(0);
+            }
+             
+        }
+        $this->db-> trans_commit();
+        return(1);
+        // return true;
+        // if($this->db->affected_rows() == 1){
+        //     return(1);
+        // }else if($this->db->affected_rows() == 0){
+        //     return(0);
+        // }else{
+        //     return(-1);
+        // }
+    }
+
+    // update_student_attendace
+    public function update_student_attendace($data,$student_ids){
+
+        // loop through $student_ids and get the value ,  get current month and year in the format of 'YYYY-MM'
+        $current_month_year = date('Y-m');
+        foreach($student_ids as $student_id){
+            // check attendace value from $data array using key old_attendace_{student_id}_{class_date}
+            $class_date_filter = $current_month_year;
+            // create sql query to filter like this query SELECT * FROM wp_wlsm_student_attendance_iattsl WHERE student_record_id =108 AND class_date LIKE '2025-12%';
+            $condition = "student_record_id='{$student_id}' AND class_date LIKE '{$class_date_filter}%'";
+            $query = $this->db->select('*')
+            ->where($condition)
+            ->get('wp_wlsm_student_attendance_iattsl');
+            print_r($this->db->last_query());
+            if($query->num_rows() > 0){
+                $attendance_records = $query->result();
+                // loop through attendance_records and update attendace value as 'AB'
+
+                foreach($attendance_records as $record){
+                    $checkbox_key = 'old_attendace_'.$student_id.'_'.$record->class_date;
+                   
+                    $this->db->set('attendace', 'AB');
+                    $this->db->where('ID', $record->ID);
+                     $this->db->where('class_date', $record->class_date);
+                    $this->db->update('wp_wlsm_student_attendance_iattsl');
+                    if($this->db->affected_rows() == -1){
+                        echo "Error";
+                    }
+                }
+            }
+
+            
+
+           
+        }
+            $this->db->trans_begin();
+            foreach($data as $key => $record){   
+                // print_r($record);
+                $this->db->where('student_record_id', $record['student_id']);
+                $this->db->where('class_date', $record['class_date']);
+                $this->db->update('wp_wlsm_student_attendance_iattsl', array('attendace' => $record['attendace']));
+
+                // print_r($this->db->last_query());
+                // echo "<br>";
+                // echo "Affected Rows: ".$this->db->affected_rows();
+                if($this->db->affected_rows() == -1){
+                    echo "Error";
+                    $this->db->trans_rollback();
+                    return(0);
+                }
+            }
+
+        
+        $this->db->trans_commit();
+        return(1);
+
+
+
+
+
+        // $this->db->where('student_record_id', $data['student_id']);
+        // $this->db->where('class_date', $data['class_date']);
+        // $this->db->update('wp_wlsm_student_attendance_iattsl', array('attendace' => $data['attendace']));
+        // if($this->db->affected_rows() == 1){
+        //     return(1);
+        // }else if($this->db->affected_rows() == 0){
+        //     return(0);
+        // }else{
+        //     return(-1);
+        // }
+    }
+
 }

@@ -123,7 +123,7 @@ class Welcome extends CI_Controller {
             'label' =>urldecode($label),
            'student_record_id' => $student_record_id,
         );
-     print_r($data);
+    //  print_r($data);
        
     }
     // crete public function to call insert_payment method in user_model file 
@@ -332,6 +332,27 @@ class Welcome extends CI_Controller {
         
     }
 
+    // create attendance view
+    public function attendanceview(){
+        $success = $this->session->flashdata('success');
+		$error = $this->session->flashdata('error');
+        $data = [];
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
+        if (!empty($success)) {
+            $data['success'] = $success;
+        }
+        if (!empty($error)) {
+            $data['error'] = $error;
+        }
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        // print_r($data);
+           
+            $this->load->view('student_attendace',$data);   
+             
+    }
+
 
     // payment history
         public function paymenthistory(){
@@ -359,6 +380,189 @@ class Welcome extends CI_Controller {
 
 
 
+        
+    public function gradewiseattendaceSumamry($branch=0,$class_detail=0,$session_id=0){
+
+        $success = $this->session->flashdata('success');
+        $error = $this->session->flashdata('error');
+        // get form data input name grade
+        // $date = $this->input->post('date');
+      
+
+
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
+
+        if($branch == 0 && $class_detail == 0 && $session_id == 0){
+
+            $branch = $this->input->post('branch');
+            $class_detail = $this->input->post('class');
+            $session_id = $this->input->post('academicyear'); 
+        }else{
+            
+            $branch = $branch;
+            $class_detail = urldecode($class_detail);
+            $session_id = $session_id;
+        }
+        
+        
+        
+        $class_array = explode('*', $class_detail);
+        $class_id = $class_array[0];
+        $class_name = $class_array[1];
+
+         $subjects = $this->Mark_model->get_subjecs($class_id);
+        //  print_r($subjects);
+        //  check whether ICT lable eixists in subjects array and return ID index value
+        $ict_subject_id = 0;
+        $subject_name;
+        foreach($subjects as $subject){
+            if($subject->label == 'ICT'){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
+            if($subject->label == $branch){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
+        }
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        if($ict_subject_id == 0){
+            $data['message'] = "No Student Found for this class";
+            $this->load->view('student_attendace',$data);
+        }else{
+         $students = $this->User_model->get_students_attendance_by_branch($ict_subject_id, $session_id , $branch);
+        // print_r($students);
+
+      
+        $data['selected_academic_year'] = $session_id;
+        $data['students'] = $students;
+        // $data['date'] = $date;
+        $data['branch'] = $branch;
+        $data['pclass_id'] = $class_id;
+        $data['pclass_name'] = $class_name;
+        $data['subject_id'] = $ict_subject_id;
+        $data['subject_name'] = $subject_name;
+        $data['session_id'] = $session_id;
+        $data['class_detail'] = $class_detail;
+       
+        // print_r($data);
+        $this->load->view('student_attendace',$data);   
+        
+        }
+    }
+    // create function attendacesubmit
+    public function attendacesubmit(){
+       
+        // Array ( [class] => 15*Grade 8 [branch] => PEL [academicyear] => 3 [submit] => SEARCH )
+        $branch = $this->input->post('branch');
+        $class_id = $this->input->post('selectclassid');
+        $class_name = $this->input->post('selectclassname');
+
+        $class_detail = $class_id.'*'.$class_name;
+        $session_id = $this->input->post('academicyear');
+        $academicyear = $this->input->post('academicyear');
+
+
+        // check button name btnsubmit value
+        if($this->input->post('btnsubmit') == 'Update Old Attendance'){
+            echo "Update Old Attendace called";
+            // print_r($_POST);  
+            $all_student_ids = $this->input->post('student_id');
+            
+                $prefix = 'old_attendace';
+
+                // Collect only keys starting with the prefix
+                $matchingKeys = array_filter(array_keys($_POST), function ($key) use ($prefix) {
+                    return strncmp($key, $prefix, strlen($prefix)) === 0; // starts with
+                });
+                // print_r($matchingKeys);
+                foreach($matchingKeys as $key){
+                    // extract student id and date from key
+                    // key format old_attendace_{student_id}_{date}
+                    $parts = explode('_', $key);
+                    $student_id = $parts[2];
+                    $date = $parts[3];
+                    $attendace = array();
+                    $attendace = 'P';
+
+                    $data[] = array(
+                        'student_id' => $student_id,
+                        'class_date' => $date,
+                        'attendace' => $attendace,
+                        'staff_id' => $this->session->userdata('user_id'),
+                        'created_at' => date('Y-m-d H:i:s'),
+                    );
+
+
+
+                     
+
+                   
+                    // call model function to update attendace
+                    // $result_attendance = $this->User_model->update_student_attendace($data);
+                }
+
+                // print_r($data);
+                $result_attendance = $this->User_model->update_student_attendace($data,$all_student_ids);
+                if($result_attendance == 1){
+                    $this->session->set_flashdata('success', 'Attendance update successfully');
+                    // append to url branch, class_detail, session_id
+                    redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
+                    // redirect('welcome/attendanceview');
+                }else{
+                    $this->session->set_flashdata('error', 'Error updating attendance');
+                    redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
+                    // redirect('welcome/attendanceview');
+                }
+               
+           
+        
+                    
+                // }
+        }elseif($this->input->post('btnsubmit') == 'Add New Attendance'){
+            $attendancedate = $this->input->post('attendancedate');
+            $attendace = array();
+
+                foreach($_POST['student_id'] as $key => $value){
+                    if(isset($_POST['old_attendace_'.$value])){
+                        $attendace[$value] = 'P';
+                        
+
+                    }elseif(isset($_POST['new_attendace_'.$value])){
+                        $attendace[$value] = 'P';
+                    }else{
+                        $attendace[$value] = 'AB';
+                    }
+                    $data = array(
+                        'student_id' => $value,
+                        'class_date' => $this->input->post('attendancedate'),
+                        'attendace' => $attendace,
+                        'staff_id' => $this->session->userdata('user_id'),
+                        'created_at' => date('Y-m-d H:i:s'),
+                    );
+        
+                    
+                }
+                // print_r($data);
+                // call model function to insert attendace
+                $result_attendance = $this->User_model->insert_student_attendace($data);
+                if($result_attendance == 1){
+                    $this->session->set_flashdata('success', 'Attendance submitted successfully');
+                    redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
+                    // redirect('welcome/attendanceview');
+                }else{
+                    $this->session->set_flashdata('error', 'Error submitting attendance');
+                    redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
+                    // redirect('welcome/attendanceview');
+                }
+        }
+        
+        
+    }
     public function gradewisepaymentSumamry(){
         $success = $this->session->flashdata('success');
         $error = $this->session->flashdata('error');
