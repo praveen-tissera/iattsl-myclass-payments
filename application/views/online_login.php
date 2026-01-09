@@ -15,7 +15,7 @@
         <div class="col-md-6">
             <div class="card mt-5">
                 <div class="card-header">
-                    <h3 class="text-center">Login</h3>
+                    <h3 class="text-center">IATTSL Login</h3>
                 </div>
                 <div class="card-body">
                     <form method="post" action="<?php echo base_url('/index.php/guest/login'); ?>">
@@ -30,7 +30,7 @@
                             </div>  
                         <?php endif; ?>
                         <div class="form-group">
-                            <label for="email">Email:</label>
+                            <label for="email">Username:</label>
                             <input type="text" name="email" id="email" class="form-control" required>
                         </div>
                         <div class="form-group">

@@ -387,7 +387,14 @@ class Welcome extends CI_Controller {
         $error = $this->session->flashdata('error');
         // get form data input name grade
         // $date = $this->input->post('date');
-      
+        // check whether $sucess or $error is not empty
+        $data = [];
+        if (!empty($success)) {
+            $data['success'] = $success;
+        }
+        if (!empty($error)) {
+            $data['error'] = $error;
+        }
 
 
         $result = $this->Online_User_model->get_acadamicyear();
@@ -524,9 +531,37 @@ class Welcome extends CI_Controller {
                     
                 // }
         }elseif($this->input->post('btnsubmit') == 'Add New Attendance'){
+            print_r($_POST);
             $attendancedate = $this->input->post('attendancedate');
             $attendace = array();
 
+                
+             // Collect only keys starting with the prefix
+                $prefix = 'old_attendace';
+                $matchingKeys = array_filter(array_keys($_POST), function ($key) use ($prefix) {
+                    return strncmp($key, $prefix, strlen($prefix)) === 0; // starts with
+                });
+                // print_r($matchingKeys);
+                $old_date_found = false;
+                foreach($matchingKeys as $key){
+                    // extract student id and date from key
+                    // key format old_attendace_{student_id}_{date}
+                    $parts = explode('_', $key);
+                    $student_id = $parts[2];
+                    $date = $parts[3];
+                  
+                    if($this->input->post('attendancedate') == $date){
+                        $old_date_found = true;
+                        break;
+                    }
+                }
+
+                // check whether $this->input->post('attendancedate') is already exists in $date array
+                         
+                if($old_date_found){
+                    $this->session->set_flashdata('error', 'Attendance for this date already exists');
+                    redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
+                }else{
                 foreach($_POST['student_id'] as $key => $value){
                     if(isset($_POST['old_attendace_'.$value])){
                         $attendace[$value] = 'P';
@@ -549,6 +584,7 @@ class Welcome extends CI_Controller {
                 }
                 // print_r($data);
                 // call model function to insert attendace
+
                 $result_attendance = $this->User_model->insert_student_attendace($data);
                 if($result_attendance == 1){
                     $this->session->set_flashdata('success', 'Attendance submitted successfully');
@@ -558,6 +594,7 @@ class Welcome extends CI_Controller {
                     $this->session->set_flashdata('error', 'Error submitting attendance');
                     redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
                     // redirect('welcome/attendanceview');
+                }
                 }
         }
         

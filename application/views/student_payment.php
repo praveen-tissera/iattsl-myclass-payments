@@ -87,56 +87,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </head>
 
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary " style="background-color: #BEADFA;">
-  <a class="navbar-brand" href="#">
-    <img class="img-fluid" style="width:80px" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="Logo">
-  </a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-      <li class="nav-item ">
-        <a class="nav-link" href="<?php echo base_url(); ?>">Enter Payments </a>
-      </li>
-     <li class="nav-item">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary </a>
-     </li>
-     <li class="nav-item dropdown active">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-          Payment Summary
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Physical Payments Summary <span class="sr-only">(current)</span></a>
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/online/onlinepaymenthistory">Online Payments Summary</a>
-          
-        </div>
-     </li>
-     <li class="nav-item ">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks </a>
-     </li>
-     <li class="nav-item">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks </a>
-     </li>
-     <li class="nav-item">
-      <a class="nav-link" target="_blank" href="https://iattsl.edu.lk/iattslstudent">Student Report Card</a>
-     </li>
-     <li class="nav-item">
-        <?php  
-        // session check and if true show logout button else show login button
-        if(!$this->session->userdata('logged_in')) {
-            echo '<a class="nav-link" href="' . base_url() . 'index.php/guest/loginview">Login</a>';
-        } else {  
-           // create nice back hyperlink with bootstrap design
-           
-            echo '<a class=" mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">Logout</a>';
-        }
-        ?>
-        
-      </li>
-    </ul>
-  </div>
-</nav>
+ <!-- php include menu_admin.php file -->
+    <?php 
+
+       // check session user_role and include menu_admin.php
+    if($this->session->userdata('user_role') == 'administrator'){
+         $this->load->view('includesui/menu_admin');
+    }elseif($this->session->userdata('user_role') == 'teacher'){
+       
+        $this->load->view('includesui/menu_teacher');
+    }elseif($this->session->userdata('user_role') == 'cordinator'){
+       
+        $this->load->view('includesui/menu_cordinator');
+    }
+    
+    
+    ?>
     <div class="container-fluid">
         <div class="row">
             <div class="col">
@@ -308,7 +274,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                    <table class="table table-bordered table-striped">
                     <thead>
-                      <?php if($headerpapertype == 'monthly'){ ?> 
+                      <?php if(isset($headerpapertype) && $headerpapertype == 'monthly'){ ?> 
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">ID</th>
@@ -329,7 +295,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             
 
                         </tr>
-                      <?php } else if($headerpapertype == 'installment'){ ?>
+                      <?php } else if(isset($headerpapertype) &&$headerpapertype == 'installment'){ ?>
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">ID</th>

@@ -469,6 +469,15 @@ class User_model extends CI_Model{
                     foreach($attendance_query->result() as $attendance){
                         $month = date('M', strtotime($attendance->class_date));
                         $attendance_history[$month][] = $attendance;
+
+                        // filter user display_name from wp_users table by staff_id
+                        $condition = "ID  ='{$attendance->staff_id}'";  
+                        $staff_query = $this->db->select('*')
+                                                ->where($condition)
+                                                ->get('wp_users');
+                        if($staff_query->num_rows() == 1){
+                            $attendance->staff_name = $staff_query->result()[0]->display_name;
+                        }
                     }
                     $query->result()[$key]->attendance_history = $attendance_history;
                 }else{
@@ -538,7 +547,7 @@ class User_model extends CI_Model{
             $query = $this->db->select('*')
             ->where($condition)
             ->get('wp_wlsm_student_attendance_iattsl');
-            print_r($this->db->last_query());
+            // print_r($this->db->last_query());
             if($query->num_rows() > 0){
                 $attendance_records = $query->result();
                 // loop through attendance_records and update attendace value as 'AB'
@@ -565,7 +574,7 @@ class User_model extends CI_Model{
                 // print_r($record);
                 $this->db->where('student_record_id', $record['student_id']);
                 $this->db->where('class_date', $record['class_date']);
-                $this->db->update('wp_wlsm_student_attendance_iattsl', array('attendace' => $record['attendace']));
+                $this->db->update('wp_wlsm_student_attendance_iattsl', array('attendace' => $record['attendace'], 'staff_id' => $record['staff_id'], 'created_at' => date('Y-m-d H:i:s')));
 
                 // print_r($this->db->last_query());
                 // echo "<br>";
@@ -595,6 +604,20 @@ class User_model extends CI_Model{
         // }else{
         //     return(-1);
         // }
+    }
+
+    // get meta_value from wp_usermeta table where user_id = $user->ID and meta_key = 'wp_capabilities'
+    public function get_user_role($user_id){
+        $condition = "user_id='{$user_id}' AND meta_key='wp_capabilities'";
+        $query = $this->db->select('*')
+        ->where($condition)
+        ->get('wp_usermeta');
+        if($query->num_rows() == 1){
+            $user_meta = $query->result();
+            return $user_meta[0]->meta_value;
+        }else{
+            return 0;
+        }
     }
 
 }

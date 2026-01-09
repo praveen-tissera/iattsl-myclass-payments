@@ -59,12 +59,41 @@ class Guest extends CI_Controller {
             $user = $this->User_model->get_user_by_email_and_password($email, $password);
             $stored = $user->user_pass;
             if ($this->wphasher->check($password, $stored)) {
+                    // get meta_value from wp_usermeta table where user_id = $user->ID and meta_key = 'wp_capabilities'
+                    $capabilities = $this->User_model->get_user_role($user->ID, 'wp_capabilities');
+                    // print_r($capabilities);
+                    // find subscriber in 'a:1:{s:10:"subscriber";b:1;}' string
+                    if (strpos($capabilities, 'administrator') !== false) {
+                        // user is admin
+                        // set session data
+                        $this->session->set_userdata('user_role', 'administrator');
+                       
+                    } elseif (strpos($capabilities, 'subscriber') !== false) {
+                        // user is not admin
+                        $this->session->set_userdata('user_role', 'cordinator');
+                    } elseif (strpos($capabilities, 'contributor') !== false) {
+                        // user is not admin
+                        $this->session->set_userdata('user_role', 'teacher');
+                    } else {
+                        // user is not admin
+                        $this->session->set_userdata('user_role', 'guest');
+                    }
                     $this->session->set_userdata('logged_in', TRUE);
                     // $this->session->set_userdata('user_id', $user->id);
                     $this->session->set_userdata('user_id', $user->ID);
                     $this->session->set_userdata('user_name', $user->user_login);
                     // redirect to online controller index function
-                    redirect('Online/index');
+                    // base on user role redirect to different pages
+                    if($this->session->userdata('user_role') == 'administrator'){
+                        redirect('Online/index');
+                    }elseif($this->session->userdata('user_role') == 'teacher'){
+                        redirect('welcome/attendanceview');
+                    }elseif($this->session->userdata('user_role') == 'cordinator'){
+                        redirect('Online/index');
+                    }else{
+                        redirect('guest/loginview');
+                    }
+                    
                 } else {
                     echo 'Password is incorrect';
                     redirect('guest/loginview');

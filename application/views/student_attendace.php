@@ -87,56 +87,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </head>
 
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary " style="background-color: #BEADFA;">
-  <a class="navbar-brand" href="#">
-    <img class="img-fluid" style="width:80px" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="Logo">
-  </a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-      <li class="nav-item ">
-        <a class="nav-link" href="<?php echo base_url(); ?>">Enter Payments </a>
-      </li>
-     <li class="nav-item">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary </a>
-     </li>
-     <li class="nav-item dropdown active">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-          Payment Summary
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Physical Payments Summary <span class="sr-only">(current)</span></a>
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/online/onlinepaymenthistory">Online Payments Summary</a>
-          
-        </div>
-     </li>
-     <li class="nav-item ">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks </a>
-     </li>
-     <li class="nav-item">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks </a>
-     </li>
-     <li class="nav-item">
-      <a class="nav-link" target="_blank" href="https://iattsl.edu.lk/iattslstudent">Student Report Card</a>
-     </li>
-     <li class="nav-item">
-        <?php  
-        // session check and if true show logout button else show login button
-        if(!$this->session->userdata('logged_in')) {
-            echo '<a class="nav-link" href="' . base_url() . 'index.php/guest/loginview">Login</a>';
-        } else {  
-           // create nice back hyperlink with bootstrap design
-           
-            echo '<a class=" mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">Logout</a>';
-        }
-        ?>
-        
-      </li>
-    </ul>
-  </div>
-</nav>
+ <!-- php include menu_admin.php file -->
+    <?php 
+
+       // check session user_role and include menu_admin.php
+    if($this->session->userdata('user_role') == 'administrator'){
+         $this->load->view('includesui/menu_admin');
+    }elseif($this->session->userdata('user_role') == 'teacher'){
+       
+        $this->load->view('includesui/menu_teacher');
+    }elseif($this->session->userdata('user_role') == 'cordinator'){
+       
+        $this->load->view('includesui/menu_cordinator');
+    }
+    
+    
+    ?>
     <div class="container-fluid">
         <div class="row">
             <div class="col">
@@ -296,33 +262,89 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     
                 ?>
                 <div class="nav-header">
+                  
                 <button class="download-btn btn btn-outline-success btn-sm" onclick="downloadStudentInfo()"> 
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/> </svg>
                      Student Info</button>
+
                 </div>
-                  <div class="form-row">
-                    <div class="col-sm-12 col-md-7">
+                  <div class="form-row py-2 bg-light">
+                    <div class="col-sm-12 my-2 my-md-0 my-sm-2 col-md-4">
                       <!-- show only current month in the calender  -->
                       
-                      <input type="date" id="calendar" class="form-control" name="attendancedate" value="<?php echo $currentDate; ?>">
+                      <input type="date" id="calendar" class="form-control mb-2" name="attendancedate" value="<?php echo $currentDate; ?>">
+                      <small id="datemsg" class="form-text text-muted mt-0 mb-3">Select class date to add new attendance</small>
+
                     </div>
-                    <div class="col-sm-12 col-md-auto">
+                    <div class="col-sm-12 col-md-2">
                       <!-- create submit button -->
                     <!-- <input class="btn btn-primary btn-block mb-2" type="submit" id="submitBtn" name="btnsubmit" value="Add New Attendace" onclick="confirmSubmit(event,this.value)"> -->
-
-                    <button  class=" btn btn-primary btn-block  btn-sm my-sm-2 my-md-0" id="submitBtn" type="submit" onclick="confirmSubmit(event, 'Add New Attendance')" value="Add New Attendance">Add New Attendance</button>
+                   
+                    <button  class=" btn btn-primary btn-block  btn-sm  my-md-0" id="submitBtn" type="submit" onclick="confirmSubmit(event, 'Add New Attendance')" value="Add New Attendance">Add New Attendance</button>
 
                     </div>
-                    <div class="col col-sm-12 col-md-auto">
+                    <div class="col col-sm-12 col-md-2">
                     <!-- <input class="btn btn-secondary btn-block mb-2" id="updateBtn" type="submit" name="btnsubmit" value="Update Old Attendace" onclick="confirmSubmit(event,this.value)"> -->
-                  <button class="btn btn-secondary btn-block btn-sm mb-2" id="updateBtn" type="submit" onclick="confirmSubmit(event, 'Update Old Attendance')" value="Update Old Attendance">Update Old Attendance</button>
+                    <button class="btn btn-secondary btn-block btn-sm mb-2" id="updateBtn" type="submit" onclick="confirmSubmit(event, 'Update Old Attendance')" value="Update Old Attendance">Update Old Attendance</button>
 
                    </div>
-                    <table class="table table-bordered table-striped">
+                   <div class="col-sm-12 col-md-4 text-md-right text-sm-center">
+                    <?php 
+                    $staff_name = '';
+                    $last_added_date = '';
+                    foreach ($students as $student) {
+                            // check if student marks already exists
+                              $attendances = $student->attendance_history;
+                            if (isset($attendances) && is_array($attendances)) {
+                              
+                                foreach ($attendances as $attendance) {
+                                  // loop through attendance and get the last added staff name and date
+                                  foreach($attendance as $att){
+                                    
+                                    if($last_added_date == '' || strtotime($att->created_at) > strtotime($last_added_date)){
+                                      $last_added_date = $att->created_at;
+                                      $staff_name = $att->staff_name;
+                                    }
+                                  }
+                                  // // style staff name bold and put nice label before staff name
+                                  
+                                  //   break;
+                                    
+                                }
+                                 
+                            }
+                              
+                              // break;
+                    }
+
+                      echo '<span class="badge badge-danger" style="font-weight: bold;"> Last Update By: ' . $staff_name . '</span>';
+                                    echo '<br>';
+                                    echo '<span class="badge badge-secondary" style="font-weight: bold;"> Last Update Date: ';
+                                    // get date and time on Y-m-d format and H:i:s format am pm
+
+                                    $last_added_date = date("Y-m-d h:i:s A", strtotime($last_added_date));
+                                    echo $last_added_date;
+                                    echo '</span>';
+                                   
+                  
+                  ?>
+                   </div>
+                </div>
+                    <table class="table table-striped table-bordered table-hover" style="table-layout: fixed;">
                     <thead>
                       
+                    
+                <colgroup>
+                  <col style="width: 27px;">           <!-- # -->
+                  <col style="width: 75px;">           <!-- ID -->
+                  <col style="width: 110px;">          <!-- Student Name (sticky) -->
+                  <!-- 12 months (equal widths) -->
+                  <col span="12" style="width: 111px;"> <!-- JAN..DEC -->
+                </colgroup>
+                <thead class="table-danger">
+
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">ID</th>
@@ -344,7 +366,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                         </tr>
                       
-                        
+                 </thead>       
                      
                     </thead>
                     <tbody>
@@ -388,7 +410,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                       }
                                       echo " <span class='align-top'>" . $student->name . "</span>";
                                       
-                            echo "<span class='copy-icon' title='Copy Email' value='$student->email' onclick='copyEmail(this)'>Email📋</span>";
+                            // echo "<span class='copy-icon' title='Copy Email' value='$student->email' onclick='copyEmail(this)'>Email📋</span>";
                             echo "</td>";
 
 
@@ -411,24 +433,38 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             // if currentmonth is equal to month set checkbox to checked 
                                             if($month == $currentMonth){
                                                 foreach($attendace as $date => $status){
-                                                  echo $status->class_date.": ";
+                                                  
                                                   if($status->attendace == 'P'){
-                                                    echo "<input type='checkbox' checked value='P' name='old_attendace_".$student->ID."_".$status->class_date."'>";
-                                                    echo "<span class='mx-1 dot-active' title='Present'></span> &nbsp;<br> ";
+                                                    echo "<div class='form-group form-check'>";
+
+                                                    echo "<input class='form-check-input' type='checkbox' checked id='old_attendace_".$student->ID."_".$status->class_date."' value='P' name='old_attendace_".$student->ID."_".$status->class_date."'>";
+
+                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-success">'.$status->class_date."</label>";
+                                                    
+                                                    echo "</div>";
+
+
+                                                    // echo "<span class='mx-1 dot-active' title='Present'></span> &nbsp;<br> ";
                                                   }else if($status->attendace == 'AB'){
-                                                    echo "<input type='checkbox'  name='old_attendace_".$student->ID."_".$status->class_date."' >";
-                                                    echo "<span class='mx-1 dot-inactive'  title='Absent'></span> &nbsp;<br> ";
+                                                     echo "<div class='form-group form-check'>";
+
+                                                    echo "<input class='form-check-input' type='checkbox' id='old_attendace_".$student->ID."_".$status->class_date."' name='old_attendace_".$student->ID."_".$status->class_date."' >";
+
+                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-danger">'.$status->class_date."</label>";
+                                                    // echo "<span class='mx-1 dot-inactive'  title='Absent'></span> &nbsp;<br> ";
+
+                                                    echo "</div>";
                                                   }
                                                 
                                                 }
                                               echo "<hr> <input type='checkbox' id='new_attendace_".$student->ID."' value='P' name='new_attendace_".$student->ID."'>";
                                               
-                                              echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present &nbsp;</label>";
+                                              echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
                                             }else{
                                               foreach($attendace as $date => $status){
                                               echo $status->class_date.": ";
                                               if($status->attendace == 'P'){
-                                                echo "<span class='mx-1 dot-active' title='Present'></span> &nbsp;<br> ";
+                                                echo "<span class='mx-1 dot-active' title='Present(New)'></span> &nbsp;<br> ";
                                               }else if($status->attendace == 'AB'){
                                                 echo "<span class='mx-1 dot-inactive' title='Absent'></span> &nbsp;<br> ";
                                               }
@@ -445,7 +481,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                   
                                     if (!$found) {
                                         echo "<td>";
-                                          echo "<input type='checkbox' value='P' name='new_attendace_".$student->ID."'> Present &nbsp;";
+                                          echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
+                                          echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
                                         echo "</td>";
                                     }
                                 }
@@ -457,7 +494,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 foreach ($months as $month) {
                                   if($month == $currentMonth){
                                     echo "<td>";
-                                      echo "<input type='checkbox' value='P' name='new_attendace_".$student->ID."'> Present &nbsp;";
+                                      echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
+                                      echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
                                     echo "</td>";
                                   } else {
                                     echo "<td>";
