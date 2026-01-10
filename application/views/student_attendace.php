@@ -343,7 +343,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   <!-- 12 months (equal widths) -->
                   <col span="12" style="width: 111px;"> <!-- JAN..DEC -->
                 </colgroup>
-                <thead class="table-danger">
+                <thead class="table-primary">
 
                         <tr>
                             <th scope="col">#</th>
@@ -481,9 +481,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                   
                                     if (!$found) {
                                         echo "<td>";
-                                          echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
-                                          echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
+                                          // echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
+                                          // echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
+                                           echo "Yet to be enable";
                                         echo "</td>";
+                                        $found = false;
                                     }
                                 }
                                

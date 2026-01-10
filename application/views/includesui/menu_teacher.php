@@ -29,8 +29,8 @@
            // create nice back hyperlink with bootstrap design
            
             // echo '<a class=" mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">Logout</a>';
-             echo '<a class=" mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">';
-             echo $this->session->userdata('user_name') . '<span class=" mx-1 badge badge-light"> Logout</span></a>';
+             echo '<a class="rounded-pill mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">';
+             echo $this->session->userdata('user_name') . '<span class=" mx-1 badge badge-light rounded-pill"> Logout</span></a>';
 
            
         }
