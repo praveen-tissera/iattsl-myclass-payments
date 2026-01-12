@@ -147,6 +147,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="center" id="BAT" value="BAT" > <label class="form-check-label" for="BAT">BATTARAMULLA</label>
                           </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="DIY" value="DIY" > <label class="form-check-label" for="DIY">DIYAGAMA</label>
+                          </div>
 
                             <?php 
                             if (!empty($student_data['profile'][0]->admission_number)) {

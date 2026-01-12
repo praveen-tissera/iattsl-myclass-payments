@@ -195,6 +195,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               <option value="HRI">Hripitiya</option>
                               <option value="MAH">Maharagama</option>
                               <option value="MAT">Mattegoda</option>
+                              <option value="DIY">Diyagama</option>
                             </select>
                         </td>
                         <td> 

@@ -182,6 +182,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <input class="form-check-input" type="radio" name="center" id="BAT" value="BAT" > <label class="form-check-label" for="BAT">BATTARAMULLA</label>
                           </div>
                           <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="DIY" value="DIY" > <label class="form-check-label" for="DIY">DIYAGAMA</label>
+                          </div>
+                          <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="center" id="ONL" value="ONL" > <label class="form-check-label" for="ONL">ONLINE</label>
                           </div>
 
@@ -198,6 +201,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo '<script>document.getElementById("HRI").checked = true;</script>';
                               }elseif($student_branch == 'BAT'){
                                 echo '<script>document.getElementById("BAT").checked = true;</script>';
+                              }elseif($student_branch == 'DIY'){
+                                echo '<script>document.getElementById("DIY").checked = true;</script>';
                               }elseif($student_branch == 'ONL'){
                                 echo '<script>document.getElementById("ONL").checked = true;</script>';
                               }

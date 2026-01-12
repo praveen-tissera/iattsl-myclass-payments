@@ -227,7 +227,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
              
             //  create array of branches names PEL, BAT, MAT, MAH,HRI
-            $branch_list = array('ONL','PEL', 'BAT', 'MAT', 'MAH', 'HRI');
+            $branch_list = array('ONL','PEL', 'BAT', 'MAT', 'MAH', 'HRI','DIY');
             // create a loop through $income_summary arrya and crate seperate arrays for each branch
             $brancewise_income_summary = array();
             if(isset($income_summary) && !empty($income_summary)) {

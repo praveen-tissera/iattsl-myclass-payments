@@ -273,6 +273,9 @@ class Online extends CI_Controller {
             case 'HRI':
                 $branch_name = 'Hiripitiya Center';
                 break;
+            case 'DIY':
+                $branch_name = 'Diyagama Center';
+                break;
            default:
                 $branch_name = 'Unknown Center';
                 break;
