@@ -480,13 +480,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                       
                                     }
                                   
-                                    if (!$found) {
+                                    if (!$found && $month != $currentMonth) {
                                         echo "<td>";
                                           // echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
                                           // echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
                                            echo "Yet to be enable";
                                         echo "</td>";
-                                        $found = false;
+                                        // $found = false;
+
+                                        
+                                    }else{
+                                        // $found = false;
+
+                                        // foreach ($months as $month) {
+                                          if($month == $currentMonth){
+                                            echo "<td>";
+                                              echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
+                                              echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
+                                            echo "</td>";
+                                          } 
+                                        // }
                                     }
                                 }
                                
