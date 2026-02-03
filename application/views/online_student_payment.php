@@ -177,7 +177,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               $class_id = $class->ID.'*'.$class->label;
                             
                               
-                              echo "<option value='$class_id'>$class_name</option>";
+                              // select subject if previously selected
+                              if (!empty($pclass_id) && $pclass_id == $class->ID) {
+                                echo "<option value='$class_id' selected>$class_name</option>";
+                              } else {
+                                echo "<option value='$class_id'>$class_name</option>";
+                              }
                             }
                             ?>
                             

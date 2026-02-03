@@ -281,6 +281,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                   <p class="card-text">Class/Course Registration# : <?php echo $student_id_without_ending_number; ?> </p>
                   
+                  <!-- create form to update student pone numebr -->
+                   <!-- add class to form_open -->
+                    <?php
+                   
+                  echo form_open('online/updatePhoneNumber', ['class' => 'form-inline']); ?>
+                  
+
+                    <div class="form-group">
+                      <label for="phone">Phone Number</label>
+                      <input type="tel" name="phone" id="phone" class="form-control mx-2" value="<?php echo $student_data[0]['profile']->phone; ?>" required>
+                      <input type="hidden" name="std_db_id" value="<?php echo $student_data[0]['profile']->ID; ?>">
+                      <!-- admission_number -->
+                      <input type="hidden" name="admission_number" value="<?php echo $student_data[0]['profile']->admission_number; ?>">
+                      <!-- selected_academic_year -->
+                      <input type="hidden" name="selected_academic_year" value="<?php echo $selected_academic_year; ?>">
+                      </div>
+                    <button type="submit" class="btn btn-primary mx-2">Update Phone Number</button>
+                  <?php form_close(); ?>
+
+
                 </div>
               </div>
             </div>

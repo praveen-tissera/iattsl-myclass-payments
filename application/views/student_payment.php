@@ -175,8 +175,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               // get class id
                               $class_id = $class->ID.'*'.$class->label;
                             
+                              // select subject if previously selected
+                              if (!empty($pclass_id) && $pclass_id == $class->ID) {
+                                echo "<option value='$class_id' selected>$class_name</option>";
+                              } else {
+                                echo "<option value='$class_id'>$class_name</option>";
+                              }
                               
-                              echo "<option value='$class_id'>$class_name</option>";
                             }
                             ?>
                             
@@ -190,12 +195,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <div class="form-group">
                             <label for="branch">Select Branch</label>
                             <select class="form-control" id="branch" name="branch" required>
-                              <option value="BAT">Battaramulla</option>
-                              <option value="PEL">Pellawatta</option>
-                              <option value="HRI">Hripitiya</option>
-                              <option value="MAH">Maharagama</option>
-                              <option value="MAT">Mattegoda</option>
-                              <option value="DIY">Diyagama</option>
+                              <option value="BAT" <?php echo (isset($branch) && $branch == 'BAT') ? 'selected' : ''; ?>>Battaramulla</option>
+                              <option value="PEL" <?php echo (isset($branch) && $branch == 'PEL') ? 'selected' : ''; ?>>Pellawatta</option>
+                              <option value="HRI" <?php echo (isset($branch) && $branch == 'HRI') ? 'selected' : ''; ?>>Hripitiya</option>
+                              <option value="MAH" <?php echo (isset($branch) && $branch == 'MAH') ? 'selected' : ''; ?>>Maharagama</option>
+                              <option value="MAT" <?php echo (isset($branch) && $branch == 'MAT') ? 'selected' : ''; ?>>Mattegoda</option>
+                              <option value="DIY" <?php echo (isset($branch) && $branch == 'DIY') ? 'selected' : ''; ?>>Diyagama</option>
                             </select>
                         </td>
                         <td> 

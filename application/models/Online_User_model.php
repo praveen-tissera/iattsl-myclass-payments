@@ -451,5 +451,14 @@ class Online_User_model extends CI_Model{
         }
     }
         
+    // functin to update phone number
+
+    public function update_phone_number($student_id, $data){
+        $this->db->where('ID', $student_id);
+        $this->db->update('wp_wlsm_student_records', $data);
+        // last query
+        echo $this->db->last_query();
+        return $this->db->affected_rows();
+    }
 
 }

@@ -175,8 +175,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               // get class id
                               $class_id = $class->ID.'*'.$class->label;
                             
+                              // select subject if previously selected
+                              if (!empty($pclass_id) && $pclass_id == $class->ID) {
+                                echo "<option value='$class_id' selected>$class_name</option>";
+                              } else {
+                                echo "<option value='$class_id'>$class_name</option>";
+                              }
                               
-                              echo "<option value='$class_id'>$class_name</option>";
                             }
                             ?>
                             
@@ -190,12 +195,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <div class="form-group">
                             <label for="branch">Select Branch</label>
                             <select class="form-control" id="branch" name="branch" required>
-                              <option value="BAT">Battaramulla</option>
-                              <option value="PEL">Pellawatta</option>
-                              <option value="HRI">Hripitiya</option>
-                              <option value="MAH">Maharagama</option>
-                              <option value="MAT">Mattegoda</option>
-                              <option value="DIY">Diyagama</option>
+                              <!-- selected branch -->
+                               
+                              <option value="BAT" <?php echo (isset($branch) && $branch == 'BAT') ? 'selected' : ''; ?>>Battaramulla</option>
+                              <option value="PEL" <?php echo (isset($branch) && $branch == 'PEL') ? 'selected' : ''; ?>>Pellawatta</option>
+                              <option value="HRI" <?php echo (isset($branch) && $branch == 'HRI') ? 'selected' : ''; ?>>Hripitiya</option>
+                              <option value="MAH" <?php echo (isset($branch) && $branch == 'MAH') ? 'selected' : ''; ?>>Maharagama</option>
+                              <option value="MAT" <?php echo (isset($branch) && $branch == 'MAT') ? 'selected' : ''; ?>>Mattegoda</option>
+                              <option value="DIY" <?php echo (isset($branch) && $branch == 'DIY') ? 'selected' : ''; ?>>Diyagama</option>
                             </select>
                         </td>
                         <td> 
@@ -237,7 +244,62 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 echo form_open('welcome/attendacesubmit', $attributes); 
                 if (isset($students) && is_array($students)) { 
                   ?>
-                <h2 class="text-center">Payment Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?></h2>
+                <h2 class="text-center">Attendace Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?></h2>
+
+
+      <?php
+
+        // print_r($students);
+        // check array lenght
+        $arrayLength = count($students);
+        // create loop to get is_active status count
+        $activeCount = 0;
+        $inactiveCount = 0;
+        for ($i = 0; $i < $arrayLength; $i++) {
+            if ($students[$i]->is_active == 1) {
+                $activeCount++;
+            } else {
+                $inactiveCount++;
+            }
+        }
+   
+      ?>
+      <div class="row justify-content-md-center">
+        <div class="col-12 col-md-3">
+          <div class="card text-white bg-primary mb-3" >
+            <div class="card-header">Student Total Registration </div>
+            <div class="card-body">
+              <h1 class="card-title"><?php echo $arrayLength; ?></h5>
+              <p class="card-text">Total number of students in the selected class.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3 ">
+          <div class="card text-white bg-primary mb-3" >
+            <div class="card-header">Student Dropouts </div>
+            <div class="card-body">
+              <h1 class="card-title"><?php echo $inactiveCount; ?></h5>
+              <p class="card-text">Number of students who are inactive.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+          <div class="card text-white bg-danger mb-3" >
+            <div class="card-header">Student Dropouts Precentage </div>
+            <div class="card-body">
+              <h1 class="card-title"><?php echo $arrayLength > 0 ? round(($inactiveCount / $arrayLength) * 100, 2) : 0; ?>%</h5>
+              <p class="card-text">Percentage of students who are inactive.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+
+      
+
+
                 <input type="hidden" class="form-control" value="<?php echo $pclass_id; ?>" name="selectclassid">
                 <input type="hidden" class="form-control" value="<?php echo $pclass_name; ?>" name="selectclassname">  
                 <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">

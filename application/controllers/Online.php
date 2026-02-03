@@ -54,8 +54,14 @@ class Online extends CI_Controller {
     }
      public function idValidator($student_id=0, $branch='PEL',$session_id=5){
        
-        $success = $this->session->userdata('success_message_display');
-      
+        $success = $this->session->flashdata('success');
+        $error = $this->session->flashdata('error');
+        if (!empty($success)) {
+            $data['success'] = $success;
+        }
+        if (!empty($error)) {
+            $data['error'] = $error;
+        }
 
         if ($student_id == 0) {
                 $result = $this->Online_User_model->get_acadamicyear();
@@ -112,7 +118,7 @@ class Online extends CI_Controller {
             // $this->load->view('online-student',$data);
         }else{
             $data['student_data'] = $result;
-            $data['message'] = "Updated successfully";
+           
             $this->load->view('online-student',$data);
         }
 
@@ -451,6 +457,49 @@ class Online extends CI_Controller {
         $this->load->view('online_student_payment',$data);   
         
         
+    }
+
+    // function to update phone number
+    public function updatePhoneNumber(){
+        $this->form_validation->set_rules('phone', 'Phone Number', 'required');
+        
+        
+        if ($this->form_validation->run() == FALSE){
+            $this->load->view('online-student');
+        }
+        else{
+            $data = array(
+                'phone' => $_POST['phone'],
+            );
+            $std_db_id = $_POST['std_db_id'];
+            $admission_number = $_POST['admission_number'];
+             $session_id = $this->input->post('selected_academic_year');
+
+                // split $student_id using '/'
+                $student_id_array = explode('/', $admission_number);
+                // get last element of array
+                $student_id = end($student_id_array);
+                // get student branch from $student_if_array's first element
+                $student_branch = $student_id_array[0];
+                      if($student_branch == 'ONL'){
+                                // remove ending number after hyphen
+                                $student_id = str_replace('ONL/', '',  $student_id);
+                                $student_id_without_ending_number  = substr($student_id, 0, strrpos($student_id, '-'));
+                              }else{
+                                $student_id_without_ending_number = end($student_id_array);
+                            }      
+                           
+
+            $result = $this->Online_User_model->update_phone_number($std_db_id, $data);
+            echo $result;
+            if($result == 1){
+                $this->session->set_flashdata('success', 'Phone number updated successfully');
+                redirect('/online/idValidator/'.$student_id_without_ending_number.'/'.$student_branch.'/'.$session_id);
+            }else{
+                $this->session->set_flashdata('error', 'Error updating phone number');
+                redirect('/online/idValidator/'.$student_id_without_ending_number.'/'.$student_branch.'/'.$session_id);
+            }
+        }
     }
 
 }
