@@ -298,7 +298,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                       <input type="hidden" name="selected_academic_year" value="<?php echo $selected_academic_year; ?>">
                       </div>
                     <button type="submit" class="btn btn-primary mx-2">Update Phone Number</button>
-                  <?php form_close(); ?>
+                  <?php echo form_close(); ?>
 
 
                 </div>
