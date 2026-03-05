@@ -127,6 +127,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         ?>
                         <div class="form-group">
                           <label for="selectclass">Selected Class</label>
+                          
                           <input type="hidden" class="form-control" value="<?php echo $class_id; ?>" name="selectclassid">
                           <input type="text" class="form-control" id="selectclass" readonly value="<?php echo $class_name; ?>" name="selectclass">
                         </div>
@@ -175,7 +176,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <?php 
                             $attributes = array('id' => 'studentMarkList');
                             echo form_open('mark/studentsSubmit', $attributes) ?>
-                            
+                            <input type="hidden" class="form-control" value="<?php echo $session_id; ?>" name="sessionid">
                             <input class="btn btn-primary btn-block" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn">
                               <input type="hidden" class="form-control" value="<?php echo $class_id; ?>" name="selectclassid">
                               <input type="hidden" class="form-control" value="<?php echo $class_name; ?>" name="selectclass">  

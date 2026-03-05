@@ -8,6 +8,7 @@ class Mark extends CI_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
         $this->load->model('Mark_model');
+        $this->load->model('Online_User_model');
         $this->load->library('session');
         //load url library
 		$this->load->helper('url');
@@ -235,6 +236,8 @@ class Mark extends CI_Controller {
     public function subjects(){
         $success = $this->session->flashdata('success');
         $error = $this->session->flashdata('error');
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
         // get form data input name grade
         $class_detail = $this->input->post('class');
         $class_array = explode('*', $class_detail);
@@ -256,12 +259,13 @@ class Mark extends CI_Controller {
         // get form data input name grade
         $class_id = $this->input->post('selectclassid');
         $class_name = $this->input->post('selectclass');
+        $session_id = $this->input->post('academicyear');  
         $subject_detail = $this->input->post('subject');
         $subject_array = explode('*', $subject_detail);
         $subject_id = $subject_array[0];
         $subject_name = $subject_array[1];
         // print_r($subject_id);
-        $session_id = 3;  
+        // $session_id = 3;  
      
 
          $students = $this->Mark_model->get_students($subject_id, $session_id);
@@ -279,6 +283,7 @@ class Mark extends CI_Controller {
             $data['class_name'] = $class_name;
             $data['subject_id'] = $subject_id;
             $data['subject_name'] = $subject_name;
+            $data['session_id'] = $session_id;
             // print_r($data);
             
             $term1 = $this->Mark_model->get_student_marks($subject_id, $session_id, 'Term 1', $students);
@@ -295,7 +300,7 @@ class Mark extends CI_Controller {
          }
     }
 
-    public function studentsViewAfterSubmit($selectclassid, $selectclass, $selectsubjectid, $selectsubject){
+    public function studentsViewAfterSubmit($selectclassid, $selectclass, $selectsubjectid, $selectsubject,$session_id){
        
         $success = $this->session->flashdata('success');
         $error = $this->session->flashdata('error');
@@ -307,7 +312,7 @@ class Mark extends CI_Controller {
        
        
         // print_r($subject_id);
-        $session_id = 3; 
+        // $session_id = 3; 
         $term1 = 'Term 1'; 
         $term2 = 'Term 2'; 
         $term3 = 'Term 3';   
@@ -330,6 +335,7 @@ class Mark extends CI_Controller {
             $data['class_name'] = $class_name;
             $data['subject_id'] = $subject_id;
             $data['subject_name'] = $subject_name;
+            $data['session_id'] = $session_id;
             // print_r($students);
             // create foreach loop for students array and get eache sudent marks and update the array use get_student_marks model
             $students = $this->Mark_model->get_students($subject_id, $session_id);
@@ -355,13 +361,15 @@ class Mark extends CI_Controller {
         $selectsubjectid = $this->input->post('selectsubjectid');
         $selectsubject = $this->input->post('selectsubject');
         $selectterm = $this->input->post('term');
+        $selectterm = $this->input->post('term');
+        $session_id = $this->input->post('sessionid');
 
        
         // print_r($_POST);
 
         // print_r($_POST);
         $subject_id = $this->input->post('selectsubjectid');
-        $session_id = 3; 
+        // $session_id = 3; 
         $students = $this->Mark_model->get_students($subject_id, $session_id);
         // print_r($students);
             foreach ($students as $student) {
@@ -404,10 +412,10 @@ class Mark extends CI_Controller {
              $students_marks_insert = $this->Mark_model->insert_students_marks($data);
             if($students_marks_insert > 0){
                 $this->session->set_flashdata('success', 'Marks Added Successfully');
-                redirect('mark/studentsViewAfterSubmit/'.$selectclassid.'/'.$selectclass.'/'.$selectsubjectid.'/'.$selectsubject);
+                redirect('mark/studentsViewAfterSubmit/'.$selectclassid.'/'.$selectclass.'/'.$selectsubjectid.'/'.$selectsubject.'/'.$session_id);
             }else{
                 $this->session->set_flashdata('error', 'Error on Marks Adding');
-                 redirect('mark/studentsViewAfterSubmit/'.$selectclassid.'/'.$selectclass.'/'.$selectsubjectid.'/'.$selectsubject);
+                 redirect('mark/studentsViewAfterSubmit/'.$selectclassid.'/'.$selectclass.'/'.$selectsubjectid.'/'.$selectsubject.'/'.$session_id);
             }
         
     }

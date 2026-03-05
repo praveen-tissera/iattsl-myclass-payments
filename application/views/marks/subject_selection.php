@@ -152,6 +152,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             
                           </select>
                         </div>
+                        <div class="form-group">
+
+
+
+                         <label for="branch">Select Academic Year</label>
+                          <select class="form-control" name="academicyear">
+                            <?php 
+                              foreach ($academicyear as $year) {
+                                if (!empty($selected_academic_year) && $selected_academic_year == $year->ID) {
+                                  echo "<option value='{$year->ID}' selected>{$year->label}</option>";
+                                } else {
+                                  echo "<option value='{$year->ID}'>{$year->label}</option>";
+                                }
+                              }
+                            ?>
+                          </select>
+                       
+
+
+                        </div>
                          
 
                         </td>
