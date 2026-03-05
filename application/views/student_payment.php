@@ -232,7 +232,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             <div class="col table-responsive" style="overflow-x: auto; max-width: 100%; height: 450px; overflow-y: auto;">
                 <?php
                 $attributes = array('id' => 'studentMarkList');
-               
                 if (isset($students) && is_array($students)) { 
                   ?>
                 <h2 class="text-center">Payment Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?></h2>
@@ -345,6 +344,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         foreach ($students as $student) {
                             // check if student marks already exists
                             $payments = $student->payment_history;
+                            $attendance_history = $student->attendance_history;
                             $part1 = null;
                             $part2 = null;
                             $total = null;
@@ -403,6 +403,50 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                               $studentid = explode('/', $student->admission_number);
                                                 echo "<a class='badge badge-danger' href='" . base_url() . "index.php/online/idValidator/{$studentid[1]}/{$branch}/{$selected_academic_year}'> Unpaid <span class='badge badge-light'>$payment->amount</span> </a>";
                                             }
+
+
+                                            if (isset($attendance_history) && is_array($attendance_history)) {
+                                              $attendance_dates = [];
+                                              foreach($attendance_history as $attendance){
+                                                $attendancedate = date("F", strtotime($attendance->class_date));
+                                                if($attendancedate == $month){
+                                                  if($attendance->attendace == 'P'){
+                                                    
+                                                    $attendance_dates[] = $attendance->class_date;
+
+                                                  }
+                                                }
+
+                                              }
+                                              // create bootstrap modal to show attendance details with staff name and class date
+                                                    echo "<br><a href='#' data-toggle='modal' data-target='#attendanceModal{$month}{$student->ID}'> <span class='badge' title='Attendance'>📅</span> </a>";
+                                              // create modal set modal center and small size show vertically centered
+                                                    echo "<div class='modal fade' id='attendanceModal{$month}{$student->ID}' tabindex='-1' role='dialog' aria-labelledby='attendanceModalLabel{$student->ID}{$attendance->ID}' aria-hidden='true'>";
+                                                    echo "<div class='modal-dialog modal-dialog-centered' role='document'>";
+                                                    echo "<div class='modal-content'>";
+                                                    echo "<div class='modal-header'>";  
+                                                    echo "<h5 class='modal-title' id='attendanceModalLabel{$student->ID}{$attendance->ID}'>Attendance Details</h5>";
+                                                    echo "<button type='button' class='close' data-dismiss='modal' aria-label='Close'>";
+                                                    echo "<span aria-hidden='true'>&times;</span>";
+                                                    echo "</button>";
+                                                    echo "</div>";
+                                                    echo "<div class='modal-body'>";
+                                                    echo "<p><strong>Date:</strong> ";
+                                                   
+                                                    if(!empty($attendance_dates) && is_array($attendance_dates)){
+                                                    foreach($attendance_dates as $key => $date){
+                                                      echo '<p class="badge bg-primary text-white">' . date("Y-m-d", strtotime($date)) . '</p> <br>';
+                                                      
+                                                    }
+                                                    }else{
+                                                      echo "No attendance records found for this month.";
+                                                    }
+                                                    echo "</p>";
+                                                    
+                                                    //close modal
+                                                    echo "</div>";
+                                            }
+
                                             echo "</td>";
                                             $found = true;
                                             break; // Exit the inner loop once a match is found

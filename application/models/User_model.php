@@ -405,6 +405,21 @@ class User_model extends CI_Model{
                 }else{
                     $query->result()[$key]->payment_history = null;
                 }
+
+                // get attendacne history wp_wlsm_student_attendance_iattsl table columns student_record_id, class_date, attendace, staff_id
+                $condition = "student_record_id  ='{$student->ID}' and attendace ='P' order by class_date ASC";
+                $attendance_query = $this->db->select('*')
+                                        ->where($condition)
+                                        ->get('wp_wlsm_student_attendance_iattsl');
+                if($attendance_query->num_rows() > 0){
+                    $query->result()[$key]->attendance_history = $attendance_query->result();
+                }else{
+                    $query->result()[$key]->attendance_history = null;
+                }
+
+                
+                
+
             }
             return $query->result();
         }else{
