@@ -534,7 +534,7 @@ class Welcome extends CI_Controller {
                     
                 // }
         }elseif($this->input->post('btnsubmit') == 'Add New Attendance'){
-            print_r($_POST);
+            // print_r($_POST);
             $attendancedate = $this->input->post('attendancedate');
             $attendace = array();
 
