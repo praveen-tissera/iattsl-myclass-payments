@@ -187,6 +187,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="center" id="ONL" value="ONL" > <label class="form-check-label" for="ONL">ONLINE</label>
                           </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="HED" value="HED" > <label class="form-check-label" for="HED">HEAD OFFICE</label>
+                          </div>
 
                             <?php 
                             if (!empty($student_data[0]['profile']->admission_number)) {
@@ -205,6 +208,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo '<script>document.getElementById("DIY").checked = true;</script>';
                               }elseif($student_branch == 'ONL'){
                                 echo '<script>document.getElementById("ONL").checked = true;</script>';
+                              }elseif($student_branch == 'HED'){
+                                echo '<script>document.getElementById("HED").checked = true;</script>';
                               }
                               else{
                                 echo '<script>document.getElementById("PEL").checked = true;</script>';

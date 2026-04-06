@@ -195,6 +195,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                           <div class="form-group">
                             <label for="branch">Select Branch</label>
                             <select class="form-control" id="branch" name="branch" required>
+                              <option value="HED" <?php echo (isset($branch) && $branch == 'HED') ? 'selected' : ''; ?>>Head Office</option>
                               <option value="BAT" <?php echo (isset($branch) && $branch == 'BAT') ? 'selected' : ''; ?>>Battaramulla</option>
                               <option value="PEL" <?php echo (isset($branch) && $branch == 'PEL') ? 'selected' : ''; ?>>Pellawatta</option>
                               <option value="HRI" <?php echo (isset($branch) && $branch == 'HRI') ? 'selected' : ''; ?>>Hripitiya</option>
