@@ -26,8 +26,8 @@
           Student Payment Summary
         </a>
         <div class="dropdown-menu">
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Physical Payments Summary </a>
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/online/onlinepaymenthistory">Online Payments Summary</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Course Payments Summary </a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/online/onlinepaymenthistory">Tutition Payments Summary</a>
           
         </div>
      </li>
