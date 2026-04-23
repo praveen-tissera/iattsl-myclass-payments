@@ -120,7 +120,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
 
                 ?>
-                <h1 class="text-center display-4" style="font-size:2.6rem">Online Student Payment Summary</h1>
+                <h1 class="text-center display-4" style="font-size:2.6rem">Tuition Student Payment Summary</h1>
                 <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                 <?php
                   if(isset($message)){
