@@ -211,7 +211,9 @@ class Online extends CI_Controller {
                                 $student_id = str_replace('ONL/', '', $student_id);
                                 $student_id_without_ending_number  = substr($student_id, 0, strrpos($student_id, '-'));
                               }else{
-                                $student_id_without_ending_number = end($student_id_array);
+                                $student_branch = $student_branch.'/';
+                                $student_id = str_replace($student_branch, '', $student_id);
+                                $student_id_without_ending_number  = substr($student_id, 0, strrpos($student_id, '-'));
                             }
                            
                         
