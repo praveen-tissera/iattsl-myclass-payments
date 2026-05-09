@@ -416,9 +416,12 @@ table {
                     echo "<th>";
                     echo "Created Date";
                   echo "</th>";
-                      echo "<th>";
-                      echo "Last updated";
-                    echo "</th>";
+                     echo "<th>";
+                    echo "Note";
+                  echo "</th>";
+                  echo "<th>";
+                    echo "Recorded By";
+                  echo "</th>";
                     
                  echo "</tr>";
                  if($income_summary == 0){
@@ -459,8 +462,22 @@ table {
                       echo "<td>";
                       echo $payment->created_at;
                       echo "</td>";
+                       echo "<td>";
+                      
+                      $parts  = explode(':owner:', $payment->note);
+                      $lastPart = '-';
+                      if(count($parts) > 1){
+                        $lastPart = trim(array_pop($parts));
+                        $otherPart = trim(implode(':owner:', $parts));
+                        echo $otherPart;
+                      }else{
+                        echo $payment->note;
+                      }
+                      echo "</td>";
                       echo "<td>";
-                      echo $payment->updated_at;
+                     
+                        echo $lastPart;
+                      
                       echo "</td>";
   
                     echo "</tr>";
@@ -504,9 +521,12 @@ table {
                     echo "<th>";
                     echo "Created Date";
                   echo "</th>";
-                      echo "<th>";
-                      echo "Last updated";
-                    echo "</th>";
+                  echo "<th>";
+                    echo "Note";
+                  echo "</th>";
+                  echo "<th>";
+                    echo "Recorded By";
+                  echo "</th>";
                     
                  echo "</tr>";
                  if($income_summary == 0){
@@ -542,8 +562,22 @@ table {
                       echo "<td>";
                       echo $payment->created_at;
                       echo "</td>";
+                       echo "<td>";
+                      
+                      $parts  = explode(':owner:', $payment->note);
+                      $lastPart = '-';
+                      if(count($parts) > 1){
+                        $lastPart = trim(array_pop($parts));
+                        $otherPart = trim(implode(':owner:', $parts));
+                        echo $otherPart;
+                      }else{
+                        echo $payment->note;
+                      }
+                      echo "</td>";
                       echo "<td>";
-                      echo $payment->updated_at;
+                     
+                        echo $lastPart;
+                      
                       echo "</td>";
   
                     echo "</tr>";

@@ -190,7 +190,7 @@ class Online extends CI_Controller {
                 'student_record_id' => $_POST['student_record_id'],
                 'school_id' => '1',
                 'created_at' => $currentDate,
-                'note' => $_POST['note'],
+                'note' => $_POST['note'].':owner:'.$this->session->userdata('user_name'),
                 );
                     $session_id = $this->input->post('academicyear');
                 // print_r($data);

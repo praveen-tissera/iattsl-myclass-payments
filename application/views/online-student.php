@@ -374,8 +374,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                           echo "Note";
                                         echo "</th>";
                                         echo "<th>";
-                                        echo "Last updated";
-                                      echo "</th>";
+                                          echo "Recorded By";
+                                        echo "</th>";
+ 
                                         echo "<th>";
                                           echo "Status";
                                         echo "</th>";
@@ -413,10 +414,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                           echo "</td>";
                                           echo "<td>";
                                             
-
+                                            $parts  = explode(':owner:', $student_detail['payment_completion'][$index]->note);
+                      $lastPart = '-';
+                       if(count($parts) > 1){
+                        $lastPart = trim(array_pop($parts));
+                        $otherPart = trim(implode(':owner:', $parts));
                                                  echo '<span class="badge badge-light text-wrap">';
+                                                  echo $otherPart;
+                                                 echo '</span>';
+                       }else{
+                        echo '<span class="badge badge-light text-wrap">';
                                                   echo $student_detail['payment_completion'][$index]->note;
                                                  echo '</span>';
+                       }
+                                              echo "</td>";
+                                              echo "<td>";
+                                                echo $lastPart;
                                               echo "</td>";
                                           echo "<td>";
                                           // if paid return receipt payment date
@@ -551,7 +564,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                           echo "Note";
                                         echo "</th>";
                                         echo "<th>";
-                                        echo "Last updated";
+                                        echo "Recorded By";
                                       echo "</th>";
                                         echo "<th>";
                                           echo "Status";
@@ -589,21 +602,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         }
 
                                           echo "</td>";
-                                          echo "<td>";
+                                         echo "<td>";
                                             
-
+                                            $parts  = explode(':owner:', $student_detail['payment_completion'][$index]->note);
+                      $lastPart = '-';
+                       if(count($parts) > 1){
+                        $lastPart = trim(array_pop($parts));
+                        $otherPart = trim(implode(':owner:', $parts));
                                                  echo '<span class="badge badge-light text-wrap">';
+                                                  echo $otherPart;
+                                                 echo '</span>';
+                       }else{
+                        echo '<span class="badge badge-light text-wrap">';
                                                   echo $student_detail['payment_completion'][$index]->note;
                                                  echo '</span>';
+                       }
                                               echo "</td>";
-                                          
-                                          echo "<td>";
-                                          // if paid return receipt payment date
-                                          echo $student_detail['payment_completion'][$index]->created_at;
-                                          // echo (empty($payment->updated_at))? $payment->created_at : $payment->updated_at;
-                                          
-                                      
-                                        echo "</td>";
+                                              echo "<td>";
+                                                echo $lastPart;
+                                              echo "</td>";
                                           echo "<td>";
                                           echo $payment->status;
                                         echo "</td>";

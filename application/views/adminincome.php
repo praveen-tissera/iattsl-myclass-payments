@@ -361,7 +361,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     echo "Created Date";
                   echo "</th>";
                       echo "<th>";
-                      echo "Last updated";
+                      echo "Note";
+                    echo "</th>";
+                    echo "<th>";
+                      echo "Recorded By";
                     echo "</th>";
                     
                  echo "</tr>";
@@ -402,7 +405,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                       echo $payment->created_at;
                       echo "</td>";
                       echo "<td>";
-                      echo $payment->updated_at;
+                      
+                      $parts  = explode(':owner:', $payment->note);
+                      $lastPart = '-';
+                      if(count($parts) > 1){
+                        $lastPart = trim(array_pop($parts));
+                        $otherPart = trim(implode(':owner:', $parts));
+                        echo $otherPart;
+                      }else{
+                        echo $payment->note;
+                      }
+                      echo "</td>";
+                      echo "<td>";
+                     
+                        echo $lastPart;
+                      
                       echo "</td>";
   
                     echo "</tr>";
