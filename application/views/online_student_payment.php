@@ -192,10 +192,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                         </td>
                            <td>
+                          <?php 
+                            // print session variable name
+                            $user_name = $this->session->userdata('user_name');
                           
+                          
+                          ?>
                           <div class="form-group">
                             <div class="form-group">
                             <label for="branch">Select Branch</label>
+                            <?php if($user_name == 'Chandima') { ?>
+
+                            <select class="form-control" id="branch" name="branch" required>
+                              
+                              <option value="BAT" <?php echo (isset($branch) && $branch == 'BAT') ? 'selected' : ''; ?>>Battaramulla</option>
+
+                              
+                            </select>
+
+                            <?php } else{ ?>
                             <select class="form-control" id="branch" name="branch" required>
                               <option value="HED" <?php echo (isset($branch) && $branch == 'HED') ? 'selected' : ''; ?>>Head Office</option>
                               <option value="BAT" <?php echo (isset($branch) && $branch == 'BAT') ? 'selected' : ''; ?>>Battaramulla</option>
@@ -206,6 +221,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               <option value="DIY" <?php echo (isset($branch) && $branch == 'DIY') ? 'selected' : ''; ?>>Diyagama</option>
                               <option value="ONL" <?php echo (isset($branch) && $branch == 'ONL') ? 'selected' : ''; ?>>Online</option>
                             </select>
+                            <?php } ?>
                         </td>
                         <td>
                           <label for="branch">Select Academic Year</label>
