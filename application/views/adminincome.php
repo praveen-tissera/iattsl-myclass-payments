@@ -412,6 +412,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         $lastPart = trim(array_pop($parts));
                         $otherPart = trim(implode(':owner:', $parts));
                         echo $otherPart;
+                         // check $colleciontByStaff array has index of $otherPart if has add invoice payable amount to that index if not create new index with that staff name and set value to invoice payable amount
+                        if(isset($colleciontByStaff[$lastPart])){
+                          $colleciontByStaff[$lastPart] += $payment->invoice_payable;
+                        }else{
+                          $colleciontByStaff[$lastPart] = $payment->invoice_payable;
+                        }
+
                       }else{
                         echo $payment->note;
                       }
@@ -426,7 +433,24 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   
                    }
                  }
+                echo '<thead>';
+                 echo "<tr class='bg-success text-white' >";
+                    echo "<th >";
+                        echo "Collection by Staff";
+                      echo "</th>";
                 
+
+                foreach($colleciontByStaff as $staff => $amount){
+                 
+                  echo "<td>";
+                  echo $staff . ' : LKR ' . number_format($amount, 2, '.', ',');
+                  echo "</td>";
+                }
+                  echo "</tr>";
+                      // empty $colleciontByStaff array
+                $colleciontByStaff = [];
+
+                 echo '</thead>';
                  echo "</table>";
 
                   ?>

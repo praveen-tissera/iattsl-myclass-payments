@@ -15,7 +15,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       
       .nav-header {
         display: flex;
-        justify-content: end;
+        justify-content: space-between;
         margin-bottom: 10px;
       }
 
@@ -236,65 +236,139 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                          date_default_timezone_set('Asia/Colombo');
                             $currentDate = date("Y-m-d"); // Format: YYYY-MM-DD
                         ?>
+<!-- nav header -->
+<div class="nav-header">
+  <nav>
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+       <?php 
+
+       if(isset($students) && is_array($students)){
+          // loop through students array and get index name 
+          $active = 'active';
+          foreach ($students as $subjectName => $subjectsdata) {
+           // print subject name as tab
+           echo "<button class='nav-link {$active}' id='nav-{$subjectName}-tab' data-toggle='tab' data-target='#nav-{$subjectName}' type='button' role='tab' >{$subjectName}</button>";
+                        $active = '';
+          }
+       }
+        ?>
+                    
+    </div>
+  </nav>
+   <button class="download-btn btn btn-outline-success btn-sm" onclick="downloadStudentInfo()"> 
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/> </svg>
+                     Student Info</button>
+</div>
+
+<!-- end of nav header -->
+
+
+                
+<!-- Tab Content start -->
+  <?php
+    if (isset($students) && is_array($students)) {
+      ?>
+
+        <div class="tab-content" id="nav-tabContent">
+              <?php 
+              // loop through students array and get index name 
+              $paneactive = 'show active';
+              foreach ($students as $subjectName => $subjectsdata) {
+                echo "<div class='tab-pane fade {$paneactive}' id='nav-{$subjectName}' role='tabpanel' aria-labelledby='nav-{$subjectName}-tab'>";
+                $paneactive = '';
+              ?>
                 <?php
                 // pass form clicked submit button value to confirm submit function
 
                 $attributes = array('id' => 'studentMarkList');
                
                 echo form_open('welcome/attendacesubmit', $attributes); 
-                if (isset($students) && is_array($students)) { 
+                // print_r($subjectsdata);
+                // if (isset($subjectsdata) && is_array($subjectsdata)) { 
+                if (true) {
                   ?>
-                <h2 class="text-center">Attendace Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - <?php echo $subject_name; ?></h2>
+                <h2 class="text-center">Attendace Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - 
+                <?php 
+                // echo $subject_name; 
+                ?></h2>
 
 
-      <?php
+              <?php
 
-        // print_r($students);
-        // check array lenght
-        $arrayLength = count($students);
-        // create loop to get is_active status count
-        $activeCount = 0;
-        $inactiveCount = 0;
-        for ($i = 0; $i < $arrayLength; $i++) {
-            if ($students[$i]->is_active == 1) {
-                $activeCount++;
-            } else {
-                $inactiveCount++;
-            }
-        }
-   
-      ?>
-      <div class="row justify-content-md-center">
-        <div class="col-12 col-md-3">
-          <div class="card text-white bg-primary mb-3" >
-            <div class="card-header">Student Total Registration </div>
-            <div class="card-body">
-              <h1 class="card-title"><?php echo $arrayLength; ?></h5>
-              <p class="card-text">Total number of students in the selected class.</p>
-            </div>
-          </div>
-        </div>
+                if (isset($students[$subjectName]) && is_array($students[$subjectName])) {
+                // check array lenght
+                // print_r($students[$subjectName]);
+                $arrayLength = count($students[$subjectName]);
+                // create loop to get is_active status count
+                $activeCount = 0;
+                $inactiveCount = 0;
+               
+                  for ($i = 0; $i < $arrayLength; $i++) {
+                      if ($students[$subjectName][$i]->is_active == 1) {
+                          $activeCount++;
+                      } else {
+                          $inactiveCount++;
+                      }
+                  }
+                
+              ?>
+      <div class="row justify-content-md-center"> 
+            <div class="col-12 col-md-3">
+                  <div class="card text-white bg-primary mb-3" >
+                    <div class="card-header">Student Total Registration </div>
+                      <div class="card-body">
+                        <h1 class="card-title"><?php 
+                        echo $arrayLength; ?>
+                        </h1>
+                        <p class="card-text">Total number of students in the selected class.</p>
+                      </div>
+                    </div>
+                  
+            </div> 
 
-        <div class="col-12 col-md-3 ">
-          <div class="card text-white bg-primary mb-3" >
-            <div class="card-header">Student Dropouts </div>
-            <div class="card-body">
-              <h1 class="card-title"><?php echo $inactiveCount; ?></h5>
-              <p class="card-text">Number of students who are inactive.</p>
-            </div>
-          </div>
-        </div>
+                <div class="col-12 col-md-3 ">
+                  <div class="card text-white bg-primary mb-3" >
+                    <div class="card-header">Student Dropouts </div>
+                      <div class="card-body">
+                        <h1 class="card-title"><?php 
+                        echo $inactiveCount; 
+                        ?></h1>
+                        <p class="card-text">Number of students who are inactive.</p>
+                      
+                  </div>
+                </div> 
+                </div>
 
-        <div class="col-12 col-md-3">
-          <div class="card text-white bg-danger mb-3" >
-            <div class="card-header">Student Dropouts Precentage </div>
-            <div class="card-body">
-              <h1 class="card-title"><?php echo $arrayLength > 0 ? round(($inactiveCount / $arrayLength) * 100, 2) : 0; ?>%</h5>
-              <p class="card-text">Percentage of students who are inactive.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+
+
+
+
+                <div class="col-12 col-md-3 ">
+                  <div class="card text-white bg-danger mb-3" >
+                    <div class="card-header">Student Dropouts Precentage </div>
+                      <div class="card-body">
+                        <h1 class="card-title"><?php 
+                        echo $arrayLength > 0 ? round(($inactiveCount / $arrayLength) * 100, 2) : 0; 
+                        ?>%</h1>
+                        <p class="card-text">Percentage of students who are inactive.</p>
+                      
+                  </div>
+                </div> 
+                </div>
+
+
+               
+
+
+
+    </div>
+
+<?php } ?>
+
+
+<div> 
       
 
       
@@ -302,8 +376,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                 <input type="hidden" class="form-control" value="<?php echo $pclass_id; ?>" name="selectclassid">
                 <input type="hidden" class="form-control" value="<?php echo $pclass_name; ?>" name="selectclassname">  
-                <input type="hidden" class="form-control" value="<?php echo $subject_id; ?>" name="selectsubjectid">
-                <input type="hidden" class="form-control" value="<?php echo $subject_name; ?>" name="selectsubjectname">
+                <input type="hidden" class="form-control" value="<?php echo $subject_id[$subjectName]; ?>" name="selectsubjectid">
+                <input type="hidden" class="form-control" value="<?php echo $subject_name[$subjectName]; ?>" name="selectsubjectname">
 
 
                   <input type="hidden" class="form-control" value="<?php echo $branch; ?>" name="branch">
@@ -324,15 +398,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <?php
                     
                 ?>
-                <div class="nav-header">
-                  
-                <button class="download-btn btn btn-outline-success btn-sm" onclick="downloadStudentInfo()"> 
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/> </svg>
-                     Student Info</button>
-
-                </div>
+                
                   <div class="form-row py-2 bg-light">
                     <div class="col-sm-12 my-2 my-md-0 my-sm-2 col-md-4">
                       <!-- show only current month in the calender  -->
@@ -357,29 +423,31 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <?php 
                     $staff_name = '';
                     $last_added_date = '';
-                    foreach ($students as $student) {
-                            // check if student marks already exists
-                              $attendances = $student->attendance_history;
-                            if (isset($attendances) && is_array($attendances)) {
-                              
-                                foreach ($attendances as $attendance) {
-                                  // loop through attendance and get the last added staff name and date
-                                  foreach($attendance as $att){
-                                    
-                                    if($last_added_date == '' || strtotime($att->created_at) > strtotime($last_added_date)){
-                                      $last_added_date = $att->created_at;
-                                      $staff_name = $att->staff_name;
-                                    }
-                                  }
-                                  // // style staff name bold and put nice label before staff name
+                    if (isset($subjectsdata) && is_array($subjectsdata)) {
+                        foreach ($subjectsdata as $student) {
+                                // check if student marks already exists
+                                  $attendances = $student->attendance_history;
+                                if (isset($attendances) && is_array($attendances)) {
                                   
-                                  //   break;
+                                    foreach ($attendances as $attendance) {
+                                      // loop through attendance and get the last added staff name and date
+                                      foreach($attendance as $att){
+                                        
+                                        if($last_added_date == '' || strtotime($att->created_at) > strtotime($last_added_date)){
+                                          $last_added_date = $att->created_at;
+                                          $staff_name = $att->staff_name;
+                                        }
+                                      }
+                                      // // style staff name bold and put nice label before staff name
+                                      
+                                      //   break;
+                                        
+                                    }
                                     
                                 }
-                                 
-                            }
-                              
-                              // break;
+                                  
+                                  // break;
+                        }
                     }
 
                       echo '<span class="badge badge-danger" style="font-weight: bold;"> Last Update By: ' . $staff_name . '</span>';
@@ -395,6 +463,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   ?>
                    </div>
                 </div>
+              
                     <table class="table table-striped table-bordered table-hover" style="table-layout: fixed;">
                     <thead>
                       
@@ -446,8 +515,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                       "Installment 7", "Installment 8", "Installment 9", "Installment 10", "Installment 11", "Installment 12","Installment 13", "Installment 14"
                                   ];
 
-
-                        foreach ($students as $student) {
+                    if (isset($subjectsdata) && is_array($subjectsdata)) {
+                        foreach ($subjectsdata as $student) {
                             // check if student marks already exists
                             $attendances = $student->attendance_history;
                             $part1 = null;
@@ -494,8 +563,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                            
                                             // print_r($attendace);
                                             // if currentmonth is equal to month set checkbox to checked 
-                                            if($month){
-                                            // if($month == $currentMonth){
+                                            // if($month){ //uncheck if you need to enable to updaate previous months attendance
+                                            if($month == $currentMonth){
                                                 foreach($attendace as $date => $status){
                                                   
                                                   if($status->attendace == 'P'){
@@ -593,6 +662,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             $i++;
 
                         }
+                }
 
                         ?>
 
@@ -603,6 +673,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                echo form_close();
                 ?>
             </div>
+     
+
+</div>
+<?php } ?>
+<?php } ?>
+            <!-- end of tab content -->
         </div>
     </div>
 
@@ -798,6 +874,44 @@ function downloadStudentInfo() {
 
 </script>
 <script>
+
+
+
+function isDateAlreadyExists() {
+    // ✅ Get active tab
+    let activeTab = document.querySelector('.tab-pane.active');
+
+    if (!activeTab) return false;
+
+    // ✅ Get selected date
+    let dateInput = activeTab.querySelector('input[name="attendancedate"]');
+    let selectedDate = dateInput ? dateInput.value.trim() : '';
+
+    if (!selectedDate) return false;
+
+    // ✅ Get all inputs starting with old_attendace
+    let inputs = activeTab.querySelectorAll("input[name^='old_attendace_']");
+
+    let found = false;
+
+    inputs.forEach(input => {
+        let parts = input.name.split('_');
+
+        // format: old_attendace_980_2026-05-12
+        let date = parts[3];
+
+        if (date === selectedDate) {
+            found = true;
+        }
+    });
+
+    return found;
+}
+
+
+
+
+
   function confirmSubmit(e,action) {
 
     
@@ -818,14 +932,42 @@ function downloadStudentInfo() {
 
   if (action === 'Add New Attendance') {
     message = 'Are you sure you want to add new attendance?';
-    formEl = document.getElementById('studentMarkList'); // FORM, not button
-    document.getElementById('btnsubmit').value = action;
-    btnEl = btnSubmit;
+    formEl = document.querySelector('.tab-pane.active form'); // Get Active form
+    
+    let activeTab = document.querySelector('.tab-pane.active');
+
+    // Get form inside active tab
+    let formE2 = activeTab.querySelector('form');
+
+    // Get hidden field inside THAT form
+    let hiddenInput = formE2.querySelector('#btnsubmit');
+
+    // Set value
+    hiddenInput.value = action;
+
+// ✅ CHECK DATE EXIST
+    if (action === 'Add New Attendance') {
+        if (isDateAlreadyExists()) {
+            alert("⚠️ Attendance already exists for selected date!");
+            return false;
+        }
+    }
+
+    // formE1.querySelector('.btnsubmit').value = action;
+    // btnEl = btnSubmit;
   } else if (action === 'Update Old Attendance') {
     message = 'Are you sure you want to update old attendance?';
-    formEl = document.getElementById('studentMarkList'); // FORM, not button
-    document.getElementById('btnsubmit').value = action;
-    btnEl = btnUpdate;
+    formEl = document.querySelector('.tab-pane.active form'); // Get Active form
+    let activeTab = document.querySelector('.tab-pane.active');
+
+    // Get form inside active tab
+    let formE2 = activeTab.querySelector('form');
+
+    // Get hidden field inside THAT form
+    let hiddenInput = formE2.querySelector('#btnsubmit');
+
+    // Set value
+    hiddenInput.value = action;
   } else {
     // Unknown action; do nothing
     return false;

@@ -380,6 +380,7 @@ table {
             foreach ($branch_list as $branch) {
               foreach($brancewise_income_summary as $key => $payments){
                 if($key == $branch){
+                  $colleciontByStaff = [];
             ?>
 
 
@@ -433,6 +434,8 @@ table {
                  }else{
                   $rowNumber = 1;
                   // print_r($income_summary);
+                  echo "<tbody>";
+                  
                   foreach ($payments as $key => $payment) {
                     echo "<tr>";
                       echo "<td>";
@@ -470,6 +473,14 @@ table {
                         $lastPart = trim(array_pop($parts));
                         $otherPart = trim(implode(':owner:', $parts));
                         echo $otherPart;
+
+                        // check $colleciontByStaff array has index of $otherPart if has add invoice payable amount to that index if not create new index with that staff name and set value to invoice payable amount
+                        if(isset($colleciontByStaff[$lastPart])){
+                          $colleciontByStaff[$lastPart] += $payment->invoice_payable;
+                        }else{
+                          $colleciontByStaff[$lastPart] = $payment->invoice_payable;
+                        }
+
                       }else{
                         echo $payment->note;
                       }
@@ -483,7 +494,27 @@ table {
                     echo "</tr>";
                   
                    }
+                   echo "</tbody>";
                  }
+                 echo '<thead>';
+                 echo "<tr class='bg-success text-white' >";
+                    echo "<th >";
+                        echo "Collection by Staff";
+                      echo "</th>";
+                
+
+                foreach($colleciontByStaff as $staff => $amount){
+                 
+                  echo "<td>";
+                  echo $staff . ' : LKR ' . number_format($amount, 2, '.', ',');
+                  echo "</td>";
+                }
+                // empty $colleciontByStaff array
+                $colleciontByStaff = [];
+                  echo "</tr>";
+                      
+
+                 echo '</thead>';
                 
                  echo "</table>";
 
@@ -538,6 +569,10 @@ table {
                  }else{
                   $rowNumber = 1;
                   // print_r($income_summary);
+                  $colleciontByStaff = [];
+                  // array index will be staff name and value will be total amount collected by that staff
+                  // create array of staff names and total amount collected by that staff
+
                   foreach ($payments as $key => $payment) {
                     echo "<tr>";
                       echo "<td>";
@@ -567,9 +602,15 @@ table {
                       $parts  = explode(':owner:', $payment->note);
                       $lastPart = '-';
                       if(count($parts) > 1){
+                        
+                        
                         $lastPart = trim(array_pop($parts));
                         $otherPart = trim(implode(':owner:', $parts));
                         echo $otherPart;
+
+
+                        
+
                       }else{
                         echo $payment->note;
                       }
@@ -586,8 +627,9 @@ table {
                  }
                 
                  echo "</table>";
-
+                 
                   ?>
+
                   </div>
 
 

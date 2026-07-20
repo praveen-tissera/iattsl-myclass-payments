@@ -424,29 +424,38 @@ class Welcome extends CI_Controller {
          $subjects = $this->Mark_model->get_subjecs($class_id);
         //  print_r($subjects);
         //  check whether ICT lable eixists in subjects array and return ID index value
-        $ict_subject_id = 0;
+        $ict_subject_id = [];
         $subject_name;
+       
         foreach($subjects as $subject){
-            if($subject->label == 'ICT'){
-                $ict_subject_id = $subject->ID;
-                $subject_name = $subject->label;
-                break;
-            }
-            if($subject->label == $branch){
-                $ict_subject_id = $subject->ID;
-                $subject_name = $subject->label;
-                break;
-            }
+            //  echo $subject->label;
+            // if($subject->label == 'ICT' || $subject->label == 'Maths' || $subject->label == 'English' || $subject->label == 'Science' ){
+            //     $ict_subject_id = $subject->ID;
+            //     $subject_name = $subject->label;
+            //     break;
+            // }
+            // if($subject->label == $branch){
+            //     $ict_subject_id = $subject->ID;
+            //     $subject_name = $subject->label;
+            //     break;
+            // }
+
+
+
+            $students[$subject->label] = $this->User_model->get_students_attendance_by_branch($subject->ID, $session_id , $branch);
+
+            $ict_subject_id[$subject->label] = $subject->ID;
+            $subject_name[$subject->label] = $subject->label;
         }
         $grades = $this->Mark_model->get_classes();
         $data['grades'] = $grades;
         if($ict_subject_id == 0){
             $data['message'] = "No Student Found for this class";
-            $this->load->view('student_attendace',$data);
+            // $this->load->view('student_attendace',$data);
         }else{
-         $students = $this->User_model->get_students_attendance_by_branch($ict_subject_id, $session_id , $branch);
+        //  $students = $this->User_model->get_students_attendance_by_branch($ict_subject_id, $session_id , $branch);
         // print_r($students);
-
+        }
       
         $data['selected_academic_year'] = $session_id;
         $data['students'] = $students;
@@ -462,7 +471,7 @@ class Welcome extends CI_Controller {
         // print_r($data);
         $this->load->view('student_attendace',$data);   
         
-        }
+        
     }
     // create function attendacesubmit
     public function attendacesubmit(){
@@ -534,17 +543,18 @@ class Welcome extends CI_Controller {
                     
                 // }
         }elseif($this->input->post('btnsubmit') == 'Add New Attendance'){
-            // print_r($_POST);
+            
             $attendancedate = $this->input->post('attendancedate');
             $attendace = array();
 
                 
              // Collect only keys starting with the prefix
+   
                 $prefix = 'old_attendace';
                 $matchingKeys = array_filter(array_keys($_POST), function ($key) use ($prefix) {
                     return strncmp($key, $prefix, strlen($prefix)) === 0; // starts with
                 });
-                // print_r($matchingKeys);
+              
                 $old_date_found = false;
                 foreach($matchingKeys as $key){
                     // extract student id and date from key
@@ -552,8 +562,8 @@ class Welcome extends CI_Controller {
                     $parts = explode('_', $key);
                     $student_id = $parts[2];
                     $date = $parts[3];
-                  
-                    if($this->input->post('attendancedate') == $date){
+                 
+                    if(trim($attendancedate) == trim($date)){
                         $old_date_found = true;
                         break;
                     }
@@ -585,19 +595,19 @@ class Welcome extends CI_Controller {
         
                     
                 }
-                // print_r($data);
                 // call model function to insert attendace
 
                 $result_attendance = $this->User_model->insert_student_attendace($data);
                 if($result_attendance == 1){
                     $this->session->set_flashdata('success', 'Attendance submitted successfully');
                     redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
-                    // redirect('welcome/attendanceview');
+                    
                 }else{
                     $this->session->set_flashdata('error', 'Error submitting attendance');
                     redirect('welcome/gradewiseattendaceSumamry/'.$branch.'/'.$class_detail.'/'.$session_id);
-                    // redirect('welcome/attendanceview');
+                    
                 }
+
                 }
         }
         
@@ -625,7 +635,7 @@ class Welcome extends CI_Controller {
         $ict_subject_id = 0;
         $subject_name;
         foreach($subjects as $subject){
-            if($subject->label == 'ICT'){
+            if($subject->label == 'ICT' || $subject->label == 'Maths' || $subject->label == 'English' || $subject->label == 'Science' ){
                 $ict_subject_id = $subject->ID;
                 $subject_name = $subject->label;
                 break;
