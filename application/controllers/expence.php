@@ -28,6 +28,40 @@ class Expence extends CI_Controller
         $this->load->view('expense/expense', $data);
     }
 
+    public function monthly()
+    {
+        $selected_month = $this->input->get('month', TRUE);
+        if (!$this->is_valid_month($selected_month)) {
+            $selected_month = date('Y-m');
+        }
+
+        $expenses = $this->Expense_model->get_expenses_by_month($selected_month);
+        $total = 0;
+        foreach ($expenses as $expense) {
+            $total += (float) $expense->amount;
+        }
+
+        $months = array();
+        $month_start = new DateTime('first day of this month');
+        for ($index = 0; $index < 24; $index++) {
+            $month = clone $month_start;
+            $month->modify('-' . $index . ' months');
+            $months[] = array(
+                'value' => $month->format('Y-m'),
+                'label' => $month->format('F Y')
+            );
+        }
+
+        $data = array(
+            'expenses' => $expenses,
+            'total' => $total,
+            'months' => $months,
+            'selected_month' => $selected_month
+        );
+
+        $this->load->view('expense/monthly_expense', $data);
+    }
+
     public function save()
     {
         $this->form_validation->set_rules(
@@ -81,6 +115,16 @@ class Expence extends CI_Controller
         }
 
         return TRUE;
+    }
+
+    private function is_valid_month($month)
+    {
+        if (!is_string($month) || !preg_match('/^\d{4}-\d{2}$/', $month)) {
+            return FALSE;
+        }
+
+        $date = DateTime::createFromFormat('!Y-m', $month);
+        return $date !== FALSE && $date->format('Y-m') === $month;
     }
 
     public function remove()

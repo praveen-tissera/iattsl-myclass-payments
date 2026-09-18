@@ -26,6 +26,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
     <main class="container-fluid py-4">
         <h1 class="h3 mb-4">Institute Expenses</h1>
+        <p><a class="btn btn-outline-primary" href="<?php echo site_url('expence/monthly'); ?>">View Monthly Expenses</a></p>
 
         <?php if (!empty($success)): ?>
             <div class="alert alert-success"><?php echo html_escape($success); ?></div>

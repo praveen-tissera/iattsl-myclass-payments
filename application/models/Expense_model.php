@@ -21,6 +21,22 @@ class Expense_model extends CI_Model
             ->result();
     }
 
+    public function get_expenses_by_month($month)
+    {
+        $start_date = $month . '-01';
+        $end_date = date('Y-m-t', strtotime($start_date));
+
+        return $this->db
+            ->select('id, expense_date, title, amount, created_at')
+            ->from($this->table)
+            ->where('expense_date >=', $start_date)
+            ->where('expense_date <=', $end_date)
+            ->order_by('expense_date', 'ASC')
+            ->order_by('id', 'ASC')
+            ->get()
+            ->result();
+    }
+
     public function delete_expense($id)
     {
         $this->db->where('id', $id);
