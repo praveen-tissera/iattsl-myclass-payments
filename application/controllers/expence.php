@@ -41,6 +41,12 @@ class Expence extends CI_Controller
             $total += (float) $expense->amount;
         }
 
+        $year = date('Y');
+        $yearly_totals = array_fill(1, 12, 0);
+        foreach ($this->Expense_model->get_expense_totals_by_year($year) as $monthly_total) {
+            $yearly_totals[(int) $monthly_total->month_number] = (float) $monthly_total->total;
+        }
+
         $months = array();
         $month_start = new DateTime('first day of this month');
         for ($index = 0; $index < 24; $index++) {
@@ -56,7 +62,9 @@ class Expence extends CI_Controller
             'expenses' => $expenses,
             'total' => $total,
             'months' => $months,
-            'selected_month' => $selected_month
+            'selected_month' => $selected_month,
+            'chart_year' => $year,
+            'yearly_totals' => $yearly_totals
         );
 
         $this->load->view('expense/monthly_expense', $data);

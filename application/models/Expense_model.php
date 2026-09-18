@@ -37,6 +37,19 @@ class Expense_model extends CI_Model
             ->result();
     }
 
+    public function get_expense_totals_by_year($year)
+    {
+        return $this->db
+            ->select('MONTH(expense_date) AS month_number, SUM(amount) AS total', FALSE)
+            ->from($this->table)
+            ->where('expense_date >=', $year . '-01-01')
+            ->where('expense_date <=', $year . '-12-31')
+            ->group_by('MONTH(expense_date)')
+            ->order_by('month_number', 'ASC')
+            ->get()
+            ->result();
+    }
+
     public function delete_expense($id)
     {
         $this->db->where('id', $id);
