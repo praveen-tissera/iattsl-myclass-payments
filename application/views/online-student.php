@@ -1,5 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+include APPPATH.'libraries/phpqrcode/qrlib.php';
+
 ?><!DOCTYPE html>
 <html lang="en">
 
@@ -282,9 +284,35 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               }
                                 
                 ?>
+                  <?php 
+                  // include selected_academic_year in the QR code
+                  $student_display_id = $student_id_without_ending_number;
+                  $student_id_without_ending_number .= '/'.$selected_academic_year;
+                    $qr_file = str_replace('/', '_', $student_id_without_ending_number).'.png';
+                  
 
+                    $full_path = FCPATH.'uploads/student_qr/'.$qr_file;
 
-                  <p class="card-text">Class/Course Registration# : <?php echo $student_id_without_ending_number; ?> </p>
+                    if(!file_exists($full_path))
+                    {
+                        QRcode::png(
+                            $student_id_without_ending_number,
+                            $full_path,
+                            QR_ECLEVEL_L,
+                            6
+                        );
+                    }
+                  
+                  ?>
+
+                  <p class="card-text">Class/Course Registration# : <?php echo $student_display_id; ?> </p>
+                  
+                  <img src="<?= base_url('uploads/student_qr/'.$qr_file); ?>" width="150">
+
+                        <a href="<?= base_url('uploads/student_qr/'.$qr_file); ?>" class="btn btn-sm btn-outline-primary" download>
+                          <i class="fa fa-qrcode"></i> ⬇️ QR
+                        </a>
+                  
                   
                   <!-- create form to update student pone numebr -->
                    <!-- add class to form_open -->
@@ -376,7 +404,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         echo "<th>";
                                           echo "Recorded By";
                                         echo "</th>";
- 
+                                        echo "<th>";
+                                          echo "Transaction Date";
+                                        echo "</th>";
                                         echo "<th>";
                                           echo "Status";
                                         echo "</th>";
@@ -549,7 +579,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo "<table class='table table-sm table-striped'>";
                                       echo "<tr class='bg-success text-white' >";
                                         echo "<th >";
-                                          echo "Invoice Number";
+                                          echo "Invoice #";
                                         echo "</th>";
                                         echo "<th>";
                                           echo "Paid Month";
@@ -566,6 +596,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         echo "<th>";
                                         echo "Recorded By";
                                       echo "</th>";
+                                      echo "<th>";
+                                          echo "Transaction Date";
+                                        echo "</th>";
                                         echo "<th>";
                                           echo "Status";
                                         echo "</th>";
@@ -621,6 +654,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                               echo "<td>";
                                                 echo $lastPart;
                                               echo "</td>";
+                                              echo "<td>";
+                                              if(empty($payment->updated_at)){
+                                                // echo $payment->created_at;
+
+                                                 $originalTime =$payment->created_at;
+                                                  $timestamp = strtotime($originalTime);
+                                                  $newTime = date("y-m-d h:i A", $timestamp);
+                                                  echo $newTime;
+
+                                              }else{
+                                                // echo $payment->updated_at;
+                                                $originalTime = $payment->updated_at;
+                                                  $timestamp = strtotime($originalTime);
+                                                  $newTime = date("y-m-d h:i A", $timestamp);
+                                                  echo $newTime;
+                                              }
+                                            echo "</td>";
                                           echo "<td>";
                                           echo $payment->status;
                                         echo "</td>";

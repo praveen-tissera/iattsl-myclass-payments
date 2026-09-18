@@ -47,36 +47,35 @@ class Online_User_model extends CI_Model{
         // SELECT * FROM `wp_wlsm_sections` WHERE ID="7";
         // SELECT * FROM `wp_wlsm_payments` WHERE student_record_id ='254';
         // session table wp_wlsm_sessions
-        $condition = "admission_number LIKE '{$data}%' && session_id=$session_id";
+       $condition = "admission_number LIKE '{$data}%' && session_id=$session_id";
         $query = $this->db->select('*')
         ->where($condition)
         ->get('wp_wlsm_student_records');
        
-        // print_r($query->num_rows());
 
         if($query->num_rows() > 0){
             foreach($query->result() as $profileData){
 
 
                 //  $profileData = $query->result();
-            // print_r($profileData[0]->ID);
+
             // get course Name:
                     $condition = "ID='{$profileData->section_id}'";
                     $query_class = $this->db->select('*')
                     ->where($condition)
                     ->get('wp_wlsm_sections');
-                    //  print_r($this->db->last_query());
+
                     if($query_class->num_rows() == 1){
-                        // print_r($query_class->result());
+
                         $courseName = $query_class->result()[0]->label;
-                        // echo $courseName;
+
                         // GET Grade 1. get ID 2. get grade label
 
                         // SELECT wp_wlsm_classes.ID, wp_wlsm_classes.label FROM wp_wlsm_classes INNER JOIN wp_wlsm_class_school ON wp_wlsm_classes.ID=wp_wlsm_class_school.class_id WHERE wp_wlsm_class_school.ID = 7;
 
                             $query_gradeID = $this->db->query("SELECT wp_wlsm_classes.ID, wp_wlsm_classes.label FROM wp_wlsm_classes INNER JOIN wp_wlsm_class_school ON wp_wlsm_classes.ID=wp_wlsm_class_school.class_id WHERE wp_wlsm_class_school.ID = {$query_class->result()[0]->class_school_id}");
                             $grade = $query_gradeID->result();
-                        //    print_r($grade);
+
 
                         // GET invoices FROM wp_wlsm_invoice
                         // SELECT * FROM `wp_wlsm_invoice` WHERE student_record_id ='254' ORDER BY invoice_id DESC;
@@ -87,16 +86,16 @@ class Online_User_model extends CI_Model{
                             ->where($condition)
                             ->order_by("invoice_number", "desc")
                             ->get('wp_wlsm_invoices');
-                            // print_r($query_paymenthistory->result());
+
                             $paymentHistory = $query_invoicehistory->result();
-                            // print_r($invoiceHistory);
+ 
                         // GET payment records
                             $condition = "student_record_id='{$profileData->ID}'";
                             $query_paymenthistory = $this->db->select('*')
                             ->where($condition)
                             ->order_by("invoice_id", "desc")
                             ->get('wp_wlsm_payments');
-                            // print_r($query_paymenthistory->result());
+
                             $paymentCompletion = $query_paymenthistory->result();
 
                     }
@@ -105,19 +104,7 @@ class Online_User_model extends CI_Model{
 
                     
                     $result_attendance = [];  
-                    // $condition = "student_id='{$profileData[0]->ID}' && course_name='{$courseName}'&& grade_id='{$grade[0]->ID}'";
-                    // $query = $this->db->select('*')
-                    // ->where($condition)
-                    // ->order_by("attend_date", "desc")
-                    // ->get('wp_wlsm_attendance'); 
-                                
-                                        // echo $query->num_rows();
-                        // if($query->num_rows() > 0){
-                        //     $result_attendance = $query->result();
-                            
-                        // }else{
-                        //     $result_attendance = [];  
-                        // }
+
                        
 
                         $std_data[] =  array ('profile'=> $profileData,
