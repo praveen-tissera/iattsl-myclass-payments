@@ -20,4 +20,12 @@ class Expense_model extends CI_Model
             ->get()
             ->result();
     }
+
+    public function delete_expense($id)
+    {
+        $this->db->where('id', $id);
+        $this->db->delete($this->table);
+
+        return $this->db->affected_rows() === 1;
+    }
 }

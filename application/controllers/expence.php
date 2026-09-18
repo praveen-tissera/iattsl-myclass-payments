@@ -82,4 +82,24 @@ class Expence extends CI_Controller
 
         return TRUE;
     }
+
+    public function remove()
+    {
+        $this->form_validation->set_rules('expense_id', 'Expense', 'required|is_natural_no_zero');
+
+        if ($this->form_validation->run() === FALSE) {
+            $this->session->set_flashdata('error', 'Please select a valid expense to remove.');
+            redirect('expence');
+        }
+
+        $removed = $this->Expense_model->delete_expense((int) $this->input->post('expense_id', TRUE));
+
+        if ($removed) {
+            $this->session->set_flashdata('success', 'Expense removed successfully.');
+        } else {
+            $this->session->set_flashdata('error', 'Unable to remove the expense. It may no longer exist.');
+        }
+
+        redirect('expence');
+    }
 }
