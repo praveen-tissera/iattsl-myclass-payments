@@ -9,7 +9,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <link rel="stylesheet" href="<?php echo base_url() . '/css/bootstrap.min.css' ?>">
 
    
-    <title>Attendace Summary</title>
+    <title>Tute Management</title>
      <style>
       /* download icon styling */
       
@@ -119,7 +119,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
 
                 ?>
-                <h1 class="text-center display-4" style="font-size:2.6rem">Student Attendace Summary</h1>
+                <h1 class="text-center display-4" style="font-size:2.6rem">Tute Management</h1>
                 <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                 <?php
                   if(isset($message)){
@@ -143,7 +143,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
                 ?>
 
-                <?php echo form_open('welcome/gradewiseattendaceSumamry') ?>
+                <?php echo form_open('welcome/view_gradewise_tute') ?>
                 <table class="table table-borderless">
                     <tr>
                       <!-- <td> -->
@@ -284,88 +284,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                 $attributes = array('id' => 'studentMarkList');
                
-                echo form_open('welcome/attendacesubmit', $attributes); 
+                echo form_open('welcome/tutesubmit', $attributes); 
                 // print_r($subjectsdata);
                 // if (isset($subjectsdata) && is_array($subjectsdata)) { 
                 if (true) {
                   ?>
-                <h2 class="text-center">Attendace Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - 
+              
                 <?php 
                 // echo $subject_name; 
                 ?></h2>
 
-
-              <?php
-
-                if (isset($students[$subjectName]) && is_array($students[$subjectName])) {
-                // check array lenght
-                // print_r($students[$subjectName]);
-                $arrayLength = count($students[$subjectName]);
-                // create loop to get is_active status count
-                $activeCount = 0;
-                $inactiveCount = 0;
-               
-                  for ($i = 0; $i < $arrayLength; $i++) {
-                      if ($students[$subjectName][$i]->is_active == 1) {
-                          $activeCount++;
-                      } else {
-                          $inactiveCount++;
-                      }
-                  }
-                
-              ?>
-      <div class="row justify-content-md-center"> 
-            <div class="col-12 col-md-3">
-                  <div class="card text-white bg-primary mb-3" >
-                    <div class="card-header">Student Total Registration </div>
-                      <div class="card-body">
-                        <h1 class="card-title"><?php 
-                        echo $arrayLength; ?>
-                        </h1>
-                        <!-- <p class="card-text">Register Student Count.</p> -->
-                      </div>
-                    </div>
-                  
-            </div> 
-
-                <div class="col-12 col-md-3 ">
-                  <div class="card text-white bg-primary mb-3" >
-                    <div class="card-header">Student Dropouts </div>
-                      <div class="card-body">
-                        <h1 class="card-title"><?php 
-                        echo $inactiveCount; 
-                        ?></h1>
-                        <!-- <p class="card-text">Inactive Student Count.</p> -->
-                      
-                  </div>
-                </div> 
-                </div>
-
-
-
-
-
-                <div class="col-12 col-md-3 ">
-                  <div class="card text-white bg-danger mb-3" >
-                    <div class="card-header">Dropouts Percentage </div>
-                      <div class="card-body">
-                        <h1 class="card-title"><?php 
-                        echo $arrayLength > 0 ? round(($inactiveCount / $arrayLength) * 100, 2) : 0; 
-                        ?>%</h1>
-                        <!-- <p class="card-text">Dropout Percentage.</p> -->
-                      
-                  </div>
-                </div> 
-                </div>
-
-
-               
-
-
-
-    </div>
-
-<?php } ?>
 
 
 <div> 
@@ -400,281 +328,53 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 ?>
                 
                   <div class="form-row py-2 bg-light">
-                    <div class="col-sm-12 my-2 my-md-0 my-sm-2 col-md-4">
-                      <!-- show only current month in the calender  -->
-                      
-                      <input type="date" id="calendar" class="form-control mb-2" name="attendancedate" value="<?php echo $currentDate; ?>">
-                      <small id="datemsg" class="form-text text-muted mt-0 mb-3">Select class date to add new attendance</small>
-
-                    </div>
-                    <div class="col-sm-12 col-md-2">
+      
+                    <div class="col-sm-12 col-md-12">
                       <!-- create submit button -->
                     <!-- <input class="btn btn-primary btn-block mb-2" type="submit" id="submitBtn" name="btnsubmit" value="Add New Attendace" onclick="confirmSubmit(event,this.value)"> -->
                    
-                    <button  class=" btn btn-primary btn-block  btn-sm  my-md-0" id="submitBtn" type="submit" onclick="confirmSubmit(event, 'Add New Attendance')" value="Add New Attendance">Add New Attendance</button>
+                    <button  class=" btn btn-primary btn-block  btn-sm  my-md-0" id="submitBtn" type="submit"  value="Add New Attendance">Add/Update New Tute</button>
 
                     </div>
-                    <div class="col col-sm-12 col-md-2">
-                    <!-- <input class="btn btn-secondary btn-block mb-2" id="updateBtn" type="submit" name="btnsubmit" value="Update Old Attendace" onclick="confirmSubmit(event,this.value)"> -->
-                    <button class="btn btn-secondary btn-block btn-sm mb-2" id="updateBtn" type="submit" onclick="confirmSubmit(event, 'Update Old Attendance')" value="Update Old Attendance">Update Old Attendance</button>
-
-                   </div>
+                    
                    <div class="col-sm-12 col-md-4 text-md-right text-sm-center">
                     <?php 
-                    $staff_name = '';
-                    $last_added_date = '';
-                    if (isset($subjectsdata) && is_array($subjectsdata)) {
-                        foreach ($subjectsdata as $student) {
-                                // check if student marks already exists
-                                  $attendances = $student->attendance_history;
-                                if (isset($attendances) && is_array($attendances)) {
-                                  
-                                    foreach ($attendances as $attendance) {
-                                      // loop through attendance and get the last added staff name and date
-                                      foreach($attendance as $att){
-                                        
-                                        if($last_added_date == '' || strtotime($att->created_at) > strtotime($last_added_date)){
-                                          $last_added_date = $att->created_at;
-                                          // check if staff name is exists
-                             
-                                          if(isset($att->staff_name) && !empty($att->staff_name)){
-                                           
-                                            $staff_name = $att->staff_name;
-                                          }else{  
-                                            $staff_name = 'Unknown';
-                                          }
-                                        }
-                                      }
-                                      // // style staff name bold and put nice label before staff name
-                                      
-                                      //   break;
-                                        
-                                    }
-                                    
-                                }
-                                  
-                                  // break;
-                        }
-                    }
+                   
 
-                      echo '<span class="badge badge-danger" style="font-weight: bold;"> Last Update By: ' . $staff_name . '</span>';
-                                    echo '<br>';
-                                    echo '<span class="badge badge-secondary" style="font-weight: bold;"> Last Update Date: ';
-                                    // get date and time on Y-m-d format and H:i:s format am pm
-
-                                    $last_added_date = date("Y-m-d h:i:s A", strtotime($last_added_date));
-                                    echo $last_added_date;
-                                    echo '</span>';
-                                   
                   
                   ?>
                    </div>
                 </div>
-              
-                    <table class="table table-striped table-bordered table-hover" style="table-layout: fixed;">
-                    <thead>
-                      
-                    
-                <colgroup>
-                  <col style="width: 27px;">           <!-- # -->
-                  <col style="width: 75px;">           <!-- ID -->
-                  <col style="width: 110px;">          <!-- Student Name (sticky) -->
-                  <!-- 12 months (equal widths) -->
-                  <col span="12" style="width: 111px;"> <!-- JAN..DEC -->
-                </colgroup>
-                <thead class="table-primary">
-
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">ID</th>
-                            <th scope="col" style="position: sticky; left: 0; background: #f2f2f2; z-index: 1;">Student Name</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Jan') ?  'bg-warning fix-col' : ''; ?>">JAN</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'Feb') ?  'bg-warning fix-col' : ''; ?>" >FEB</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'Mar') ?  'bg-warning fix-col' : ''; ?>">MAR</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Apr') ?  'bg-warning fix-col' : ''; ?>">APR</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'May') ?  'bg-warning fix-col' : ''; ?>">MAY</th>
-                            <th scope="col" class = "<?php echo ($currentMonth == 'Jun') ?  'bg-warning fix-col' : ''; ?>">JUN</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Jul') ?  'bg-warning fix-col' : ''; ?>">JUL</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Aug') ?  'bg-warning fix-col' : ''; ?>">AUG</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Sep') ?  'bg-warning fix-col' : ''; ?>">SEP</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Oct') ?  'bg-warning fix-col' : ''; ?>">OCT</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Nov') ?  'bg-warning fix-col' : ''; ?>">NOV</th>
-                            <th scope="col" class = "<?php echo($currentMonth == 'Dec') ?  'bg-warning fix-col' : ''; ?>">DEC</th>
-                        
-                            
-
-                        </tr>
-                      
-                 </thead>       
+              <div class="row">
+                  <div class="col-12 bg-warning py-2">
+                    <!-- create input field to enter tute details -->
                      
-                    </thead>
-                    <tbody>
-                      <?php
-                      // print_r($students);
-                        $i = 1;
-                        $months = [
-                                      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-                                  ];
-
-                           $installments = [
-                                      "Installment 1", "Installment 2", "Installment 3", "Installment 4", "Installment 5", "Installment 6",
-                                      "Installment 7", "Installment 8", "Installment 9", "Installment 10", "Installment 11", "Installment 12","Installment 13", "Installment 14"
-                                  ];
-
-                    if (isset($subjectsdata) && is_array($subjectsdata)) {
-                        foreach ($subjectsdata as $student) {
-                            // check if student marks already exists
-                            $attendances = $student->attendance_history;
-                            $part1 = null;
-                            $part2 = null;
-                            $total = null;
-                            $papertype = null;
-                            $paperlink = null;
-                           
-                           
-                           echo "<tr>";
-                            echo "<td >" . $i . "</td>";
-                            echo "<td>";
-                            echo "<input type='hidden' name='student_id[]' value='" . $student->ID . "'>";
-                            echo "<span class='admission'>" .$student->admission_number. "</span>";
-                            echo "<span class='copy-icon' onclick='copyCode(this)'>📋</span>";
-                            echo "</td>";
-                            echo "<td style='position: sticky; left: 0; background: #f2f2f2; z-index: 1;'>";
-                             // if is_active is 1 show green dot else red dot
-                                      if($student->is_active == 1){
-                                        echo " <span class='dot-active' title='Active'></span>";    
-                                      }else{
-                                        echo " <span class='dot-inactive' title='Inactive'></span>";
-                                      }
-                                      echo " <span class='align-top'>" . $student->name . "</span>";
-                                      
-                            // echo "<span class='copy-icon' title='Copy Email' value='$student->email' onclick='copyEmail(this)'>Email📋</span>";
-                            echo "</td>";
+                     <div class="form-group">
+                       <label for="tuteDetails_0">Tute Title:</label>
+                       <input type="text" class="form-control" id="tuteDetails_0" name="tuteDetails_0" placeholder="001 - Enter Tute Title">
+                     </div>
+                  </div>
 
 
-
-                            
-                            if (isset($attendances) && is_array($attendances)) {
-
-                               
-
-                               
-                                foreach ($months as $month) {
-                                    $found = false;
-                                    foreach ($attendances as $key =>  $attendace) {
-                                        if ($key == $month) {
-                                            echo "<td>";
-                                            // echo $payment->label;
-                                            // echo "<br>";
-                                           
-                                            // print_r($attendace);
-                                            // if currentmonth is equal to month set checkbox to checked 
-                                            // if($month){ //uncheck if you need to enable to updaate previous months attendance
-                                            if($month == $currentMonth){
-                                                foreach($attendace as $date => $status){
-                                                  
-                                                  if($status->attendace == 'P'){
-                                                    echo "<div class='form-group form-check'>";
-
-                                                    echo "<input class='form-check-input' type='checkbox' checked id='old_attendace_".$student->ID."_".$status->class_date."' value='P' name='old_attendace_".$student->ID."_".$status->class_date."'>";
-
-                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-success">'.$status->class_date."</label>";
-                                                    
-                                                    echo "</div>";
-
-
-                                                    // echo "<span class='mx-1 dot-active' title='Present'></span> &nbsp;<br> ";
-                                                  }else if($status->attendace == 'AB'){
-                                                     echo "<div class='form-group form-check'>";
-
-                                                    echo "<input class='form-check-input' type='checkbox' id='old_attendace_".$student->ID."_".$status->class_date."' name='old_attendace_".$student->ID."_".$status->class_date."' >";
-
-                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-danger">'.$status->class_date."</label>";
-                                                    // echo "<span class='mx-1 dot-inactive'  title='Absent'></span> &nbsp;<br> ";
-
-                                                    echo "</div>";
-                                                  }
-                                                
-                                                }
-                                              echo "<hr> <input type='checkbox' id='new_attendace_".$student->ID."' value='P' name='new_attendace_".$student->ID."'>";
-                                              
-                                              echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
-                                            }else{
-                                              foreach($attendace as $date => $status){
-                                              echo $status->class_date.": ";
-                                              if($status->attendace == 'P'){
-                                                echo "<span class='mx-1 dot-active' title='Present(New)'></span> &nbsp;<br> ";
-                                              }else if($status->attendace == 'AB'){
-                                                echo "<span class='mx-1 dot-inactive' title='Absent'></span> &nbsp;<br> ";
-                                              }
-                                            }
-                                            
-                                            }
-                                            
-                                            echo "</td>";
-                                            $found = true;
-                                            // break; // Exit the inner loop once a match is found
-                                        }
-                                      
-                                    }
-                                  
-                                    if (!$found && $month != $currentMonth) {
-                                        echo "<td>";
-                                          // echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
-                                          // echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
-                                           echo "Yet to be enable";
-                                        echo "</td>";
-                                        // $found = false;
-
-                                        
-                                    }else{
-                                        // $found = false;
-
-                                        // foreach ($months as $month) {
-                                          if($month == $currentMonth){
-                                            echo "<td>";
-                                              echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
-                                              echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
-                                            echo "</td>";
-                                          } 
-                                        // }
-                                    }
-                                }
-                               
-                                
-                        
-                            }else{
-                                // if no payments found for student display empty cells for each month
-                                foreach ($months as $month) {
-                                  if($month == $currentMonth){
-                                    echo "<td>";
-                                      echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
-                                      echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
-                                    echo "</td>";
-                                  } else {
-                                    echo "<td>";
-                                      echo "Yet to be enable";
-                                    echo "</td>";
-                                  }
-                                }
-                            }
-                          echo "</tr>";
-                            ?>
-
-
-                            <?php
-                           
-                           
-                            $i++;
-
-                        }
-                }
-
+                  <!-- create loop to get all tute details -->
+                   <?php 
+                      foreach($subjectsdata as $tute){
+                        // get tute details
+                        $tute_id = $tute->ID;
+                        $tute_title = $tute->title;
                         ?>
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label for="tuteDetails">Tute Title:</label>
+                            <input type="text" class="form-control" name="tuteDetails_<?php echo $tute_id; ?>" value="<?php echo $tute_title; ?>">
+                          </div>
+                        </div>
 
-                    </tbody>
-                    </table>
+                  <?php
+                    }
+                   ?>
+              </div>
+                    
 
                <?php }
                echo form_close();
@@ -938,7 +638,7 @@ function isDateAlreadyExists() {
   let btnEl = null;
 
   if (action === 'Add New Attendance') {
-    message = 'Are you sure you want to add new attendance?';
+    message = 'Are you sure you want to add new tute distribution?';
     formEl = document.querySelector('.tab-pane.active form'); // Get Active form
     
     let activeTab = document.querySelector('.tab-pane.active');
@@ -955,7 +655,7 @@ function isDateAlreadyExists() {
 // ✅ CHECK DATE EXIST
     if (action === 'Add New Attendance') {
         if (isDateAlreadyExists()) {
-            alert("⚠️ Attendance already exists for selected date!");
+            alert("⚠️ Date already exists for selected date!");
             return false;
         }
     }
@@ -963,7 +663,7 @@ function isDateAlreadyExists() {
     // formE1.querySelector('.btnsubmit').value = action;
     // btnEl = btnSubmit;
   } else if (action === 'Update Old Attendance') {
-    message = 'Are you sure you want to update old attendance?';
+    message = 'Are you sure you want to update previous tutes distribution?';
     formEl = document.querySelector('.tab-pane.active form'); // Get Active form
     let activeTab = document.querySelector('.tab-pane.active');
 

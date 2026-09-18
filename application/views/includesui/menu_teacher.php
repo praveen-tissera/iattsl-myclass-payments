@@ -8,8 +8,15 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
      
-     <li class="nav-item">
-      <a class="nav-link"  href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance <span class="sr-only">(current)</span></a>
+     <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+          Student Managment
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance </a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/tutedistribution">Tute Distribution</a>
+          
+        </div>
      </li>
      <li class="nav-item">
       <a class="nav-link"  href="<?php echo base_url(); ?>index.php/mark/">Enter Marks <span class="sr-only">(current)</span></a>
@@ -20,6 +27,7 @@
      <li class="nav-item">
       <a class="nav-link" target="_blank" href="https://iattsl.edu.lk/iattslstudent">Student Report Card</a>
      </li>
+     
     <li class="nav-item">
         <?php  
         // session check and if true show logout button else show login button

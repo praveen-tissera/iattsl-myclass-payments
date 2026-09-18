@@ -9,7 +9,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <link rel="stylesheet" href="<?php echo base_url() . '/css/bootstrap.min.css' ?>">
 
    
-    <title>Attendace Summary</title>
+    <title>Tute Distribution</title>
      <style>
       /* download icon styling */
       
@@ -119,7 +119,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
 
                 ?>
-                <h1 class="text-center display-4" style="font-size:2.6rem">Student Attendace Summary</h1>
+                <h1 class="text-center display-4" style="font-size:2.6rem">Tute Distribution Summary</h1>
                 <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                 <?php
                   if(isset($message)){
@@ -143,7 +143,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
                 ?>
 
-                <?php echo form_open('welcome/gradewiseattendaceSumamry') ?>
+                <?php echo form_open('welcome/tute_distribution_summary') ?>
                 <table class="table table-borderless">
                     <tr>
                       <!-- <td> -->
@@ -284,12 +284,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                 $attributes = array('id' => 'studentMarkList');
                
-                echo form_open('welcome/attendacesubmit', $attributes); 
+                echo form_open('welcome/tutedistributionsubmit', $attributes); 
                 // print_r($subjectsdata);
                 // if (isset($subjectsdata) && is_array($subjectsdata)) { 
                 if (true) {
                   ?>
-                <h2 class="text-center">Attendace Summary for  <?php echo $branch; ?> <?php echo urldecode($pclass_name); ?> - 
+              
                 <?php 
                 // echo $subject_name; 
                 ?></h2>
@@ -315,26 +315,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 
               ?>
       <div class="row justify-content-md-center"> 
-            <div class="col-12 col-md-3">
+            <div class="col-4 col-md-3 px-1">
                   <div class="card text-white bg-primary mb-3" >
-                    <div class="card-header">Student Total Registration </div>
-                      <div class="card-body">
-                        <h1 class="card-title"><?php 
+                    <div class="card-header">Registration </div>
+                      <div class="card-body py-1">
+                        <h3 class="card-title"><?php 
                         echo $arrayLength; ?>
-                        </h1>
+                        </h3>
                         <!-- <p class="card-text">Register Student Count.</p> -->
                       </div>
                     </div>
                   
             </div> 
 
-                <div class="col-12 col-md-3 ">
+                <div class="col-4 col-md-3 px-1 ">
                   <div class="card text-white bg-primary mb-3" >
-                    <div class="card-header">Student Dropouts </div>
-                      <div class="card-body">
-                        <h1 class="card-title"><?php 
+                    <div class="card-header">Dropouts </div>
+                      <div class="card-body py-1">
+                        <h3 class="card-title"><?php 
                         echo $inactiveCount; 
-                        ?></h1>
+                        ?></h3>
                         <!-- <p class="card-text">Inactive Student Count.</p> -->
                       
                   </div>
@@ -345,13 +345,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 
-                <div class="col-12 col-md-3 ">
+                <div class="col-4 col-md-3 px-1">
                   <div class="card text-white bg-danger mb-3" >
-                    <div class="card-header">Dropouts Percentage </div>
-                      <div class="card-body">
-                        <h1 class="card-title"><?php 
+                    <div class="card-header"> Percentage </div>
+                      <div class="card-body py-1">
+                        <h3 class="card-title"><?php 
                         echo $arrayLength > 0 ? round(($inactiveCount / $arrayLength) * 100, 2) : 0; 
-                        ?>%</h1>
+                        ?>%</h3>
                         <!-- <p class="card-text">Dropout Percentage.</p> -->
                       
                   </div>
@@ -404,19 +404,45 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                       <!-- show only current month in the calender  -->
                       
                       <input type="date" id="calendar" class="form-control mb-2" name="attendancedate" value="<?php echo $currentDate; ?>">
-                      <small id="datemsg" class="form-text text-muted mt-0 mb-3">Select class date to add new attendance</small>
+                      <small id="datemsg" class="form-text text-muted mt-0 mb-1">Select class date to add new tute</small>
+
+
+
+                    <!-- create dropdown to show tute details -->
+                     <?php 
+                      // create foreach loop to loop through tutes array and get tute details for the subject
+                      echo "<select name='tutenumber' id='tute_details' class='form-control mb-2'>";
+                      
+                      foreach($tutes as $subject => $tute_details) {
+                        if ($subject == $subjectName) {
+                          // print_r($tute_details);
+                          if (isset($tute_details) && is_array($tute_details)) {
+                            foreach ($tute_details as $tute) {
+                              echo "<option value='" . $tute->ID . "'>Tute : " . $tute->title . "</option>";
+                            }
+                          } else {
+                            // echo "No tute details found for subject: " . $subject;
+                          }
+                        }
+                      }
+                      echo "</select>";
+                     
+                     ?>
+                     
+                     <small id="tutemsg" class="form-text text-muted mt-0 mb-1">Select Tute to Distributes</small>
+
 
                     </div>
                     <div class="col-sm-12 col-md-2">
                       <!-- create submit button -->
                     <!-- <input class="btn btn-primary btn-block mb-2" type="submit" id="submitBtn" name="btnsubmit" value="Add New Attendace" onclick="confirmSubmit(event,this.value)"> -->
                    
-                    <button  class=" btn btn-primary btn-block  btn-sm  my-md-0" id="submitBtn" type="submit" onclick="confirmSubmit(event, 'Add New Attendance')" value="Add New Attendance">Add New Attendance</button>
+                    <button  class=" btn btn-primary btn-block  btn-sm  my-md-0" id="submitBtn" type="submit" onclick="confirmSubmit(event, 'Add New Attendance')" value="Add New Attendance">Assign New Tute</button>
 
                     </div>
                     <div class="col col-sm-12 col-md-2">
                     <!-- <input class="btn btn-secondary btn-block mb-2" id="updateBtn" type="submit" name="btnsubmit" value="Update Old Attendace" onclick="confirmSubmit(event,this.value)"> -->
-                    <button class="btn btn-secondary btn-block btn-sm mb-2" id="updateBtn" type="submit" onclick="confirmSubmit(event, 'Update Old Attendance')" value="Update Old Attendance">Update Old Attendance</button>
+                    <button class="btn btn-secondary btn-block btn-sm my-md-0 mb-2 my-sm-1" id="updateBtn" type="submit" onclick="confirmSubmit(event, 'Update Old Attendance')" value="Update Old Attendance">Update Old Tute</button>
 
                    </div>
                    <div class="col-sm-12 col-md-4 text-md-right text-sm-center">
@@ -574,21 +600,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             if($month == $currentMonth){
                                                 foreach($attendace as $date => $status){
                                                   
-                                                  if($status->attendace == 'P'){
+                                                  if($status->tute_number > 0){
+
+                                                  foreach($tutes as $subject => $tute_details) {
+                                                    if($tute_details && is_array($tute_details)) {
+                                                      foreach($tute_details as $tute) {
+                                                        if($tute->ID == $status->tute_number) {
+                                                          $tute_title = $tute->title;
+                                                          break 2; // Exit both loops once the match is found
+                                                        }
+                                                      }
+                                                    }
+                                                     
+                                                  }
                                                     echo "<div class='form-group form-check'>";
 
-                                                    echo "<input class='form-check-input' type='checkbox' checked id='old_attendace_".$student->ID."_".$status->class_date."' value='P' name='old_attendace_".$student->ID."_".$status->class_date."'>";
+                                                    echo "<input class='form-check-input' type='checkbox' checked id='old_attendace_".$student->ID."_".$status->class_date."' value='P' name='old_attendace_".$student->ID."_".$status->class_date."_".$status->tute_number."' >";
 
-                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-success">'.$status->class_date."</label>";
+                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-success text-wrap">'.$status->class_date. "<br> Tute: ".$tute_title."</label>";
                                                     
                                                     echo "</div>";
 
 
                                                     // echo "<span class='mx-1 dot-active' title='Present'></span> &nbsp;<br> ";
-                                                  }else if($status->attendace == 'AB'){
+                                                  }else if($status->tute_number == '0'){
                                                      echo "<div class='form-group form-check'>";
 
-                                                    echo "<input class='form-check-input' type='checkbox' id='old_attendace_".$student->ID."_".$status->class_date."' name='old_attendace_".$student->ID."_".$status->class_date."' >";
+                                                    echo "<input class='form-check-input' type='checkbox' id='old_attendace_".$student->ID."_".$status->class_date."' name='old_attendace_".$student->ID."_".$status->class_date."_0' >";
 
                                                     echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-danger">'.$status->class_date."</label>";
                                                     // echo "<span class='mx-1 dot-inactive'  title='Absent'></span> &nbsp;<br> ";
@@ -603,9 +641,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             }else{
                                               foreach($attendace as $date => $status){
                                               echo $status->class_date.": ";
-                                              if($status->attendace == 'P'){
+                                              if($status->tute_number > 0){
                                                 echo "<span class='mx-1 dot-active' title='Present(New)'></span> &nbsp;<br> ";
-                                              }else if($status->attendace == 'AB'){
+                                              }else if($status->tute_number == '0'){
                                                 echo "<span class='mx-1 dot-inactive' title='Absent'></span> &nbsp;<br> ";
                                               }
                                             }
@@ -938,7 +976,7 @@ function isDateAlreadyExists() {
   let btnEl = null;
 
   if (action === 'Add New Attendance') {
-    message = 'Are you sure you want to add new attendance?';
+    message = 'Are you sure you want to assign new tute distribution?';
     formEl = document.querySelector('.tab-pane.active form'); // Get Active form
     
     let activeTab = document.querySelector('.tab-pane.active');
@@ -955,7 +993,7 @@ function isDateAlreadyExists() {
 // ✅ CHECK DATE EXIST
     if (action === 'Add New Attendance') {
         if (isDateAlreadyExists()) {
-            alert("⚠️ Attendance already exists for selected date!");
+            alert("⚠️ Date already exists for selected date!");
             return false;
         }
     }
@@ -963,7 +1001,7 @@ function isDateAlreadyExists() {
     // formE1.querySelector('.btnsubmit').value = action;
     // btnEl = btnSubmit;
   } else if (action === 'Update Old Attendance') {
-    message = 'Are you sure you want to update old attendance?';
+    message = 'Are you sure you want to update previous tutes distribution?';
     formEl = document.querySelector('.tab-pane.active form'); // Get Active form
     let activeTab = document.querySelector('.tab-pane.active');
 
