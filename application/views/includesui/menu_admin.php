@@ -48,6 +48,9 @@
         </div>
      </li>
 
+     <li class="nav-item">
+      <a class="nav-link" href="<?php echo base_url(); ?>index.php/admin_student_search">Search Students</a>
+     </li>
 
      
  
