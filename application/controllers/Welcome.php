@@ -1344,4 +1344,63 @@ public function tutedistributionsubmit(){
         
     }
 
+
+
+    public function gradewisepaymentSumamry(){
+        $success = $this->session->flashdata('success');
+        $error = $this->session->flashdata('error');
+        // get form data input name grade
+        // $date = $this->input->post('date');
+
+        $result = $this->Online_User_model->get_acadamicyear();
+        $data['academicyear'] = $result;
+        $branch = $this->input->post('branch');
+        $class_detail = $this->input->post('class');
+       
+        $session_id = $this->input->post('academicyear');  
+        $class_array = explode('*', $class_detail);
+        $class_id = $class_array[0];
+        $class_name = $class_array[1];
+
+         $subjects = $this->Mark_model->get_subjecs($class_id);
+        //  print_r($subjects);
+        //  check whether ICT lable eixists in subjects array and return ID index value
+        $ict_subject_id = 0;
+        $subject_name;
+        foreach($subjects as $subject){
+            if($subject->label == 'ICT' || $subject->label == 'Maths' || $subject->label == 'English' || $subject->label == 'Science' ){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
+            if($subject->label == $branch){
+                $ict_subject_id = $subject->ID;
+                $subject_name = $subject->label;
+                break;
+            }
+        }
+        $grades = $this->Mark_model->get_classes();
+        $data['grades'] = $grades;
+        if($ict_subject_id == 0){
+            $data['message'] = "No Student Found for this class";
+            $this->load->view('student_payment',$data);
+        }else{
+         $students = $this->User_model->get_students_by_branch($ict_subject_id, $session_id , $branch);
+        // print_r($students);
+
+      
+        $data['selected_academic_year'] = $session_id;
+        $data['students'] = $students;
+        // $data['date'] = $date;
+        $data['branch'] = $branch;
+        $data['pclass_id'] = $class_id;
+        $data['pclass_name'] = $class_name;
+        $data['subject_id'] = $ict_subject_id;
+        $data['subject_name'] = $subject_name;
+       
+        $this->load->view('student_payment',$data);   
+        
+        }
+    }
+
 }
