@@ -14,9 +14,9 @@ class Admin_student_search extends CI_Controller
             redirect('guest/loginview');
         }
 
-        if ($this->session->userdata('user_role') !== 'administrator') {
-            show_error('You do not have permission to access this page.', 403);
-        }
+        // if ($this->session->userdata('user_role') !== 'administrator') {
+        //     show_error('You do not have permission to access this page.', 403);
+        // }
     }
 
     public function index()

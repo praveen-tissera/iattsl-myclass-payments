@@ -15,6 +15,7 @@
         <div class="dropdown-menu">
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance </a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/tutedistribution">Tute Distribution</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_search">Search Students</a>
           
         </div>
      </li>

@@ -9,7 +9,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <title>Student Search</title>
 </head>
 <body>
-    <?php $this->load->view('includesui/menu_admin'); ?>
+    <?php 
+        // check session user_role and include menu_admin.php
+    if($this->session->userdata('user_role') == 'administrator'){
+         $this->load->view('includesui/menu_admin');
+    }elseif($this->session->userdata('user_role') == 'teacher'){
+       
+        $this->load->view('includesui/menu_teacher');
+    }elseif($this->session->userdata('user_role') == 'cordinator'){
+       
+        $this->load->view('includesui/menu_cordinator');
+    }
+    ?>
 
     <main class="container mt-4">
         <h1 class="mb-4">Search Students</h1>
@@ -62,3 +73,5 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </main>
 </body>
 </html>
+<script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
+<script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>

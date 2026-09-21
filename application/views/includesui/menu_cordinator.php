@@ -33,6 +33,7 @@
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/tutedistribution">Tute Distribution</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_search">Search Students</a>
           
         </div>
      </li>
