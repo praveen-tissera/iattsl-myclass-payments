@@ -55,6 +55,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <tr>
                             <th>Student name</th>
                             <th>Admission number</th>
+                            <th>Class</th>
                             <th>Academic</th>
                         </tr>
                     </thead>
@@ -63,6 +64,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <tr>
                                 <td><?php echo html_escape($student->name); ?></td>
                                 <td><?php echo html_escape($student->admission_number); ?></td>
+                                <td><?php echo html_escape($student->class_name ?: '-'); ?></td>
                                 <td><?php echo html_escape($student->academic ?: '-'); ?></td>
                             </tr>
                         <?php endforeach; ?>
