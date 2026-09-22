@@ -163,6 +163,74 @@ class Online extends CI_Controller {
      print_r($data);
        
     }
+
+    public function addInvoice()
+    {
+        // invoice_lable can be month or installment 1,2,3,4
+        $this->form_validation->set_rules('invoice_label', 'Invoice Label', 'required|trim');
+        $this->form_validation->set_rules('amount', 'Amount', 'required|trim|numeric|greater_than[0]');
+        $this->form_validation->set_rules('student_record_id', 'Student record', 'required|integer');
+        $this->form_validation->set_rules('student_id', 'Student ID', 'required|trim');
+        $this->form_validation->set_rules('academicyear', 'Academic year', 'required|integer');
+
+        $student_id = $this->input->post('student_id', TRUE);
+        $academic_year = $this->input->post('academicyear', TRUE);
+        $redirect_url = $this->invoice_redirect_url($student_id, $academic_year);
+
+        if ($this->form_validation->run() === FALSE) {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+            redirect($redirect_url);
+        }
+
+        if (!$this->Online_User_model->student_record_matches(
+            $this->input->post('student_record_id', TRUE),
+            $student_id,
+            $academic_year
+        )) {
+            $this->session->set_flashdata('error', 'The selected student record is invalid.');
+            redirect($redirect_url);
+        }
+
+        $allowed_labels = array();
+        for ($month = 1; $month <= 12; $month++) {
+            $month_name = date('F', mktime(0, 0, 0, $month, 1));
+            $allowed_labels[] = 'Class Fee - ' . $month_name . ' (' . date('Y') . ')';
+            $allowed_labels[] = 'Installment ' . $month;
+        }
+
+        $invoice_label = $this->input->post('invoice_label', TRUE);
+        if (!in_array($invoice_label, $allowed_labels, TRUE)) {
+            $this->session->set_flashdata('error', 'Please select a valid month.');
+            redirect($redirect_url);
+        }
+
+        $invoice_data = array(
+            'label' => $invoice_label,
+            'amount' => $this->input->post('amount', TRUE),
+            'status' => 'unpaid',
+            'student_record_id' => $this->input->post('student_record_id', TRUE),
+            'created_at' => date('Y-m-d H:i:s')
+        );
+
+        if ($this->Online_User_model->insert_invoice($invoice_data) === 0) {
+            $this->session->set_flashdata('error', 'Unable to add the invoice. Please try again.');
+            redirect($redirect_url);
+        }
+
+        $this->session->set_flashdata('success', 'Invoice added successfully.');
+        redirect($redirect_url);
+    }
+
+    private function invoice_redirect_url($student_id, $academic_year)
+    {
+        $student_id_parts = explode('/', $student_id);
+        $student_number = end($student_id_parts);
+        $student_branch = $student_id_parts[0];
+        $student_global_number = explode('-', $student_number)[0].'-'.explode('-', $student_number)[1];
+
+        return 'online/idValidator/' . $student_global_number . '/' . $student_branch . '/' . (int) $academic_year;
+    }
+
     // crete public function to call insert_payment method in user_model file 
     public function insertPayment(){
         $this->form_validation->set_rules('amount', 'Amount', 'required');

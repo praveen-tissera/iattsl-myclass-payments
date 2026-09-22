@@ -341,7 +341,14 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
         <div class="row">
             <div class="col-12 col-sm-12 col-md-12 mt-2">
               <div class="card">
-                <div class="card-body px-0 px-sm-0 px-md-2">
+              <div class="card-body px-0 px-sm-0 px-md-2">
+                <?php if (!empty($success)): ?>
+                  <div class="alert alert-success mx-2"><?php echo html_escape($success); ?></div>
+                <?php endif; ?>
+                  <?php if (!empty($error)): ?>
+                    <div class="alert alert-danger mx-2"><?php echo $error; ?></div>
+                  <?php endif; ?>
+                 
                   <div class="cart-title">Payment History</div>
 
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -379,7 +386,42 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                             if($j==0){
                               
                               echo "<div class='tab-pane fade show active' id='{$student_detail['course']}'>";
-                              
+                                ?>                      
+
+                                <?php echo form_open('online/addInvoice', ['class' => 'form-row align-items-end mx-1 mb-3']); ?>
+                                  <div class="form-group col-md-5">
+                                    <label for="invoice_label">Month/Installment</label>
+                                    <select class="form-control" id="invoice_label" name="invoice_label" required>
+                                      <option value="">Select month</option>
+                                      <?php for ($month = 1; $month <= 12; $month++): ?>
+                                        <?php
+                                          $month_name = date('F', mktime(0, 0, 0, $month, 1));
+                                          $invoice_label = 'Class Fee - ' . $month_name . ' (' . date('Y') . ')';
+                                        ?>
+                                        <option value="<?php echo html_escape($invoice_label); ?>"><?php echo html_escape($month_name . ' ' . date('Y')); ?></option>
+                                      <?php endfor; ?>
+                                       <option value="Installment 1">Installment 1</option>
+                                      <option value="Installment 2">Installment 2</option>  
+                                      <option value="Installment 3">Installment 3</option>
+                                      <option value="Installment 4">Installment 4</option>
+                                    </select>
+                                  </div>
+                                  <div class="form-group col-md-4">
+                                    <label for="invoice_amount">Amount</label>
+                                    <input type="number" class="form-control" id="invoice_amount" name="amount" min="0.01" step="0.01" required>
+                                  </div>
+                                  <input type="hidden" name="student_record_id" value="<?php echo (int) $student_detail['profile']->ID; ?>">
+                                  <input type="hidden" name="student_id" value="<?php echo html_escape($student_detail['profile']->admission_number); ?>">
+                                  <input type="hidden" name="academicyear" value="<?php echo (int) $selected_academic_year; ?>">
+                                  <div class="form-group col-md-3">
+                                    <button type="submit" class="btn btn-primary">Add Invoice</button>
+                                  </div>
+                                <?php echo form_close(); ?>
+
+                  <?php
+
+
+
 
                                      $payments = $student_detail['payment'];
                               // print_r($payments);
@@ -570,10 +612,41 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                               echo "</div>";
                               $j++;
                             }else{
-                               echo "<div class='tab-pane fade' id='{$student_detail['course']}'>";
+                               echo "<div class='tab-pane fade' id='{$student_detail['course']}'>"; ?>
                               
+                               <?php echo form_open('online/addInvoice', ['class' => 'form-row align-items-end mx-1 mb-3']); ?>
+                                  <div class="form-group col-md-5">
+                                    <label for="invoice_label">Month</label>
+                                    <select class="form-control" id="invoice_label" name="invoice_label" required>
+                                      <option value="">Select month</option>
+                                      <?php for ($month = 1; $month <= 12; $month++): ?>
+                                        <?php
+                                          $month_name = date('F', mktime(0, 0, 0, $month, 1));
+                                          $invoice_label = 'Class Fee - ' . $month_name . ' (' . date('Y') . ')';
+                                        ?>
+                                        <option value="<?php echo html_escape($invoice_label); ?>"><?php echo html_escape($month_name . ' ' . date('Y')); ?></option>
+                                      <?php endfor; ?>
+                                      <option value="Installment 1">Installment 1</option>
+                                      <option value="Installment 2">Installment 2</option>  
+                                      <option value="Installment 3">Installment 3</option>
+                                      <option value="Installment 4">Installment 4</option>
+                                    </select>
+                                  </div>
+                                  <div class="form-group col-md-4">
+                                    <label for="invoice_amount">Amount</label>
+                                    <input type="number" class="form-control" id="invoice_amount" name="amount" min="0.01" step="0.01" required>
+                                  </div>
+                                  <input type="hidden" name="student_record_id" value="<?php echo (int) $student_detail['profile']->ID; ?>">
+                                  <input type="hidden" name="student_id" value="<?php echo html_escape($student_detail['profile']->admission_number); ?>">
+                                  <input type="hidden" name="academicyear" value="<?php echo (int) $selected_academic_year; ?>">
+                                  <div class="form-group col-md-3">
+                                    <button type="submit" class="btn btn-primary">Add Invoice</button>
+                                  </div>
+                                <?php echo form_close(); ?>
 
-                                 $payments = $student_detail['payment'];
+
+
+                              <?php   $payments = $student_detail['payment'];
                               // print_r($payments);
                               
                                 echo "<table class='table table-sm table-striped'>";

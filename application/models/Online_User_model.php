@@ -207,6 +207,42 @@ class Online_User_model extends CI_Model{
 
     }
 
+    public function insert_invoice($data)
+    {
+        $this->db->trans_begin();
+
+        $this->db->insert('wp_wlsm_invoices', $data);
+        $insert_id = $this->db->insert_id();
+
+        if ($this->db->trans_status() === FALSE || $insert_id === 0) {
+            $this->db->trans_rollback();
+            return 0;
+        }
+
+        $invoice_number = str_pad($insert_id, 5, '0', STR_PAD_LEFT);
+        $this->db->where('ID', $insert_id);
+        $this->db->update('wp_wlsm_invoices', array(
+            'invoice_number' => $invoice_number
+        ));
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return 0;
+        }
+
+        $this->db->trans_commit();
+        return $insert_id;
+    }
+
+    public function student_record_matches($student_record_id, $admission_number, $session_id)
+    {
+        return $this->db
+            ->where('ID', $student_record_id)
+            ->where('admission_number', $admission_number)
+            ->where('session_id', $session_id)
+            ->count_all_results('wp_wlsm_student_records') > 0;
+    }
+
     // method to get payment details by invoice id
     public function get_payment_detail($data){
         //cerate variable
