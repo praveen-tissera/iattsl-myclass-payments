@@ -245,11 +245,13 @@ class Online_User_model extends CI_Model{
 
     // method to get payment details by invoice id
     public function get_payment_detail($data){
+        print_r($data);
         //cerate variable
         $condition = "invoice_number ='{$data}'";
                     $query = $this->db->select('*')
                     ->where($condition)
                     ->get('wp_wlsm_invoices');
+                     print_r($this->db->last_query());
                     $result = [];
                     if($query->num_rows() == 1){
                         $invoiceData = $query->result();
@@ -260,6 +262,8 @@ class Online_User_model extends CI_Model{
                         $query_std_data = $this->db->select('*')
                         ->where($condition)
                         ->get('wp_wlsm_student_records');
+                       
+
                         if($query_std_data->num_rows() == 1){
                             $studentData = $query_std_data->result();
                             // print_r($studentData[0]);
