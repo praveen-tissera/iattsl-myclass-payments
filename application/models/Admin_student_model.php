@@ -6,7 +6,7 @@ class Admin_student_model extends CI_Model
     public function search_by_name($name)
     {
         return $this->db
-            ->select('students.name, students.admission_number, sessions.label AS academic, classes.label AS class_name')
+            ->select('students.name, students.admission_number, sessions.label As academic, sessions.ID AS academic_id, classes.ID AS class_id, classes.label AS class_name')
             ->from('wp_wlsm_student_records AS students')
             ->join('wp_wlsm_sessions AS sessions', 'sessions.ID = students.session_id', 'left')
             ->join('wp_wlsm_sections AS sections', 'sections.ID = students.section_id', 'left')

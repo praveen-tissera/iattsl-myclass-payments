@@ -57,15 +57,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <th>Admission number</th>
                             <th>Class</th>
                             <th>Academic</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
+                       
                         <?php foreach ($students as $student): ?>
                             <tr>
                                 <td><?php echo html_escape($student->name); ?></td>
-                                <td><?php echo html_escape($student->admission_number); ?></td>
+                                <td><?php 
+                                $student_id_parts = explode('/', $student->admission_number);
+                                $student_number = end($student_id_parts);
+                                $student_global_number = explode('-', $student_number)[0].'-'.explode('-', $student_number)[1];
+                                $student_branch = $student_id_parts[0];
+                                echo html_escape($student->admission_number);
+                                
+                                
+                                ?></td>
                                 <td><?php echo html_escape($student->class_name ?: '-'); ?></td>
                                 <td><?php echo html_escape($student->academic ?: '-'); ?></td>
+                                <td>
+                                    <a href="<?php echo base_url('index.php/online/idValidator/' . $student_global_number."/". $student_branch."/". $student->academic_id); ?>" class="btn btn-sm btn-primary">Payments</a>
+                                    <!-- show attendacne welcome/gradewiseattendaceSumamry/HED/26*Office%20Application/5 -->
+                                     <a href="<?php echo base_url('index.php/welcome/gradewiseattendaceSumamry/' . $student_branch."/". $student->class_id."*".$student->class_name."/". $student->academic_id); ?>" class="btn btn-sm btn-primary">Attendance</a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
