@@ -245,7 +245,7 @@ class Online_User_model extends CI_Model{
 
     // method to get payment details by invoice id
     public function get_payment_detail($data){
-        print_r($data);
+
         //cerate variable
         $condition = "invoice_number ='{$data}'";
                     $query = $this->db->select('*')

@@ -39,12 +39,15 @@
           Student Managment
         </a>
         <div class="dropdown-menu">
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance </a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_create">Add Student</a>
+          
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/new_tutes">Add New Tutes</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance </a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/tutedistribution">Tute Distribution</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_search">Search Students</a>
+          
           
         </div>
      </li>
