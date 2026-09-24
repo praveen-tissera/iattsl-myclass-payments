@@ -10,12 +10,18 @@
       <li class="nav-item ">
         <a class="nav-link" href="<?php echo base_url(); ?>">Enter Payments </a>
       </li>
-     <li class="nav-item active">
-      <a class="nav-link"  href="<?php echo base_url(); ?>index.php/welcome/income">Income Summary <span class="sr-only">(current)</span></a>
+     <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+          Reports
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/income">Day Income </a>
+           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_due_payment_report">Due Payment Report</a>
+           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_registration_report">Student Registration Report</a>
+          
+        </div>
      </li>
-     <li class="nav-item">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/expence">Expenses</a>
-     </li>
+   
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
           Payment Summary
@@ -29,6 +35,7 @@
           Student Managment
         </a>
         <div class="dropdown-menu">
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_create">Add Student</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance </a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/tutedistribution">Tute Distribution</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks</a>

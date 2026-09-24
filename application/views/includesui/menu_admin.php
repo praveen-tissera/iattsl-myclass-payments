@@ -13,23 +13,25 @@
      
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-          Income Summary
+          Reports
         </a>
         <div class="dropdown-menu">
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/income">Day Payments Summary </a>
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/adminincome">Overall Payment Summary</a>
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/expence">Expenses</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/income">Day Income </a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/adminincome">Overall Income </a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/expence">Expenses Report</a>
+           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_due_payment_report">Due Payment Report</a>
+           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_registration_report">Student Registration Report</a>
           
         </div>
      </li>
     
      <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-          Student Payment Summary
+          Payment Managment
         </a>
         <div class="dropdown-menu">
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Course Payments Summary </a>
-          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/online/onlinepaymenthistory">Tutition Payments Summary</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/paymenthistory">Course Payments </a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/online/onlinepaymenthistory">Tutition Payments</a>
           
         </div>
      </li>
@@ -47,6 +49,8 @@
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/mark/">Enter Marks</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/mark/paper">Enter Paper Class Marks</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_search">Search Students</a>
+          
+         
           
           
         </div>

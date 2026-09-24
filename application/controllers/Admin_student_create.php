@@ -16,7 +16,7 @@ class Admin_student_create extends CI_Controller
             redirect('guest/loginview');
         }
 
-        if ($this->session->userdata('user_role') !== 'administrator') {
+        if ($this->session->userdata('user_role') !== 'administrator' && $this->session->userdata('user_role') !== 'cordinator') {
             show_error('You do not have permission to access this page.', 403);
         }
     }

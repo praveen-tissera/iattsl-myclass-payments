@@ -18,6 +18,10 @@ class Online extends CI_Controller {
         if (!$this->is_logged_in()) {
             redirect('guest/loginview');
         }
+       
+         if ($this->session->userdata('user_role') !== 'administrator' && $this->session->userdata('user_role') !== 'cordinator') {
+            show_error('You do not have permission to access this page.', 403);
+        }
 	}
     
 
