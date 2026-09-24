@@ -82,7 +82,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             <?php else: ?>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-sm">
-                        <thead class="thead-light">
+                        <thead class="bg-success text-white">
                             <tr>
                                 <th>#</th><th>Student name</th><th>Registration number</th>
                                 <th>Amount due</th><th>Class</th><th>Subject</th>

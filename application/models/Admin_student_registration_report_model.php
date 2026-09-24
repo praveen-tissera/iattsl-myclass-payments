@@ -14,7 +14,7 @@ class Admin_student_registration_report_model extends CI_Model
     public function get_report($branches, $session_ids, $admission_month = null)
     {
         $this->db
-            ->select("students.ID, students.name, students.phone, students.note, students.survey, students.is_active, students.admission_number, SUBSTRING_INDEX(students.admission_number, '/', 1) AS branch, students.admission_date, sessions.label AS academic_year, classes.label AS class_name, sections.label AS subject", FALSE)
+            ->select("students.ID, students.name, students.phone, students.note, students.survey, students.is_active, students.admission_number, SUBSTRING_INDEX(students.admission_number, '/', 1) AS branch, students.admission_date, students.created_at, sessions.label AS academic_year, classes.label AS class_name, sections.label AS subject", FALSE)
             ->from('wp_wlsm_student_records AS students')
             ->join('wp_wlsm_sessions AS sessions', 'sessions.ID = students.session_id', 'left')
             ->join('wp_wlsm_sections AS sections', 'sections.ID = students.section_id', 'left')

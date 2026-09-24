@@ -101,6 +101,7 @@ class Admin_student_create extends CI_Controller
             'name' => $this->input->post('name', TRUE),
             'gender' => $this->input->post('gender', TRUE),
             'phone' => $this->input->post('phone', TRUE),
+            'survey' => $this->session->userdata('user_name'),
             'created_at' => date('Y-m-d H:i:s')
         ));
 

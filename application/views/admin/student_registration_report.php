@@ -7,6 +7,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?php echo base_url('/css/bootstrap.min.css'); ?>">
     <title>Student Registration Report</title>
+    <style>
+        table th, table td {
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
     <?php $this->load->view('includesui/menu_admin'); ?>
@@ -119,10 +124,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-sm">
-                        <thead class="thead-light">
-                            <tr>
+                        <thead class="bg-success text-white">
+                            <tr >
                                 <th>#</th><th>Name</th><th>Registration number</th>
-                                <th>Academic year</th><th>Admission date</th><th>Class</th><th>Subject</th>
+                                <th>Academic year</th><th>Admission date</th><th>Created at</th><th>Class</th><th>Subject</th>
                                 <th>Phone</th><th>Note</th><th>Status</th><th>Updated by</th><th>Update status</th>
                             </tr>
                         </thead>
@@ -135,6 +140,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <td><?php echo html_escape($student->admission_number); ?></td>
                                     <td><?php echo html_escape($student->academic_year ?: '-'); ?></td>
                                     <td><?php echo html_escape($student->admission_date ?: '-'); ?></td>
+                                    <td><?php 
+                                    // display created_at in m/d/Y format, or '-' if null
+                                    echo html_escape($student->created_at ? date('m/d/Y', strtotime($student->created_at)) : '-');
+                                    ?></td>
                                     <td><?php echo html_escape($student->class_name ?: '-'); ?></td>
                                     <td><?php echo html_escape($student->subject ?: '-'); ?></td>
                                     <td><?php echo html_escape($student->phone ?: '-'); ?></td>
