@@ -55,6 +55,17 @@ class Admin_student_create extends CI_Controller
         ));
     }
 
+    public function search_students()
+    {
+        $term = trim($this->input->get('term', TRUE));
+
+        if (strlen($term) < 2) {
+            $this->json_response(array());
+        }
+
+        $this->json_response($this->Admin_student_create_model->search_students($term));
+    }
+
     public function save()
     {
         $this->form_validation->set_rules('session_id', 'Academic year', 'required|integer');
@@ -113,6 +124,58 @@ class Admin_student_create extends CI_Controller
             $student_registration_number = explode('/', $registration_number)[1];
             $global_student_id = explode('-', $student_registration_number)[0].'-'.explode('-', $student_registration_number)[1];
             $this->session->set_flashdata('success', 'Student added successfully. <a href="' . base_url() . 'index.php/online/idValidator/' . $global_student_id.'/'.$branch.'/'.$session_id . '">View Student Details</a>');
+        }
+
+        redirect('admin_student_create');
+    }
+
+    public function save_existing()
+    {
+        $student_id = (int) $this->input->post('student_id');
+        $section_id = (int) $this->input->post('section_id');
+
+        if ($student_id < 1 || $section_id < 1) {
+            $this->session->set_flashdata('error', 'Select a student and subject before saving.');
+            redirect('admin_student_create');
+        }
+
+        $student = $this->Admin_student_create_model->get_student($student_id);
+        if (!$student) {
+            $this->session->set_flashdata('error', 'The selected student could not be found.');
+            redirect('admin_student_create');
+        }
+
+        if (!$this->Admin_student_create_model->section_belongs_to_class($section_id, (int) $student->class_id)) {
+            $this->session->set_flashdata('error', 'The selected subject does not belong to the student\'s class.');
+            redirect('admin_student_create');
+        }
+
+        if ($this->Admin_student_create_model->student_has_section($student, $section_id)) {
+            $this->session->set_flashdata('error', 'This student is already registered for the selected subject.');
+            redirect('admin_student_create');
+        }
+
+        $new_student_id = $this->Admin_student_create_model->add_subject_to_student(
+            $student,
+            $section_id,
+            $this->session->userdata('user_name')
+        );
+
+        if ($new_student_id === 0) {
+            $this->session->set_flashdata('error', 'Unable to add the subject to the student. Please try again.');
+        } else {
+            $new_student = $this->Admin_student_create_model->get_student($new_student_id);
+            $registration_parts = explode('/', $new_student->admission_number);
+            $registration_number = end($registration_parts);
+            $registration_segments = explode('-', $registration_number);
+            $global_student_id = $registration_segments[0] . '-' . $registration_segments[1];
+            $branch = $registration_parts[0];
+            $profile_url = base_url() . 'index.php/online/idValidator/' . $global_student_id . '/' . $branch . '/' . $new_student->session_id;
+
+            $this->session->set_flashdata(
+                'success',
+                'Subject added successfully to the existing student. <a href="' . $profile_url . '">View Student Details</a>'
+            );
         }
 
         redirect('admin_student_create');
