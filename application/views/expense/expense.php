@@ -6,13 +6,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?php echo base_url('css/bootstrap.min.css'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('css/institute-inner.css'); ?>">
     <title>Institute Expenses</title>
     <style>
         body { font-size: .9rem; }
         .expense-form { max-width: 720px; }
     </style>
 </head>
-<body>
+<body class="institute-inner">
     <?php
     $role = $this->session->userdata('user_role');
     if ($role === 'administrator') {

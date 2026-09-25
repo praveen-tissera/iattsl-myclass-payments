@@ -9,6 +9,7 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?php echo base_url() . '/css/bootstrap.min.css' ?>">
+    <link rel="stylesheet" href="<?php echo base_url() . '/css/institute-inner.css' ?>">
 
    
     <title>Student Class Link Generator</title>
@@ -87,7 +88,7 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
 
 </head>
 
-<body>
+<body class="institute-inner">
  <!-- php include menu_admin.php file -->
     <?php 
 
@@ -147,7 +148,9 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                 <?php echo form_open('online/idValidator') ?>
                 <table class="table table-borderless">
                     <tr>
-                        <td><label for="branch">Student ID</label>
+                        <td>
+                        <div class="form-group">  
+                          <label for="branch">Student ID</label>
                            
                           <?php 
                          
@@ -221,9 +224,11 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                             }
                           
                           ?>
-
+                        </div>
                         </td>
-                        <td><label for="branch">Academic Year</label>
+                        <td style="vertical-align: top;">
+                          <div class="form-group">
+                          <label for="branch">Academic Year</label>
                           <select class="form-control" name="academicyear">
                             <?php 
                               foreach ($academicyear as $year) {
@@ -235,6 +240,7 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                               }
                             ?>
                           </select>
+                          </div>
                         </td>
                     </tr>
 

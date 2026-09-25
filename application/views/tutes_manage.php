@@ -7,6 +7,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?php echo base_url() . '/css/bootstrap.min.css' ?>">
+    <link rel="stylesheet" href="<?php echo base_url() . '/css/institute-inner.css' ?>">
 
    
     <title>Tute Management</title>
@@ -86,7 +87,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 </head>
 
-<body>
+<body class="institute-inner">
  <!-- php include menu_admin.php file -->
     <?php 
 
@@ -206,6 +207,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             </select>
                         </td>
                         <td> 
+                          <div class="form-group">
                           <label for="branch">Select Academic Year</label>
                           <select class="form-control" name="academicyear">
                             <?php 
@@ -218,10 +220,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               }
                             ?>
                           </select>
+                          </div>
                         </td>
                         <td colspan="2">
+                          <div class="form-group">
                           <br>
                             <input class="btn btn-danger btn-block mt-2" type="submit" name="submit" value="SEARCH">
+                          </div>
                         </td>
                     </tr>
                 </table>

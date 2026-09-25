@@ -6,6 +6,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?php echo base_url('/css/bootstrap.min.css'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('/css/institute-inner.css'); ?>">
     <title>Student Registration Report</title>
     <style>
         table th, table td {
@@ -13,7 +14,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         }
     </style>
 </head>
-<body>
+<body class="institute-inner">
     <?php $this->load->view('includesui/menu_admin'); ?>
     <main class="container-fluid mt-4">
         <h1 class="mb-4">Student Registration Report</h1>
