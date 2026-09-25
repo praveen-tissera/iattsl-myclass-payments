@@ -1,0 +1,113 @@
+:root {
+  --institute-navy: #102a43;
+  --institute-blue: #1f6feb;
+  --institute-teal: #12b5cb;
+  --institute-gold: #f6c453;
+  --institute-cream: #f7fbff;
+}
+
+body.institute-inner {
+  min-height: 100vh;
+  color: var(--institute-navy);
+  background:
+    radial-gradient(circle at 8% 12%, rgba(18, 181, 203, .12), transparent 28%),
+    radial-gradient(circle at 92% 88%, rgba(246, 196, 83, .14), transparent 30%),
+    var(--institute-cream);
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.institute-inner .card {
+  border: 1px solid rgba(217, 226, 236, .9);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 .75rem 2rem rgba(16, 42, 67, .08);
+}
+
+.institute-inner .card-body {
+  border-top: .25rem solid transparent;
+  border-image: linear-gradient(90deg, var(--institute-blue), var(--institute-teal), var(--institute-gold)) 1;
+}
+
+.institute-inner h1,
+.institute-inner h2,
+.institute-inner h3,
+.institute-inner h4,
+.institute-inner h5,
+.institute-inner .cart-title {
+  color: var(--institute-navy);
+  font-weight: 700;
+}
+
+.institute-inner .form-control,
+.institute-inner select {
+  border: 1px solid #d9e2ec;
+  border-radius: .65rem;
+  background-color: #fbfdff;
+}
+
+.institute-inner .form-control:focus,
+.institute-inner select:focus {
+  border-color: var(--institute-blue);
+  box-shadow: 0 0 0 .2rem rgba(31, 111, 235, .12);
+}
+
+.institute-inner .btn {
+  border-radius: .6rem;
+  font-weight: 600;
+}
+
+.institute-inner .btn-primary {
+  border-color: var(--institute-blue);
+  background-color: var(--institute-blue);
+}
+
+.institute-inner .btn-primary:hover,
+.institute-inner .btn-primary:focus {
+  border-color: #1558b0;
+  background-color: #1558b0;
+}
+
+.institute-inner .btn-info {
+  border-color: var(--institute-teal);
+  background-color: var(--institute-teal);
+}
+
+.institute-inner .btn-outline-primary {
+  border-color: var(--institute-blue);
+  color: var(--institute-blue);
+}
+
+.institute-inner .table {
+  color: #243b53;
+  background-color: rgba(255, 255, 255, .8);
+}
+
+.institute-inner .table thead th {
+  border-color: #d9e2ec;
+  background-color: var(--institute-navy);
+  color: white;
+  font-weight: 600;
+}
+
+.institute-inner .table td {
+  vertical-align: middle;
+}
+
+.institute-inner .alert {
+  border: 0;
+  border-radius: .7rem;
+}
+
+.institute-inner .navbar {
+  box-shadow: 0 .25rem 1rem rgba(16, 42, 67, .12);
+}
+
+@media (max-width: 576px) {
+  body.institute-inner {
+    font-size: .85rem;
+  }
+
+  .institute-inner .card {
+    border-radius: .75rem;
+  }
+}
