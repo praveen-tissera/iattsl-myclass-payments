@@ -20,12 +20,32 @@ class Expence extends CI_Controller
     {
         $data = array(
             'expenses' => $this->Expense_model->get_expenses(),
+            'expense_types' => $this->Expense_model->get_expense_types(),
             'success' => $this->session->flashdata('success'),
             'error' => $this->session->flashdata('error'),
             'expense_date' => date('Y-m-d')
         );
 
         $this->load->view('expense/expense', $data);
+    }
+
+    public function title_suggestions()
+    {
+        $term = trim($this->input->get('term', TRUE));
+        $character_count = function_exists('mb_strlen')
+            ? mb_strlen($term, 'UTF-8')
+            : strlen($term);
+
+        if ($character_count < 2) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(array()));
+            return;
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($this->Expense_model->get_title_suggestions($term)));
     }
 
     public function monthly()
@@ -35,7 +55,16 @@ class Expence extends CI_Controller
             $selected_month = date('Y-m');
         }
 
-        $expenses = $this->Expense_model->get_expenses_by_month($selected_month);
+        $selected_type = trim((string) $this->input->get('type', TRUE));
+        $expense_types = $this->Expense_model->get_expense_types();
+        $available_types = array_map(function ($row) {
+            return $row->type;
+        }, $expense_types);
+        if ($selected_type !== '' && !in_array($selected_type, $available_types, TRUE)) {
+            $selected_type = '';
+        }
+
+        $expenses = $this->Expense_model->get_expenses_by_month($selected_month, $selected_type);
         $total = 0;
         foreach ($expenses as $expense) {
             $total += (float) $expense->amount;
@@ -43,7 +72,7 @@ class Expence extends CI_Controller
 
         $year = date('Y');
         $yearly_totals = array_fill(1, 12, 0);
-        foreach ($this->Expense_model->get_expense_totals_by_year($year) as $monthly_total) {
+        foreach ($this->Expense_model->get_expense_totals_by_year($year, $selected_type) as $monthly_total) {
             $yearly_totals[(int) $monthly_total->month_number] = (float) $monthly_total->total;
         }
 
@@ -63,6 +92,8 @@ class Expence extends CI_Controller
             'total' => $total,
             'months' => $months,
             'selected_month' => $selected_month,
+            'expense_types' => $expense_types,
+            'selected_type' => $selected_type,
             'chart_year' => $year,
             'yearly_totals' => $yearly_totals
         );
@@ -82,6 +113,20 @@ class Expence extends CI_Controller
             'Title',
             'required|trim|max_length[255]'
         );
+        $submitted_type = $this->input->post('expense_type', TRUE);
+        if ($submitted_type === '__new__') {
+            $this->form_validation->set_rules(
+                'new_type',
+                'New expense type',
+                'required|trim|max_length[100]'
+            );
+        } else {
+            $this->form_validation->set_rules(
+                'expense_type',
+                'Expense type',
+                'required|callback_valid_expense_type'
+            );
+        }
         $this->form_validation->set_rules(
             'amount',
             'Amount',
@@ -91,15 +136,21 @@ class Expence extends CI_Controller
         if ($this->form_validation->run() === FALSE) {
             $data = array(
                 'expenses' => $this->Expense_model->get_expenses(),
+                'expense_types' => $this->Expense_model->get_expense_types(),
                 'expense_date' => $this->input->post('expense_date', TRUE) ?: date('Y-m-d')
             );
             $this->load->view('expense/expense', $data);
             return;
         }
 
+        $expense_type = $submitted_type === '__new__'
+            ? trim($this->input->post('new_type', TRUE))
+            : trim($submitted_type);
+
         $saved = $this->Expense_model->insert_expense(array(
             'expense_date' => $this->input->post('expense_date', TRUE),
             'title' => $this->input->post('title', TRUE),
+            'type' => $expense_type,
             'amount' => number_format((float) $this->input->post('amount', TRUE), 2, '.', ''),
             'created_at' => date('Y-m-d H:i:s')
         ));
@@ -123,6 +174,18 @@ class Expence extends CI_Controller
         }
 
         return TRUE;
+    }
+
+    public function valid_expense_type($type)
+    {
+        foreach ($this->Expense_model->get_expense_types() as $expense_type) {
+            if ($expense_type->type === $type) {
+                return TRUE;
+            }
+        }
+
+        $this->form_validation->set_message('valid_expense_type', 'Select an available expense type or add a new one.');
+        return FALSE;
     }
 
     private function is_valid_month($month)

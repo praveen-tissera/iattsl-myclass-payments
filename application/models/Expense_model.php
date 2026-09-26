@@ -10,10 +10,23 @@ class Expense_model extends CI_Model
         return $this->db->insert($this->table, $data);
     }
 
+    public function get_expense_types()
+    {
+        return $this->db
+            ->distinct()
+            ->select('type')
+            ->from($this->table)
+            ->where('type IS NOT NULL', NULL, FALSE)
+            ->where('type !=', '')
+            ->order_by('type', 'ASC')
+            ->get()
+            ->result();
+    }
+
     public function get_expenses()
     {
         return $this->db
-            ->select('id, expense_date, title, amount, created_at')
+            ->select('id, expense_date, title, type, amount, created_at')
             ->from($this->table)
             ->order_by('expense_date', 'DESC')
             ->order_by('id', 'DESC')
@@ -21,29 +34,58 @@ class Expense_model extends CI_Model
             ->result();
     }
 
-    public function get_expenses_by_month($month)
+    public function get_title_suggestions($term)
+    {
+        $rows = $this->db
+            ->distinct()
+            ->select('title')
+            ->from($this->table)
+            ->like('title', $term)
+            ->order_by('title', 'ASC')
+            ->limit(10)
+            ->get()
+            ->result();
+
+        return array_map(function ($row) {
+            return $row->title;
+        }, $rows);
+    }
+
+    public function get_expenses_by_month($month, $type = '')
     {
         $start_date = $month . '-01';
         $end_date = date('Y-m-t', strtotime($start_date));
 
-        return $this->db
-            ->select('id, expense_date, title, amount, created_at')
+        $this->db
+            ->select('id, expense_date, title, type, amount, created_at')
             ->from($this->table)
             ->where('expense_date >=', $start_date)
-            ->where('expense_date <=', $end_date)
+            ->where('expense_date <=', $end_date);
+
+        if ($type !== '') {
+            $this->db->where('type', $type);
+        }
+
+        return $this->db
             ->order_by('expense_date', 'ASC')
             ->order_by('id', 'ASC')
             ->get()
             ->result();
     }
 
-    public function get_expense_totals_by_year($year)
+    public function get_expense_totals_by_year($year, $type = '')
     {
-        return $this->db
+        $this->db
             ->select('MONTH(expense_date) AS month_number, SUM(amount) AS total', FALSE)
             ->from($this->table)
             ->where('expense_date >=', $year . '-01-01')
-            ->where('expense_date <=', $year . '-12-31')
+            ->where('expense_date <=', $year . '-12-31');
+
+        if ($type !== '') {
+            $this->db->where('type', $type);
+        }
+
+        return $this->db
             ->group_by('MONTH(expense_date)')
             ->order_by('month_number', 'ASC')
             ->get()

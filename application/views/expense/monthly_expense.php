@@ -39,13 +39,24 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <label class="mr-2" for="type">Select type</label>
+                    <select class="form-control mr-2" id="type" name="type">
+                        <option value="">All types</option>
+                        <?php foreach ($expense_types as $expense_type): ?>
+                            <option value="<?php echo html_escape($expense_type->type); ?>"
+                                <?php echo $expense_type->type === $selected_type ? 'selected' : ''; ?>>
+                                <?php echo html_escape($expense_type->type); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                     <button type="submit" class="btn btn-primary">View Expenses</button>
                 </form>
             </div>
         </section>
 
         <div class="alert alert-info">
-            <strong>Total for <?php echo html_escape(date('F Y', strtotime($selected_month . '-01'))); ?>:</strong>
+            <strong>Total for <?php echo html_escape(date('F Y', strtotime($selected_month . '-01'))); ?>
+                <?php echo $selected_type !== '' ? ' - ' . html_escape($selected_type) : ''; ?>:</strong>
             <?php echo number_format($total, 2); ?>
         </div>
 
@@ -69,7 +80,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         ?>
         <section class="card mb-4">
             <div class="card-body">
-                <h2 class="h5">Monthly expenses for <?php echo (int) $chart_year; ?></h2>
+                <h2 class="h5">
+                    Monthly expenses for <?php echo (int) $chart_year; ?>
+                    <?php echo $selected_type !== '' ? ' - ' . html_escape($selected_type) : ' - All types'; ?>
+                </h2>
                 <div class="table-responsive">
                     <svg viewBox="0 0 <?php echo $chart_width; ?> <?php echo $chart_height; ?>"
                          width="100%" height="320" role="img"
@@ -111,17 +125,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <tr>
                         <th>Date</th>
                         <th>Title</th>
+                        <th>Type</th>
                         <th class="text-right">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($expenses)): ?>
-                        <tr><td colspan="3" class="text-center">No expenses recorded for this month.</td></tr>
+                        <tr><td colspan="4" class="text-center">No expenses recorded for this month and type.</td></tr>
                     <?php else: ?>
                         <?php foreach ($expenses as $expense): ?>
                             <tr>
                                 <td><?php echo html_escape($expense->expense_date); ?></td>
                                 <td><?php echo html_escape($expense->title); ?></td>
+                                <td><?php echo html_escape($expense->type); ?></td>
                                 <td class="text-right"><?php echo number_format((float) $expense->amount, 2); ?></td>
                             </tr>
                         <?php endforeach; ?>
