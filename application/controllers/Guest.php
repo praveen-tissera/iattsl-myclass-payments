@@ -117,6 +117,17 @@ class Guest extends CI_Controller {
         // $this->user_model->get_usreData();
         $this->load->view('login',$data);
     }
+
+    public function lesson10()
+    {
+        $this->load->view('AL notes/unit 10/index');
+    }
+
+    public function al_notes()
+    {
+        $this->load->view('AL notes/student_home');
+    }
+
      public function idValidator($student_id=0, $branch='PEL'){
        
         $success = $this->session->userdata('success_message_display');

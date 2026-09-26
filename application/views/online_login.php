@@ -135,6 +135,20 @@
             pointer-events: none;
         }
 
+        .learning-link {
+            display: inline-block;
+            margin-top: 1.25rem;
+            color: var(--blue);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .learning-link:hover,
+        .learning-link:focus {
+            color: var(--navy);
+            text-decoration: underline;
+        }
+
         @keyframes rise-in {
             from { opacity: 0; transform: translateY(1.5rem); }
             to { opacity: 1; transform: translateY(0); }
@@ -180,6 +194,11 @@
                 </div>
                 <button type="submit" class="portal-submit btn btn-primary btn-block">Sign in to portal</button>
             </form>
+            <div class="text-center">
+                <a class="learning-link" href="<?php echo site_url('al-notes'); ?>">
+                    Go to the AL Notes student home
+                </a>
+            </div>
         </section>
     </main>
     <script>
