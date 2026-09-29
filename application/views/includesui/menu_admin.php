@@ -1,6 +1,8 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary ">
-  <a class="navbar-brand" href="#">
-    <img class="img-fluid" style="width:80px" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="Logo">
+<link rel="stylesheet" href="<?php echo base_url('css/institute-navigation.css'); ?>">
+<nav class="navbar navbar-expand-lg navbar-dark institute-navigation" aria-label="Administrator navigation">
+  <a class="navbar-brand" href="<?php echo base_url(); ?>" aria-label="Institute home">
+    <img class="img-fluid" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="IATTSL">
+    <!-- <span class="institute-brand-name">IATTSL <small>Administration</small></span> -->
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -73,8 +75,8 @@
            // create nice back hyperlink with bootstrap design
            
             // echo '<a class=" mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">Logout</a>';
-             echo '<a class="rounded-pill mx-4 nav-link btn btn-sm badge-dark" href="' . base_url() . 'index.php/guest/loginview">';
-             echo $this->session->userdata('user_name') . '<span class=" mx-1 badge badge-light rounded-pill"> Logout</span></a>';
+             echo '<a class="nav-link institute-user-link" href="' . base_url() . 'index.php/guest/loginview">';
+             echo '<span class="institute-user-name">' . html_escape($this->session->userdata('user_name')) . '</span><span class="institute-logout-label">Logout</span></a>';
 
            
         }

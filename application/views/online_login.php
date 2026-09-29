@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Institute Staff Portal</title>
+    <title>IATTSL Staff Portal</title>
     <link rel="stylesheet" href="<?php echo base_url() . '/css/bootstrap.min.css'; ?>">
     <style>
         :root {
@@ -173,7 +173,7 @@
         <section class="portal-card p-4 p-md-5">
             <div class="text-center">
                 <div class="brand-mark">✦</div>
-                <h1 class="portal-title h2">Institute Staff Portal</h1>
+                <h1 class="portal-title h2">IATTSL Staff Portal</h1>
                 <p class="portal-subtitle">Sign in to manage classes, students, attendance, and payments.</p>
             </div>
 

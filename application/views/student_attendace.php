@@ -204,6 +204,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                               <option value="MAH" <?php echo (isset($branch) && $branch == 'MAH') ? 'selected' : ''; ?>>Maharagama</option>
                               <option value="MAT" <?php echo (isset($branch) && $branch == 'MAT') ? 'selected' : ''; ?>>Mattegoda</option>
                               <option value="DIY" <?php echo (isset($branch) && $branch == 'DIY') ? 'selected' : ''; ?>>Diyagama</option>
+                               <option value="ONL" <?php echo (isset($branch) && $branch == 'ONL') ? 'selected' : ''; ?>>Online</option>
                             </select>
                         </td>
                         <td> 
