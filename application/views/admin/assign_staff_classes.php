@@ -49,26 +49,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
             <fieldset class="mb-3">
                 <legend class="h5">Classes and subjects</legend>
-                <?php if (empty($subjects)): ?>
-                    <div class="alert alert-warning">No classes or subjects are available.</div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped">
-                            <thead><tr><th>Assign</th><th>Class</th><th>Subject</th></tr></thead>
-                            <tbody>
-                            <?php foreach ($subjects as $subject): ?>
-                                <tr>
-                                    <td><input type="checkbox" name="subject_ids[]" value="<?php echo (int) $subject->subject_id; ?>" aria-label="<?php echo html_escape($subject->class_name . ' - ' . $subject->subject_name); ?>"></td>
-                                    <td><?php echo html_escape($subject->class_name); ?></td>
-                                    <td><?php echo html_escape($subject->subject_name); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
+                <div id="subject-message" class="alert alert-info" role="status">Select an academic year and branch to load available classes and subjects.</div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead><tr><th>Assign</th><th>Class</th><th>Subject</th></tr></thead>
+                        <tbody id="subject-options"><tr><td colspan="3">Select an academic year and branch.</td></tr></tbody>
+                    </table>
+                </div>
             </fieldset>
-            <button type="submit" class="btn btn-primary align-self-start">Save assignments</button>
+            <button type="submit" id="save-assignments" class="btn btn-primary align-self-start" disabled>Save assignments</button>
         <?php echo form_close(); ?>
 
         <h2 class="h4 mb-3">Current staff assignments</h2>
@@ -99,5 +88,99 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             </div>
         <?php endif; ?>
     </main>
+    <script>
+        (function () {
+            var academicYear = document.getElementById('academic_year');
+            var branch = document.getElementById('branch');
+            var options = document.getElementById('subject-options');
+            var message = document.getElementById('subject-message');
+            var saveButton = document.getElementById('save-assignments');
+            var requestNumber = 0;
+            var subjectsUrl = <?php echo json_encode(site_url('admin_assign_staff_classes/subjects')); ?>;
+
+            function clearOptions(text) {
+                options.textContent = '';
+                var row = document.createElement('tr');
+                var cell = document.createElement('td');
+                cell.colSpan = 3;
+                cell.textContent = text;
+                row.appendChild(cell);
+                options.appendChild(row);
+                saveButton.disabled = true;
+            }
+
+            function loadOptions() {
+                var currentRequest = ++requestNumber;
+                if (!academicYear.value || !branch.value) {
+                    message.textContent = 'Select an academic year and branch to load available classes and subjects.';
+                    message.className = 'alert alert-info';
+                    clearOptions('Select an academic year and branch.');
+                    return;
+                }
+
+                message.textContent = 'Loading classes and subjects...';
+                message.className = 'alert alert-info';
+                clearOptions('Loading...');
+                var query = '?academic_year=' + encodeURIComponent(academicYear.value) + '&branch=' + encodeURIComponent(branch.value);
+
+                fetch(subjectsUrl + query, {credentials: 'same-origin'})
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            if (!response.ok) {
+                                throw new Error(data.error || 'Unable to load classes and subjects.');
+                            }
+                            return data;
+                        });
+                    })
+                    .then(function (subjects) {
+                        if (currentRequest !== requestNumber) {
+                            return;
+                        }
+                        options.textContent = '';
+                        if (!subjects.length) {
+                            clearOptions('No classes or subjects have students in this branch and academic year.');
+                            message.textContent = 'No available classes or subjects for this selection.';
+                            return;
+                        }
+
+                        subjects.forEach(function (subject) {
+                            var row = document.createElement('tr');
+                            var assignCell = document.createElement('td');
+                            var checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.name = 'subject_ids[]';
+                            checkbox.value = subject.subject_id;
+                            checkbox.setAttribute('aria-label', subject.class_name + ' - ' + subject.subject_name);
+                            checkbox.addEventListener('change', function () {
+                                saveButton.disabled = options.querySelectorAll('input:checked').length === 0;
+                            });
+                            assignCell.appendChild(checkbox);
+                            row.appendChild(assignCell);
+
+                            var classCell = document.createElement('td');
+                            classCell.textContent = subject.class_name;
+                            row.appendChild(classCell);
+
+                            var subjectCell = document.createElement('td');
+                            subjectCell.textContent = subject.subject_name;
+                            row.appendChild(subjectCell);
+                            options.appendChild(row);
+                        });
+                        message.textContent = 'Select one or more subjects to assign.';
+                    })
+                    .catch(function (error) {
+                        if (currentRequest !== requestNumber) {
+                            return;
+                        }
+                        clearOptions('Could not load classes and subjects.');
+                        message.textContent = error.message;
+                        message.className = 'alert alert-danger';
+                    });
+            }
+
+            academicYear.addEventListener('change', loadOptions);
+            branch.addEventListener('change', loadOptions);
+        }());
+    </script>
 </body>
 </html>

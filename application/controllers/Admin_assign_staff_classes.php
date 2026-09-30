@@ -26,7 +26,6 @@ class Admin_assign_staff_classes extends CI_Controller
         $data = array(
             'staff' => $this->Staff_assignment_model->get_staff(),
             'academic_years' => $this->Staff_assignment_model->get_academic_years(),
-            'subjects' => $this->Staff_assignment_model->get_subject_options(),
             'assignments' => $this->Staff_assignment_model->get_all_assignments(),
             'branches' => $this->branches,
             'success' => $this->session->flashdata('success'),
@@ -34,6 +33,28 @@ class Admin_assign_staff_classes extends CI_Controller
         );
 
         $this->load->view('admin/assign_staff_classes', $data);
+    }
+
+    public function subjects()
+    {
+        $raw_academic_year = $this->input->get('academic_year');
+        $raw_branch = $this->input->get('branch', TRUE);
+        $academic_year = is_scalar($raw_academic_year) ? (int) $raw_academic_year : 0;
+        $branch = is_string($raw_branch) ? strtoupper(trim($raw_branch)) : '';
+
+        if (!is_scalar($raw_academic_year) || !ctype_digit((string) $raw_academic_year) ||
+            $academic_year < 1 || !in_array($branch, $this->branches, TRUE) ||
+            !$this->Staff_assignment_model->academic_year_exists($academic_year)) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(array('error' => 'Select a valid academic year and branch.')));
+            return;
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($this->Staff_assignment_model->get_subject_options($academic_year, $branch)));
     }
 
     public function save()

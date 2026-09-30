@@ -44,13 +44,17 @@ class Staff_assignment_model extends CI_Model
             ->count_all_results('wp_wlsm_sessions') > 0;
     }
 
-    public function get_subject_options()
+    public function get_subject_options($academic_year, $branch)
     {
         return $this->db
+            ->distinct()
             ->select('classes.ID AS class_id, classes.label AS class_name, sections.ID AS subject_id, sections.label AS subject_name')
             ->from('wp_wlsm_sections AS sections')
             ->join('wp_wlsm_class_school AS class_school', 'class_school.ID = sections.class_school_id')
             ->join('wp_wlsm_classes AS classes', 'classes.ID = class_school.class_id')
+            ->join('wp_wlsm_student_records AS students', 'students.section_id = sections.ID')
+            ->where('students.session_id', $academic_year)
+            ->like('students.admission_number', $branch . '/', 'after')
             ->order_by('classes.label', 'ASC')
             ->order_by('sections.label', 'ASC')
             ->get()
@@ -59,14 +63,13 @@ class Staff_assignment_model extends CI_Model
 
     public function save_assignments($staff_id, $subject_ids, $academic_year, $branch, $owner_id)
     {
-        $subjects = $this->db
-            ->select('sections.ID AS subject_id, classes.ID AS class_id')
-            ->from('wp_wlsm_sections AS sections')
-            ->join('wp_wlsm_class_school AS class_school', 'class_school.ID = sections.class_school_id')
-            ->join('wp_wlsm_classes AS classes', 'classes.ID = class_school.class_id')
-            ->where_in('sections.ID', $subject_ids)
-            ->get()
-            ->result();
+        $selected_subject_ids = array_flip($subject_ids);
+        $subjects = array();
+        foreach ($this->get_subject_options($academic_year, $branch) as $subject) {
+            if (isset($selected_subject_ids[(int) $subject->subject_id])) {
+                $subjects[] = $subject;
+            }
+        }
 
         if (count($subjects) !== count($subject_ids)) {
             return FALSE;
