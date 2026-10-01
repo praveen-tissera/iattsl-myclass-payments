@@ -42,14 +42,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 </div>
                 <div class="form-group col-md-5">
                     <label for="session_ids">Academic years</label>
-                    <select class="form-control" id="session_ids" name="session_ids[]" multiple size="7" required>
+                    <select class="form-control" id="session_ids" name="session_ids[]" multiple size="7">
                         <?php foreach ($academic_years as $academic_year): ?>
                             <option value="<?php echo (int) $academic_year->ID; ?>"<?php echo in_array((string) $academic_year->ID, $selected_years, TRUE) ? ' selected' : ''; ?>>
                                 <?php echo html_escape($academic_year->label); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <small class="form-text text-muted">Select one or more academic years.</small>
+                    <small class="form-text text-muted">Select one or more academic years, or use the registration date filter.</small>
                 </div>
                 <div class="form-group col-md-3">
                     <label for="admission_month">Admission month</label>
@@ -63,14 +63,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     </select>
                     <small class="form-text text-muted">Leave blank to show all admission months.</small>
                 </div>
+                <div class="form-group col-md-3">
+                    <label for="admission_date">Admission date</label>
+                    <input class="form-control" type="date" id="admission_date" name="admission_date" value="<?php echo html_escape($selected_admission_date ?: ''); ?>">
+                    <small class="form-text text-muted">Optional. Select one exact admission date.</small>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="registration_date">Registration created date</label>
+                    <input class="form-control" type="date" id="registration_date" name="registration_date" value="<?php echo html_escape($selected_registration_date ?: ''); ?>">
+                    <small class="form-text text-muted">Optional. Filters by when the student record was created.</small>
+                </div>
                 <div class="form-group col-md-2">
                     <button type="submit" class="btn btn-primary btn-block mb-4">Generate report</button>
                 </div>
             </div>
         <?php echo form_close(); ?>
 
-        <?php if ($has_filters && empty($selected_years)): ?>
-            <div class="alert alert-warning">Select at least one academic year.</div>
+        <?php if ($has_filters && ($invalid_admission_date || $invalid_registration_date ||
+            (empty($selected_years) && $selected_registration_date === null))): ?>
+            <div class="alert alert-warning">
+                <?php if ($invalid_admission_date): ?>
+                    Enter a valid admission date.
+                <?php elseif ($invalid_registration_date): ?>
+                    Enter a valid registration created date.
+                <?php else: ?>
+                    Select at least one academic year or registration created date.
+                <?php endif; ?>
+            </div>
         <?php elseif ($has_filters): ?>
             <?php
                 $active_count = 0;
@@ -159,6 +178,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         <?php echo form_open('admin_student_registration_report/update_status', array('onsubmit' => "return confirm('Update this student status?');")); ?>
                                             <input type="hidden" name="student_id" value="<?php echo (int) $student->ID; ?>">
                                             <input type="hidden" name="admission_month" value="<?php echo $selected_month === null ? '' : (int) $selected_month; ?>">
+                                            <input type="hidden" name="admission_date" value="<?php echo html_escape($selected_admission_date ?: ''); ?>">
+                                            <input type="hidden" name="registration_date" value="<?php echo html_escape($selected_registration_date ?: ''); ?>">
                                             <?php foreach ($selected_branches as $branch): ?>
                                                 <input type="hidden" name="branches[]" value="<?php echo html_escape($branch); ?>">
                                             <?php endforeach; ?>

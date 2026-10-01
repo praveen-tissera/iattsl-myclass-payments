@@ -23,7 +23,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <select class="form-control" id="staff_id" name="staff_id" required>
                         <option value="">Select staff</option>
                         <?php foreach ($staff as $member): ?>
-                            <option value="<?php echo (int) $member->ID; ?>"><?php echo html_escape($member->display_name . ' (' . $member->user_login . ')'); ?></option>
+                            <option value="<?php echo (int) $member->ID; ?>"><?php echo html_escape($member->display_name . ' (' . $member->staff_role . ' · ' . $member->user_login . ')'); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -88,6 +88,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             </div>
         <?php endif; ?>
     </main>
+    <script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
+    <script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>
+</script>
     <script>
         (function () {
             var academicYear = document.getElementById('academic_year');

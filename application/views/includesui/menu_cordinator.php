@@ -1,8 +1,8 @@
 <link rel="stylesheet" href="<?php echo base_url('css/institute-navigation.css'); ?>">
 <nav class="navbar navbar-expand-lg navbar-dark institute-navigation" aria-label="Coordinator navigation">
-  <a class="navbar-brand" href="<?php echo base_url(); ?>" aria-label="Institute home">
+  <a class="navbar-brand" href="<?php echo base_url('index.php/staff_dashboard'); ?>" aria-label="Institute home">
     <img class="img-fluid" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="IATTSL">
-    <span class="institute-brand-name">IATTSL <small>Coordinator</small></span>
+    <!-- <span class="institute-brand-name">IATTSL <small>Coordinator</small></span> -->
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -46,7 +46,8 @@
           
         </div>
      </li>
-
+    
+     
   
 
      <li class="nav-item">

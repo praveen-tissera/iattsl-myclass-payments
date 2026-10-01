@@ -2,7 +2,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark institute-navigation" aria-label="Teacher navigation">
   <a class="navbar-brand" href="<?php echo base_url('index.php/staff_dashboard'); ?>" aria-label="Institute home">
     <img class="img-fluid" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="IATTSL">
-    <span class="institute-brand-name">IATTSL <small>Teacher Portal</small></span>
+    <!-- <span class="institute-brand-name">IATTSL <small>Teacher Portal</small></span> -->
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -18,12 +18,11 @@
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance </a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/tutedistribution">Tute Distribution</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_search">Search Students</a>
-          
+
         </div>
      </li>
-     <li class="nav-item">
-      <a class="nav-link" href="<?php echo base_url(); ?>index.php/staff_dashboard">My Classes</a>
-     </li>
+
+
      <li class="nav-item">
       <a class="nav-link"  href="<?php echo base_url(); ?>index.php/mark/">Enter Marks <span class="sr-only">(current)</span></a>
      </li>

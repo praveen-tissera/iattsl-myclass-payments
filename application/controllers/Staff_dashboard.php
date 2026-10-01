@@ -13,7 +13,7 @@ class Staff_dashboard extends CI_Controller
             redirect('guest/loginview');
         }
 
-        if ($this->session->userdata('user_role') !== 'teacher') {
+        if (!in_array($this->session->userdata('user_role'), array('teacher', 'cordinator'), TRUE)) {
             show_error('You do not have permission to access this page.', 403);
         }
 

@@ -7,11 +7,14 @@ class Staff_assignment_model extends CI_Model
     {
         return $this->db
             ->distinct()
-            ->select('users.ID, users.display_name, users.user_login')
+            ->select("users.ID, users.display_name, users.user_login, CASE WHEN usermeta.meta_value LIKE '%subscriber%' THEN 'Coordinator' ELSE 'Teacher' END AS staff_role", FALSE)
             ->from('wp_users AS users')
             ->join('wp_usermeta AS usermeta', 'usermeta.user_id = users.ID')
             ->where('usermeta.meta_key', 'wp_capabilities')
+            ->group_start()
             ->like('usermeta.meta_value', 'contributor')
+            ->or_like('usermeta.meta_value', 'subscriber')
+            ->group_end()
             ->order_by('users.display_name', 'ASC')
             ->get()
             ->result();
@@ -25,7 +28,10 @@ class Staff_assignment_model extends CI_Model
             ->join('wp_usermeta AS usermeta', 'usermeta.user_id = users.ID')
             ->where('users.ID', $staff_id)
             ->where('usermeta.meta_key', 'wp_capabilities')
+            ->group_start()
             ->like('usermeta.meta_value', 'contributor')
+            ->or_like('usermeta.meta_value', 'subscriber')
+            ->group_end()
             ->count_all_results() > 0;
     }
 
@@ -141,7 +147,7 @@ class Staff_assignment_model extends CI_Model
     public function get_assignments_for_staff($staff_id)
     {
         return $this->db
-            ->select('assignments.branch, assignments.acadamic_year, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year')
+            ->select('assignments.branch, assignments.acadamic_year, assignments.class_id, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year')
             ->from('wp_wlsm_staff_assign_subject AS assignments')
             ->join('wp_wlsm_classes AS classes', 'classes.ID = assignments.class_id')
             ->join('wp_wlsm_sections AS sections', 'sections.ID = assignments.subject_id')

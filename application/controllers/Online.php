@@ -52,9 +52,22 @@ class Online extends CI_Controller {
         }
         // $this->user_model->get_usreData();
         // list all acadamic yeares from acadamic year table
-         $result = $this->Online_User_model->get_acadamicyear();
+        if ($this->session->userdata('user_role') === 'administrator') {
+            $this->load->model('Admin_dashboard_model');
+            $data['dashboard'] = $this->Admin_dashboard_model->get_summary();
+            $this->load->view('admin/dashboard', $data);
+            return;
+        }
+
+        $result = $this->Online_User_model->get_acadamicyear();
         $data['academicyear'] = $result;
         $this->load->view('online-student',$data);
+    }
+
+    public function enter_payments()
+    {
+        $data['academicyear'] = $this->Online_User_model->get_acadamicyear();
+        $this->load->view('online-student', $data);
     }
      public function idValidator($student_id=0, $branch='PEL',$session_id=5){
        

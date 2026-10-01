@@ -27,12 +27,28 @@ class Admin_student_registration_report extends CI_Controller
         $selected_branches = $this->valid_branches($this->input->get('branches'));
         $selected_years = $this->valid_session_ids($this->input->get('session_ids'), $academic_years);
         $selected_month = $this->valid_month($this->input->get('admission_month'));
+        $raw_admission_date = $this->input->get('admission_date', TRUE);
+        $selected_admission_date = $this->valid_date($raw_admission_date);
+        $invalid_admission_date = $raw_admission_date !== null &&
+            $raw_admission_date !== '' && $selected_admission_date === null;
+        $raw_registration_date = $this->input->get('registration_date', TRUE);
+        $selected_registration_date = $this->valid_date($raw_registration_date);
+        $invalid_registration_date = $raw_registration_date !== null &&
+            $raw_registration_date !== '' && $selected_registration_date === null;
         $has_filters = $this->input->get('filter_submitted') === '1';
 
         $students = array();
-        if ($has_filters && !empty($selected_years)) {
+        $has_registration_filter = $selected_registration_date !== null;
+        if ($has_filters && (!$invalid_admission_date && !$invalid_registration_date) &&
+            (!empty($selected_years) || $has_registration_filter)) {
             $students = $this->Admin_student_registration_report_model
-                ->get_report($selected_branches, $selected_years, $selected_month);
+                ->get_report(
+                    $selected_branches,
+                    $selected_years,
+                    $selected_month,
+                    $selected_admission_date,
+                    $selected_registration_date
+                );
         }
 
         $data = array(
@@ -41,6 +57,10 @@ class Admin_student_registration_report extends CI_Controller
             'selected_branches' => $selected_branches,
             'selected_years' => $selected_years,
             'selected_month' => $selected_month,
+            'selected_admission_date' => $selected_admission_date,
+            'invalid_admission_date' => $invalid_admission_date,
+            'selected_registration_date' => $selected_registration_date,
+            'invalid_registration_date' => $invalid_registration_date,
             'students' => $students,
             'has_filters' => $has_filters
         );
@@ -57,7 +77,9 @@ class Admin_student_registration_report extends CI_Controller
             'filter_submitted' => '1',
             'branches' => $this->valid_branches($this->input->post('branches')),
             'session_ids' => $this->input->post('session_ids'),
-            'admission_month' => $this->input->post('admission_month')
+            'admission_month' => $this->input->post('admission_month'),
+            'admission_date' => $this->valid_date($this->input->post('admission_date', TRUE)),
+            'registration_date' => $this->valid_date($this->input->post('registration_date', TRUE))
         );
 
         if ($student_id < 1 || !in_array($status, array('active', 'inactive'), TRUE)) {
@@ -107,5 +129,15 @@ class Admin_student_registration_report extends CI_Controller
     {
         $month = (int) $month;
         return $month >= 1 && $month <= 12 ? $month : null;
+    }
+
+    private function valid_date($date)
+    {
+        if (!is_string($date) || $date === '') {
+            return null;
+        }
+
+        $parsed_date = DateTime::createFromFormat('!Y-m-d', $date);
+        return $parsed_date && $parsed_date->format('Y-m-d') === $date ? $date : null;
     }
 }

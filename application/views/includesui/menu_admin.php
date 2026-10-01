@@ -9,8 +9,9 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
+
       <li class="nav-item ">
-        <a class="nav-link" href="<?php echo base_url(); ?>">Enter Payments </a>
+        <a class="nav-link" href="<?php echo site_url('online/enter_payments'); ?>">Enter Payments</a>
       </li>
      
       <li class="nav-item dropdown">
@@ -23,6 +24,7 @@
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/expence">Expenses Report</a>
            <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_due_payment_report">Due Payment Report</a>
            <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_registration_report">Student Registration Report</a>
+           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_staff_leave">Staff Leave Requests</a>
           
         </div>
      </li>
