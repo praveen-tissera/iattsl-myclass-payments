@@ -89,7 +89,7 @@ class Guest extends CI_Controller {
                     }elseif($this->session->userdata('user_role') == 'teacher'){
                         redirect('staff_dashboard');
                     }elseif($this->session->userdata('user_role') == 'cordinator'){
-                        redirect('Online/index');
+                        redirect('staff_dashboard');
                     }else{
                         redirect('guest/loginview');
                     }

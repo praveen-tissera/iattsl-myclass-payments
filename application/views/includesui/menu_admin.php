@@ -47,6 +47,7 @@
         <div class="dropdown-menu">
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_create">Add Student</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_assign_staff_classes">Assign Staff to Classes</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_lesson_plan">Lesson Plans</a>
           
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/new_tutes">Add New Tutes</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/attendanceview">Enter Attendance </a>

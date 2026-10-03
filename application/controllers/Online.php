@@ -57,7 +57,12 @@ class Online extends CI_Controller {
             $data['dashboard'] = $this->Admin_dashboard_model->get_summary();
             $this->load->view('admin/dashboard', $data);
             return;
+        }if ($this->session->userdata('user_role') === 'cordinator' || $this->session->userdata('user_role') === 'teacher') {
+            redirect('staff_dashboard');
+            return;
         }
+
+
 
         $result = $this->Online_User_model->get_acadamicyear();
         $data['academicyear'] = $result;

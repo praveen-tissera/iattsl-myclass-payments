@@ -17,47 +17,56 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <?php if (!empty($error)): ?><div class="alert alert-danger"><?php echo html_escape($error); ?></div><?php endif; ?>
 
         <?php echo form_open('admin_assign_staff_classes/save', array('class' => 'card card-body mb-4')); ?>
+            <?php if (!empty($edit_assignment)): ?>
+                <input type="hidden" name="assignment_id" value="<?php echo (int) $edit_assignment->ID; ?>">
+                <input type="hidden" name="academic_year" value="<?php echo (int) $edit_assignment->acadamic_year; ?>">
+                <input type="hidden" name="branch" value="<?php echo html_escape($edit_assignment->branch); ?>">
+                <div class="alert alert-info">Editing the assignment for <?php echo html_escape($edit_assignment->class_name . ' · ' . $edit_assignment->subject_name); ?>. You can change the staff member and assigned lesson plans.</div>
+            <?php endif; ?>
             <div class="form-row">
                 <div class="form-group col-md-3">
                     <label for="staff_id">Staff member</label>
                     <select class="form-control" id="staff_id" name="staff_id" required>
                         <option value="">Select staff</option>
                         <?php foreach ($staff as $member): ?>
-                            <option value="<?php echo (int) $member->ID; ?>"><?php echo html_escape($member->display_name . ' (' . $member->staff_role . ' · ' . $member->user_login . ')'); ?></option>
+                            <option value="<?php echo (int) $member->ID; ?>"<?php echo !empty($edit_assignment) && (int) $edit_assignment->staff_id === (int) $member->ID ? ' selected' : ''; ?>><?php echo html_escape($member->display_name . ' (' . $member->staff_role . ' · ' . $member->user_login . ')'); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group col-md-3">
                     <label for="academic_year">Academic year</label>
-                    <select class="form-control" id="academic_year" name="academic_year" required>
+                    <select class="form-control" id="academic_year" name="<?php echo empty($edit_assignment) ? 'academic_year' : ''; ?>" required<?php echo !empty($edit_assignment) ? ' disabled' : ''; ?>>
                         <option value="">Select academic year</option>
                         <?php foreach ($academic_years as $year): ?>
-                            <option value="<?php echo (int) $year->ID; ?>"><?php echo html_escape($year->label); ?></option>
+                            <option value="<?php echo (int) $year->ID; ?>"<?php echo !empty($edit_assignment) && (int) $edit_assignment->acadamic_year === (int) $year->ID ? ' selected' : ''; ?>><?php echo html_escape($year->label); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group col-md-3">
                     <label for="branch">Branch</label>
-                    <select class="form-control" id="branch" name="branch" required>
+                    <select class="form-control" id="branch" name="<?php echo empty($edit_assignment) ? 'branch' : ''; ?>" required<?php echo !empty($edit_assignment) ? ' disabled' : ''; ?>>
                         <option value="">Select branch</option>
                         <?php foreach ($branches as $branch): ?>
-                            <option value="<?php echo html_escape($branch); ?>"><?php echo html_escape($branch); ?></option>
+                            <option value="<?php echo html_escape($branch); ?>"<?php echo !empty($edit_assignment) && $edit_assignment->branch === $branch ? ' selected' : ''; ?>><?php echo html_escape($branch); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
             </div>
 
             <fieldset class="mb-3">
-                <legend class="h5">Classes and subjects</legend>
+                <legend class="h5"><?php echo empty($edit_assignment) ? 'Classes, subjects, and optional lesson plans' : 'Assigned lesson plans'; ?></legend>
                 <div id="subject-message" class="alert alert-info" role="status">Select an academic year and branch to load available classes and subjects.</div>
                 <div class="table-responsive">
                     <table class="table table-sm table-striped">
-                        <thead><tr><th>Assign</th><th>Class</th><th>Subject</th></tr></thead>
-                        <tbody id="subject-options"><tr><td colspan="3">Select an academic year and branch.</td></tr></tbody>
+                        <thead><tr><th>Assign</th><th>Class</th><th>Subject</th><th>Lesson plans</th></tr></thead>
+                        <tbody id="subject-options"><tr><td colspan="4">Select an academic year and branch.</td></tr></tbody>
                     </table>
                 </div>
             </fieldset>
-            <button type="submit" id="save-assignments" class="btn btn-primary align-self-start" disabled>Save assignments</button>
+            <button type="submit" id="save-assignments" class="btn btn-primary align-self-start" disabled><?php echo empty($edit_assignment) ? 'Save assignments' : 'Update assignment'; ?></button>
+            <?php if (!empty($edit_assignment)): ?>
+                <a class="btn btn-secondary align-self-start mt-2" href="<?php echo site_url('admin_assign_staff_classes'); ?>">Cancel</a>
+            <?php endif; ?>
         <?php echo form_close(); ?>
 
         <h2 class="h4 mb-3">Current staff assignments</h2>
@@ -66,7 +75,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <?php else: ?>
             <div class="table-responsive">
                 <table class="table table-striped table-bordered">
-                    <thead><tr><th>Staff</th><th>Academic year</th><th>Branch</th><th>Class</th><th>Subject</th><th>Assigned on</th><th></th></tr></thead>
+                    <thead><tr><th>Staff</th><th>Academic year</th><th>Branch</th><th>Class</th><th>Subject</th><th>Assigned on</th><th>Actions</th></tr></thead>
                     <tbody>
                     <?php foreach ($assignments as $assignment): ?>
                         <tr>
@@ -77,6 +86,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <td><?php echo html_escape($assignment->subject_name); ?></td>
                             <td><?php echo html_escape($assignment->created_at); ?></td>
                             <td>
+                                <a class="btn btn-sm btn-outline-primary mb-1" href="<?php echo site_url('admin_assign_staff_classes/edit/' . (int) $assignment->ID); ?>">Edit</a>
                                 <?php echo form_open('admin_assign_staff_classes/delete/' . (int) $assignment->ID, array('onsubmit' => "return confirm('Remove this staff assignment?');")); ?>
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                                 <?php echo form_close(); ?>
@@ -87,10 +97,71 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 </table>
             </div>
         <?php endif; ?>
+
+        <section class="mt-5">
+            <h2 class="h4 mb-3">Assigned lesson plan completion</h2>
+            <?php if (empty($assigned_lesson_plans)): ?>
+                <div class="alert alert-info">No lesson plans have been assigned to staff yet.</div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Academic year</th>
+                                <th>Branch</th>
+                                <th>Class</th>
+                                <th>Subject</th>
+                                <th>Lesson plan</th>
+                                <th>Status</th>
+                                <th>Started on</th>
+                                <th>Completed on</th>
+                                <th>Staff notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($assigned_lesson_plans as $lesson_plan): ?>
+                            <tr>
+                                <td><?php echo html_escape($lesson_plan->staff_name); ?></td>
+                                <td><?php echo html_escape($lesson_plan->academic_year); ?></td>
+                                <td><?php echo html_escape($lesson_plan->branch); ?></td>
+                                <td><?php echo html_escape($lesson_plan->class_name); ?></td>
+                                <td><?php echo html_escape($lesson_plan->subject_name); ?></td>
+                                <td><?php echo html_escape($lesson_plan->lesson_title); ?></td>
+                                <td>
+                                    <?php if ($lesson_plan->status === 'completed'): ?>
+                                        <span class="badge badge-success">Completed</span>
+                                    <?php elseif ($lesson_plan->status === 'started'): ?>
+                                        <span class="badge badge-info">Started</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-warning">Pending</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($lesson_plan->started_at)): ?>
+                                        <time datetime="<?php echo html_escape($lesson_plan->started_at); ?>"><?php echo html_escape($lesson_plan->started_at); ?></time>
+                                    <?php else: ?>
+                                        &mdash;
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($lesson_plan->status === 'completed' && !empty($lesson_plan->completed_at)): ?>
+                                        <time datetime="<?php echo html_escape($lesson_plan->completed_at); ?>"><?php echo html_escape($lesson_plan->completed_at); ?></time>
+                                    <?php else: ?>
+                                        &mdash;
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo !empty($lesson_plan->staff_notes) ? nl2br(html_escape($lesson_plan->staff_notes)) : '&mdash;'; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </section>
     </main>
     <script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
     <script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>
-</script>
     <script>
         (function () {
             var academicYear = document.getElementById('academic_year');
@@ -100,12 +171,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             var saveButton = document.getElementById('save-assignments');
             var requestNumber = 0;
             var subjectsUrl = <?php echo json_encode(site_url('admin_assign_staff_classes/subjects')); ?>;
+            var lessonPlansUrl = <?php echo json_encode(site_url('admin_assign_staff_classes/lesson_plans')); ?>;
+            var editAssignment = <?php echo !empty($edit_assignment) ? json_encode(array(
+                'class_id' => (int) $edit_assignment->class_id,
+                'subject_id' => (int) $edit_assignment->subject_id
+            )) : 'null'; ?>;
+            var editLessonPlanIds = <?php echo !empty($edit_lesson_plan_ids) ? json_encode(array_values($edit_lesson_plan_ids)) : '[]'; ?>;
 
             function clearOptions(text) {
                 options.textContent = '';
                 var row = document.createElement('tr');
                 var cell = document.createElement('td');
-                cell.colSpan = 3;
+                cell.colSpan = 4;
                 cell.textContent = text;
                 row.appendChild(cell);
                 options.appendChild(row);
@@ -147,15 +224,44 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         }
 
                         subjects.forEach(function (subject) {
+                            if (editAssignment &&
+                                (String(subject.class_id) !== String(editAssignment.class_id) ||
+                                    String(subject.subject_id) !== String(editAssignment.subject_id))) {
+                                return;
+                            }
+
                             var row = document.createElement('tr');
                             var assignCell = document.createElement('td');
                             var checkbox = document.createElement('input');
                             checkbox.type = 'checkbox';
-                            checkbox.name = 'subject_ids[]';
                             checkbox.value = subject.subject_id;
                             checkbox.setAttribute('aria-label', subject.class_name + ' - ' + subject.subject_name);
+                            var lessonCell = document.createElement('td');
+                            var lessonContainer = document.createElement('div');
+                            lessonContainer.className = 'small text-muted';
+                            lessonContainer.textContent = 'Select the subject to load lesson plans.';
+                            lessonCell.appendChild(lessonContainer);
+
+                            if (editAssignment) {
+                                checkbox.checked = true;
+                                checkbox.disabled = true;
+                                var hiddenSubject = document.createElement('input');
+                                hiddenSubject.type = 'hidden';
+                                hiddenSubject.name = 'subject_ids[]';
+                                hiddenSubject.value = subject.subject_id;
+                                assignCell.appendChild(hiddenSubject);
+                            } else {
+                                checkbox.name = 'subject_ids[]';
+                            }
+
                             checkbox.addEventListener('change', function () {
-                                saveButton.disabled = options.querySelectorAll('input:checked').length === 0;
+                                if (checkbox.checked) {
+                                    loadLessonPlans(subject, lessonContainer, []);
+                                } else {
+                                    lessonContainer.lessonPlanRequest = (lessonContainer.lessonPlanRequest || 0) + 1;
+                                    lessonContainer.textContent = 'Select the subject to load lesson plans.';
+                                    saveButton.disabled = options.querySelectorAll('input[name="subject_ids[]"]:checked').length === 0;
+                                }
                             });
                             assignCell.appendChild(checkbox);
                             row.appendChild(assignCell);
@@ -167,8 +273,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             var subjectCell = document.createElement('td');
                             subjectCell.textContent = subject.subject_name;
                             row.appendChild(subjectCell);
+                            row.appendChild(lessonCell);
                             options.appendChild(row);
+
+                            if (editAssignment) {
+                                loadLessonPlans(subject, lessonContainer, editLessonPlanIds);
+                            }
                         });
+                        if (editAssignment) {
+                            saveButton.disabled = false;
+                            if (options.children.length === 0) {
+                                clearOptions('The assigned class and subject are no longer available for this branch and academic year.');
+                            }
+                            return;
+                        }
                         message.textContent = 'Select one or more subjects to assign.';
                     })
                     .catch(function (error) {
@@ -181,8 +299,59 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     });
             }
 
+            function loadLessonPlans(subject, container, selectedPlanIds) {
+                container.lessonPlanRequest = (container.lessonPlanRequest || 0) + 1;
+                var currentRequest = container.lessonPlanRequest;
+                container.textContent = 'Loading lesson plans...';
+                var query = '?academic_year=' + encodeURIComponent(academicYear.value) +
+                    '&branch=' + encodeURIComponent(branch.value) +
+                    '&class_id=' + encodeURIComponent(subject.class_id) +
+                    '&subject_id=' + encodeURIComponent(subject.subject_id);
+                fetch(lessonPlansUrl + query, {credentials: 'same-origin'})
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            if (!response.ok) {
+                                throw new Error(data.error || 'Unable to load lesson plans.');
+                            }
+                            return data;
+                        });
+                    })
+                    .then(function (plans) {
+                        if (currentRequest !== container.lessonPlanRequest) {
+                            return;
+                        }
+                        container.textContent = '';
+                        if (!plans.length) {
+                            container.textContent = 'No lesson plans available for this subject.';
+                            return;
+                        }
+                        plans.forEach(function (plan) {
+                            var label = document.createElement('label');
+                            label.className = 'd-block font-weight-normal mb-1';
+                            var input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.name = 'lesson_plan_ids[' + subject.subject_id + '][]';
+                            input.value = plan.ID;
+                            input.checked = selectedPlanIds.indexOf(Number(plan.ID)) !== -1;
+                            label.appendChild(input);
+                            label.appendChild(document.createTextNode(' ' + plan.title));
+                            container.appendChild(label);
+                        });
+                    })
+                    .catch(function (error) {
+                        if (currentRequest !== container.lessonPlanRequest) {
+                            return;
+                        }
+                        container.textContent = error.message;
+                        container.className = 'small text-danger';
+                    });
+            }
+
             academicYear.addEventListener('change', loadOptions);
             branch.addEventListener('change', loadOptions);
+            if (editAssignment || (academicYear.value && branch.value)) {
+                loadOptions();
+            }
         }());
     </script>
 </body>
