@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Admin_student_create extends CI_Controller
 {
-    private $branches = array('HED', 'BAT', 'PEL', 'DIY', 'MAH', 'HRI', 'ONL');
+    private $branches = array('HED', 'BAT', 'PEL', 'DIY', 'MAH', 'HRI', 'ONL', 'MAT');
 
     public function __construct()
     {
@@ -72,7 +72,7 @@ class Admin_student_create extends CI_Controller
         $this->form_validation->set_rules('admission_date', 'Admission date', 'required|exact_length[10]');
         $this->form_validation->set_rules('class_id', 'Class', 'required|integer');
         $this->form_validation->set_rules('section_id', 'Subject', 'required|integer');
-        $this->form_validation->set_rules('branch', 'Branch', 'required|in_list[HED,BAT,PEL,DIY,MAH,HRI,ONL]');
+        $this->form_validation->set_rules('branch', 'Branch', 'required|in_list[HED,BAT,PEL,DIY,MAH,HRI,ONL,MAT]');
         $this->form_validation->set_rules('admission_number', 'Registration number', 'required|regex_match[/^[A-Z]{3}\/\d{2}-\d{3}-\d+$/]');
         $this->form_validation->set_rules('roll_number', 'Roll number', 'trim|max_length[50]');
         $this->form_validation->set_rules('name', 'Student name', 'required|trim|max_length[255]');

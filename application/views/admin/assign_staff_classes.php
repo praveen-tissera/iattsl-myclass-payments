@@ -54,7 +54,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             </div>
 
             <fieldset class="mb-3">
-                <legend class="h5"><?php echo empty($edit_assignment) ? 'Classes, subjects, and optional lesson plans' : 'Assigned lesson plans'; ?></legend>
+                <legend class="h5"><?php echo empty($edit_assignment) ? 'Classes and subjects' : 'Assigned lesson plans'; ?></legend>
+                <?php if (empty($edit_assignment)): ?>
+                    <div class="small text-muted mb-2">Lesson plans are optional. Save the staff/class assignment even if no lesson plans are available; you can edit the assignment later to add plans.</div>
+                <?php endif; ?>
                 <div id="subject-message" class="alert alert-info" role="status">Select an academic year and branch to load available classes and subjects.</div>
                 <div class="table-responsive">
                     <table class="table table-sm table-striped">
@@ -86,7 +89,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <td><?php echo html_escape($assignment->subject_name); ?></td>
                             <td><?php echo html_escape($assignment->created_at); ?></td>
                             <td>
-                                <a class="btn btn-sm btn-outline-primary mb-1" href="<?php echo site_url('admin_assign_staff_classes/edit/' . (int) $assignment->ID); ?>">Edit</a>
+                                <a class="btn btn-sm btn-outline-primary mb-1" href="<?php echo site_url('admin_assign_staff_classes/edit/' . (int) $assignment->ID); ?>">Edit / Assign lessons</a>
                                 <?php echo form_open('admin_assign_staff_classes/delete/' . (int) $assignment->ID, array('onsubmit' => "return confirm('Remove this staff assignment?');")); ?>
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                                 <?php echo form_close(); ?>
@@ -255,12 +258,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             }
 
                             checkbox.addEventListener('change', function () {
+                                saveButton.disabled = options.querySelectorAll('input[name="subject_ids[]"]:checked').length === 0;
                                 if (checkbox.checked) {
                                     loadLessonPlans(subject, lessonContainer, []);
                                 } else {
                                     lessonContainer.lessonPlanRequest = (lessonContainer.lessonPlanRequest || 0) + 1;
                                     lessonContainer.textContent = 'Select the subject to load lesson plans.';
-                                    saveButton.disabled = options.querySelectorAll('input[name="subject_ids[]"]:checked').length === 0;
                                 }
                             });
                             assignCell.appendChild(checkbox);
@@ -322,7 +325,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         }
                         container.textContent = '';
                         if (!plans.length) {
-                            container.textContent = 'No lesson plans available for this subject.';
+                            container.textContent = 'No lesson plans available. You can still save this staff/class assignment and assign plans later.';
                             return;
                         }
                         plans.forEach(function (plan) {

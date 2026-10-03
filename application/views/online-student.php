@@ -190,6 +190,9 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                             <input class="form-check-input" type="radio" name="center" id="DIY" value="DIY" > <label class="form-check-label" for="DIY">DIYAGAMA</label>
                           </div>
                           <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="center" id="MAT" value="MAT" > <label class="form-check-label" for="MAT">MATTEGODA</label>
+                          </div>
+                          <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="center" id="ONL" value="ONL" > <label class="form-check-label" for="ONL">ONLINE</label>
                           </div>
                           <div class="form-check form-check-inline">
@@ -215,6 +218,8 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                                 echo '<script>document.getElementById("ONL").checked = true;</script>';
                               }elseif($student_branch == 'HED'){
                                 echo '<script>document.getElementById("HED").checked = true;</script>';
+                              }elseif($student_branch == 'MAT'){
+                                echo '<script>document.getElementById("MAT").checked = true;</script>';
                               }
                               else{
                                 echo '<script>document.getElementById("PEL").checked = true;</script>';

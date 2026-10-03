@@ -81,6 +81,10 @@ class Staff_assignment_model extends CI_Model
 
     public function get_lesson_plans_for_subject($academic_year, $branch, $class_id, $subject_id)
     {
+        if (!$this->db->table_exists('wp_wlsm_lesson_plan_iattsl')) {
+            return array();
+        }
+
         return $this->db
             ->select('ID, title, description, hours_to_complete')
             ->where('acadamic_year', $academic_year)
@@ -112,6 +116,10 @@ class Staff_assignment_model extends CI_Model
                 : array();
             if (!is_array($plan_ids)) {
                 return FALSE;
+            }
+
+            if (empty($plan_ids)) {
+                continue;
             }
 
             $valid_plan_ids = array();
@@ -157,6 +165,15 @@ class Staff_assignment_model extends CI_Model
             $plan_ids = isset($lesson_plan_ids_by_subject[$subject->subject_id])
                 ? array_map('intval', $lesson_plan_ids_by_subject[$subject->subject_id])
                 : array();
+            if ($assignment && empty($plan_ids)) {
+                continue;
+            }
+
+            if (!$assignment && empty($plan_ids) &&
+                !$this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
+                continue;
+            }
+
             if (!$this->sync_assignment_lesson_plans($assignment_id, $plan_ids)) {
                 $this->db->trans_rollback();
                 return FALSE;
@@ -191,6 +208,10 @@ class Staff_assignment_model extends CI_Model
 
     public function get_assignment_lesson_plan_ids($assignment_id)
     {
+        if (!$this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
+            return array();
+        }
+
         $rows = $this->db
             ->select('lesson_plan_id')
             ->where('assignment_id', $assignment_id)
@@ -209,19 +230,21 @@ class Staff_assignment_model extends CI_Model
             return FALSE;
         }
 
-        $valid_plan_ids = array();
-        foreach ($this->get_lesson_plans_for_subject(
-            $assignment->acadamic_year,
-            $assignment->branch,
-            $assignment->class_id,
-            $assignment->subject_id
-        ) as $plan) {
-            $valid_plan_ids[] = (int) $plan->ID;
-        }
+        if (!empty($lesson_plan_ids)) {
+            $valid_plan_ids = array();
+            foreach ($this->get_lesson_plans_for_subject(
+                $assignment->acadamic_year,
+                $assignment->branch,
+                $assignment->class_id,
+                $assignment->subject_id
+            ) as $plan) {
+                $valid_plan_ids[] = (int) $plan->ID;
+            }
 
-        foreach ($lesson_plan_ids as $plan_id) {
-            if (!in_array((int) $plan_id, $valid_plan_ids, TRUE)) {
-                return FALSE;
+            foreach ($lesson_plan_ids as $plan_id) {
+                if (!in_array((int) $plan_id, $valid_plan_ids, TRUE)) {
+                    return FALSE;
+                }
             }
         }
 
@@ -230,7 +253,8 @@ class Staff_assignment_model extends CI_Model
             ->where('ID', $assignment_id)
             ->update('wp_wlsm_staff_assign_subject', array('staff_id' => $staff_id));
 
-        if ((int) $assignment->staff_id !== (int) $staff_id) {
+        if ((int) $assignment->staff_id !== (int) $staff_id &&
+            $this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
             $this->db
                 ->where('assignment_id', $assignment_id)
                 ->update('wp_wlsm_staff_assign_subject_lessonplan_iattsl', array(
@@ -271,6 +295,10 @@ class Staff_assignment_model extends CI_Model
     private function sync_assignment_lesson_plans($assignment_id, $lesson_plan_ids)
     {
         $lesson_plan_ids = array_values(array_unique(array_map('intval', $lesson_plan_ids)));
+        if (!$this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
+            return empty($lesson_plan_ids);
+        }
+
         $existing_rows = $this->db
             ->select('lesson_plan_id')
             ->where('assignment_id', $assignment_id)
@@ -326,6 +354,10 @@ class Staff_assignment_model extends CI_Model
 
     public function get_all_assigned_lesson_plans()
     {
+        if (!$this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
+            return array();
+        }
+
         return $this->db
             ->select('assignments.ID AS assignment_id, users.display_name AS staff_name, assignments.branch, sessions.label AS academic_year, classes.label AS class_name, sections.label AS subject_name, lesson_plans.title AS lesson_title, lesson_assignments.status, lesson_assignments.assigned_at, lesson_assignments.started_at, lesson_assignments.completed_at, lesson_assignments.staff_notes')
             ->from('wp_wlsm_staff_assign_subject_lessonplan_iattsl AS lesson_assignments')
@@ -351,9 +383,11 @@ class Staff_assignment_model extends CI_Model
         }
 
         $this->db->trans_begin();
-        $this->db
-            ->where('assignment_id', $assignment_id)
-            ->delete('wp_wlsm_staff_assign_subject_lessonplan_iattsl');
+        if ($this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
+            $this->db
+                ->where('assignment_id', $assignment_id)
+                ->delete('wp_wlsm_staff_assign_subject_lessonplan_iattsl');
+        }
         $this->db->where('ID', $assignment_id)->delete('wp_wlsm_staff_assign_subject');
         if ($this->db->trans_status() === FALSE || $this->db->affected_rows() !== 1) {
             $this->db->trans_rollback();
@@ -366,6 +400,22 @@ class Staff_assignment_model extends CI_Model
 
     public function get_assignments_for_staff($staff_id)
     {
+        if (!$this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
+            return $this->db
+                ->select('assignments.ID AS assignment_id, assignments.branch, assignments.acadamic_year, assignments.class_id, assignments.subject_id, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year, NULL AS lesson_plan_id, NULL AS lesson_status, NULL AS lesson_started_at, NULL AS lesson_completed_at, NULL AS lesson_staff_notes, NULL AS lesson_title, NULL AS lesson_description, NULL AS hours_to_complete, NULL AS lesson_attachments', FALSE)
+                ->from('wp_wlsm_staff_assign_subject AS assignments')
+                ->join('wp_wlsm_classes AS classes', 'classes.ID = assignments.class_id')
+                ->join('wp_wlsm_sections AS sections', 'sections.ID = assignments.subject_id')
+                ->join('wp_wlsm_sessions AS sessions', 'sessions.ID = assignments.acadamic_year', 'left')
+                ->where('assignments.staff_id', $staff_id)
+                ->order_by('assignments.acadamic_year', 'DESC')
+                ->order_by('assignments.branch', 'ASC')
+                ->order_by('classes.label', 'ASC')
+                ->order_by('sections.label', 'ASC')
+                ->get()
+                ->result();
+        }
+
         return $this->db
             ->select('assignments.ID AS assignment_id, assignments.branch, assignments.acadamic_year, assignments.class_id, assignments.subject_id, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year, lesson_assignments.lesson_plan_id, lesson_assignments.status AS lesson_status, lesson_assignments.started_at AS lesson_started_at, lesson_assignments.completed_at AS lesson_completed_at, lesson_assignments.staff_notes AS lesson_staff_notes, lesson_plans.title AS lesson_title, lesson_plans.description AS lesson_description, lesson_plans.hours_to_complete, lesson_plans.attachments AS lesson_attachments')
             ->from('wp_wlsm_staff_assign_subject AS assignments')
@@ -386,7 +436,8 @@ class Staff_assignment_model extends CI_Model
     public function update_staff_lesson_plan_status($staff_id, $assignment_id, $lesson_plan_id, $status, $staff_notes)
     {
         if (!in_array($status, array('pending', 'started', 'completed'), TRUE) ||
-            !is_string($staff_notes) || strlen($staff_notes) > 5000) {
+            !is_string($staff_notes) || strlen($staff_notes) > 5000 ||
+            !$this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
             return FALSE;
         }
 
@@ -425,6 +476,10 @@ class Staff_assignment_model extends CI_Model
 
     public function staff_can_access_lesson_plan($staff_id, $assignment_id, $lesson_plan_id)
     {
+        if (!$this->db->table_exists('wp_wlsm_staff_assign_subject_lessonplan_iattsl')) {
+            return FALSE;
+        }
+
         return $this->db
             ->from('wp_wlsm_staff_assign_subject_lessonplan_iattsl AS lesson_assignments')
             ->join('wp_wlsm_staff_assign_subject AS assignments', 'assignments.ID = lesson_assignments.assignment_id')
