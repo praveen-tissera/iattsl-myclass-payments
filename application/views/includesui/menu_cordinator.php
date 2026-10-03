@@ -55,6 +55,9 @@
      <li class="nav-item">
       <a class="nav-link" target="_blank" href="<?php echo base_url(); ?>index.php/QrScanner">QR Scanner</a>
      </li>
+     <li class="nav-item">
+      <a class="nav-link" href="<?php echo site_url('staff_profile'); ?>">My Profile</a>
+     </li>
     <li class="nav-item">
         <?php  
         // session check and if true show logout button else show login button
