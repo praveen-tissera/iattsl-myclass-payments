@@ -152,7 +152,8 @@ class Expence extends CI_Controller
             'title' => $this->input->post('title', TRUE),
             'type' => $expense_type,
             'amount' => number_format((float) $this->input->post('amount', TRUE), 2, '.', ''),
-            'created_at' => date('Y-m-d H:i:s')
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => (int) $this->session->userdata('user_id')
         ));
 
         if (!$saved) {

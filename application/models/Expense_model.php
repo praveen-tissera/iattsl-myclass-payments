@@ -26,10 +26,11 @@ class Expense_model extends CI_Model
     public function get_expenses()
     {
         return $this->db
-            ->select('id, expense_date, title, type, amount, created_at')
-            ->from($this->table)
-            ->order_by('expense_date', 'DESC')
-            ->order_by('id', 'DESC')
+            ->select("expenses.id, expenses.expense_date, expenses.title, expenses.type, expenses.amount, expenses.created_at, COALESCE(NULLIF(users.display_name, ''), users.user_login) AS created_by_name", FALSE)
+            ->from($this->table . ' AS expenses')
+            ->join('wp_users AS users', 'users.ID = expenses.created_by', 'left')
+            ->order_by('expenses.expense_date', 'DESC')
+            ->order_by('expenses.id', 'DESC')
             ->get()
             ->result();
     }
@@ -57,18 +58,19 @@ class Expense_model extends CI_Model
         $end_date = date('Y-m-t', strtotime($start_date));
 
         $this->db
-            ->select('id, expense_date, title, type, amount, created_at')
-            ->from($this->table)
-            ->where('expense_date >=', $start_date)
-            ->where('expense_date <=', $end_date);
+            ->select("expenses.id, expenses.expense_date, expenses.title, expenses.type, expenses.amount, expenses.created_at, COALESCE(NULLIF(users.display_name, ''), users.user_login) AS created_by_name", FALSE)
+            ->from($this->table . ' AS expenses')
+            ->join('wp_users AS users', 'users.ID = expenses.created_by', 'left')
+            ->where('expenses.expense_date >=', $start_date)
+            ->where('expenses.expense_date <=', $end_date);
 
         if ($type !== '') {
-            $this->db->where('type', $type);
+            $this->db->where('expenses.type', $type);
         }
 
         return $this->db
-            ->order_by('expense_date', 'ASC')
-            ->order_by('id', 'ASC')
+            ->order_by('expenses.expense_date', 'ASC')
+            ->order_by('expenses.id', 'ASC')
             ->get()
             ->result();
     }

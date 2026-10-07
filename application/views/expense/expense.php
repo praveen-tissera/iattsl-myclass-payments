@@ -99,19 +99,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <th>Date</th>
                             <th>Title</th>
                             <th>Type</th>
+                            <th>Entered by</th>
                             <th class="text-right">Amount</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($expenses)): ?>
-                            <tr><td colspan="5" class="text-center">No expenses recorded.</td></tr>
+                            <tr><td colspan="6" class="text-center">No expenses recorded.</td></tr>
                         <?php else: ?>
                             <?php foreach ($expenses as $expense): ?>
                                 <tr>
                                     <td><?php echo html_escape($expense->expense_date); ?></td>
                                     <td><?php echo html_escape($expense->title); ?></td>
                                     <td><?php echo html_escape($expense->type); ?></td>
+                                    <td><?php echo html_escape($expense->created_by_name ?: 'Not recorded'); ?></td>
                                     <td class="text-right"><?php echo number_format((float) $expense->amount, 2); ?></td>
                                     <td>
                                         <?php echo form_open('expence/remove', array('class' => 'd-inline')); ?>
