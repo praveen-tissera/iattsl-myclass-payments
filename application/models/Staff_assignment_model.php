@@ -35,6 +35,18 @@ class Staff_assignment_model extends CI_Model
             ->count_all_results() > 0;
     }
 
+    public function staff_can_manage_class_subject($staff_id, $class_id, $subject_id, $academic_year, $branch)
+    {
+        return $this->db
+            ->from('wp_wlsm_staff_assign_subject')
+            ->where('staff_id', (int) $staff_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->where('acadamic_year', (int) $academic_year)
+            ->where('branch', $branch)
+            ->count_all_results() > 0;
+    }
+
     public function get_academic_years()
     {
         return $this->db

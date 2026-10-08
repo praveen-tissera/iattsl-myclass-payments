@@ -572,6 +572,182 @@ class Welcome extends CI_Controller {
         
     }
 
+    public function tute_distribution_add_ajax()
+    {
+        if (!$this->input->is_ajax_request() || strtoupper($this->input->method()) !== 'POST') {
+            show_error('Tute assignments must be submitted with an AJAX POST request.', 405);
+        }
+
+        if (!$this->can_manage_tute_distributions()) {
+            return $this->tute_distribution_json(403, array('success' => FALSE, 'message' => 'You do not have permission to manage tute distributions.'));
+        }
+
+        $context = $this->get_tute_distribution_ajax_context();
+        $student_id = $this->input->post('student_id', TRUE);
+        $tute_id = $this->input->post('tute_id', TRUE);
+        $class_date = trim((string) $this->input->post('class_date', TRUE));
+        $date = DateTime::createFromFormat('!Y-m-d', $class_date);
+        if (!$context || !is_scalar($student_id) || !ctype_digit((string) $student_id) ||
+            (int) $student_id < 1 || !is_scalar($tute_id) || !ctype_digit((string) $tute_id) ||
+            (int) $tute_id < 1 || !$date || $date->format('Y-m-d') !== $class_date ||
+            $date->format('Y-m') !== date('Y-m') || $class_date > date('Y-m-d')) {
+            return $this->tute_distribution_json(400, array('success' => FALSE, 'message' => 'Select a valid student, tute, and date in the current month.'));
+        }
+
+        if (!$this->User_model->is_tute_distribution_student_in_class(
+            (int) $student_id,
+            $context['subject_id'],
+            $context['session_id'],
+            $context['branch']
+        )) {
+            return $this->tute_distribution_json(404, array('success' => FALSE, 'message' => 'The student is not in this class, subject, and branch.'));
+        }
+
+        $tute = $this->find_tute_for_distribution($context, (int) $tute_id);
+        if (!$tute) {
+            return $this->tute_distribution_json(404, array('success' => FALSE, 'message' => 'The selected tute is not available for this class and subject.'));
+        }
+
+        if ($this->User_model->has_tute_distribution_for_date(
+            array((int) $student_id),
+            $class_date,
+            array((int) $tute_id)
+        )) {
+            return $this->tute_distribution_json(409, array('success' => FALSE, 'message' => 'This tute is already assigned to this student on the selected date.'));
+        }
+
+        $record_id = $this->User_model->insert_single_student_tute(
+            (int) $student_id,
+            $class_date,
+            (int) $tute_id,
+            (int) $this->session->userdata('user_id')
+        );
+        if (!$record_id) {
+            return $this->tute_distribution_json(500, array('success' => FALSE, 'message' => 'Unable to save the tute assignment.'));
+        }
+
+        return $this->tute_distribution_json(200, array(
+            'success' => TRUE,
+            'record' => array(
+                'id' => $record_id,
+                'student_id' => (int) $student_id,
+                'tute_id' => (int) $tute_id,
+                'tute_title' => $tute->title,
+                'class_date' => $class_date,
+                'display_date' => $class_date
+            )
+        ));
+    }
+
+    public function tute_distribution_delete_ajax()
+    {
+        if (!$this->input->is_ajax_request() || strtoupper($this->input->method()) !== 'POST') {
+            show_error('Tute assignments must be deleted with an AJAX POST request.', 405);
+        }
+
+        if (!$this->can_manage_tute_distributions()) {
+            return $this->tute_distribution_json(403, array('success' => FALSE, 'message' => 'You do not have permission to manage tute distributions.'));
+        }
+
+        $context = $this->get_tute_distribution_ajax_context();
+        $record_id = $this->input->post('record_id', TRUE);
+        if (!$context || !is_scalar($record_id) || !ctype_digit((string) $record_id) ||
+            (int) $record_id < 1) {
+            return $this->tute_distribution_json(400, array('success' => FALSE, 'message' => 'Select a valid tute assignment to remove.'));
+        }
+
+        $record = $this->User_model->get_tute_distribution_record((int) $record_id);
+        if (!$record || (int) $record->tute_number < 1 ||
+            !$this->User_model->is_tute_distribution_student_in_class(
+                (int) $record->student_record_id,
+                $context['subject_id'],
+                $context['session_id'],
+                $context['branch']
+            )) {
+            return $this->tute_distribution_json(404, array('success' => FALSE, 'message' => 'The tute assignment was not found for this class.'));
+        }
+
+        $date = DateTime::createFromFormat('!Y-m-d', $record->class_date);
+        if (!$date || $date->format('Y-m-d') !== $record->class_date ||
+            $date->format('Y-m') !== date('Y-m') ||
+            !$this->find_tute_for_distribution($context, (int) $record->tute_number)) {
+            return $this->tute_distribution_json(403, array('success' => FALSE, 'message' => 'This assignment cannot be removed from the current summary.'));
+        }
+
+        if (!$this->User_model->delete_single_student_tute(
+            (int) $record->ID,
+            (int) $record->student_record_id
+        )) {
+            return $this->tute_distribution_json(500, array('success' => FALSE, 'message' => 'Unable to remove the tute assignment.'));
+        }
+
+        return $this->tute_distribution_json(200, array('success' => TRUE, 'record_id' => (int) $record->ID));
+    }
+
+    private function can_manage_tute_distributions()
+    {
+        return in_array($this->session->userdata('user_role'), array('administrator', 'teacher', 'cordinator'), TRUE);
+    }
+
+    private function get_tute_distribution_ajax_context()
+    {
+        $class_id = $this->input->post('class_id', TRUE);
+        $subject_id = $this->input->post('subject_id', TRUE);
+        $session_id = $this->input->post('session_id', TRUE);
+        $branch = $this->input->post('branch', TRUE);
+        if (!is_scalar($class_id) || !ctype_digit((string) $class_id) || (int) $class_id < 1 ||
+            !is_scalar($subject_id) || !ctype_digit((string) $subject_id) || (int) $subject_id < 1 ||
+            !is_scalar($session_id) || !ctype_digit((string) $session_id) || (int) $session_id < 1 ||
+            !is_string($branch) || !in_array($branch, array('HED', 'BAT', 'PEL', 'HRI', 'MAH', 'MAT', 'DIY'), TRUE)) {
+            return FALSE;
+        }
+
+        if ($this->session->userdata('user_role') !== 'administrator') {
+            $this->load->model('Staff_assignment_model');
+            if (!$this->Staff_assignment_model->staff_can_manage_class_subject(
+                (int) $this->session->userdata('user_id'),
+                (int) $class_id,
+                (int) $subject_id,
+                (int) $session_id,
+                $branch
+            )) {
+                return FALSE;
+            }
+        }
+
+        return array(
+            'class_id' => (int) $class_id,
+            'subject_id' => (int) $subject_id,
+            'session_id' => (int) $session_id,
+            'branch' => $branch
+        );
+    }
+
+    private function find_tute_for_distribution($context, $tute_id)
+    {
+        foreach ($this->User_model->get_tutes_datails(
+            $context['subject_id'],
+            $context['session_id'],
+            $context['class_id']
+        ) as $tute) {
+            if ((int) $tute->ID === (int) $tute_id) {
+                return $tute;
+            }
+        }
+
+        return FALSE;
+    }
+
+    private function tute_distribution_json($status, $payload)
+    {
+        $this->output
+            ->set_status_header($status)
+            ->set_content_type('application/json')
+            ->set_output(json_encode($payload));
+
+        return $this->output;
+    }
+
 
 
    // add tutes names to the systes then teachers can veiw
@@ -679,9 +855,19 @@ class Welcome extends CI_Controller {
         $branch = $this->input->post('branch');
         $class_id = $this->input->post('selectclassid');
         $class_name = $this->input->post('selectclassname');
+        $submitted_year = $this->input->post('academicyear');
 
+        if (!is_scalar($class_id) || !ctype_digit((string) $class_id) || (int) $class_id < 1 ||
+            !is_scalar($submitted_year) || !ctype_digit((string) $submitted_year) ||
+            (int) $submitted_year < 1 || !is_string($class_name) ||
+            !is_string($branch) || !in_array($branch, array('HED', 'BAT', 'PEL', 'HRI', 'MAH', 'MAT', 'DIY'), TRUE)) {
+            $this->session->set_flashdata('error', 'Select a valid class and academic year.');
+            redirect('welcome/tutedistribution');
+        }
+
+        $class_id = (int) $class_id;
         $class_detail = $class_id.'*'.$class_name;
-        $session_id = $this->input->post('academicyear');
+        $session_id = (int) $submitted_year;
         $academicyear = $this->input->post('academicyear');
 
 
@@ -825,150 +1011,175 @@ public function tutedistributionsubmit(){
         $class_detail = $class_id.'*'.$class_name;
         $session_id = $this->input->post('academicyear');
         $academicyear = $this->input->post('academicyear');
-        
+        $summary_url = 'welcome/tute_distribution_summary/'.$branch.'/'.$class_detail.'/'.$session_id;
+        $subject_id = (int) $this->input->post('selectsubjectid');
+        $selected_tutes = $this->input->post('tutenumber');
+        if (!is_array($selected_tutes)) {
+            $selected_tutes = array();
+        }
+        $selected_tute_ids = array_values(array_unique(array_filter(array_map(function ($id) {
+            return is_scalar($id) && ctype_digit((string) $id) ? (int) $id : 0;
+        }, $selected_tutes), function ($id) {
+            return $id > 0;
+        })));
+        $available_tutes = $this->User_model->get_tutes_datails($subject_id, $session_id, (int) $class_id);
+        $available_tute_ids = array();
+        foreach ($available_tutes as $available_tute) {
+            $available_tute_ids[] = (int) $available_tute->ID;
+        }
+        if (array_diff($selected_tute_ids, $available_tute_ids)) {
+            $this->session->set_flashdata('error', 'Select valid tutes for this class and subject.');
+            redirect($summary_url);
+        }
 
         // check button name btnsubmit value
         if($this->input->post('btnsubmit') == 'Update Old Attendance'){
-            echo "Update Old Attendace called";
-            // print_r($_POST);  
-            $all_student_ids = $this->input->post('student_id');
-            
-                $prefix = 'old_attendace';
+            $posted_records = $this->input->post('existing_tute_records');
+            $allowed_student_ids = $this->User_model->get_tute_distribution_student_ids(
+                $subject_id,
+                $session_id,
+                $branch
+            );
+            if (!is_array($posted_records) || empty($posted_records) || empty($allowed_student_ids)) {
+                $this->session->set_flashdata('error', 'No existing tute records were submitted for update.');
+                redirect($summary_url);
+            }
 
-                // Collect only keys starting with the prefix
-                $matchingKeys = array_filter(array_keys($_POST), function ($key) use ($prefix) {
-                    return strncmp($key, $prefix, strlen($prefix)) === 0; // starts with
-                });
-                // print_r($matchingKeys);
-                foreach($matchingKeys as $key){
-                    // extract student id and date from key
-                    // key format old_attendace_{student_id}_{date}
-                    $parts = explode('_', $key);
-                    $student_id = $parts[2];
-                    $date = $parts[3];
-                    if($parts[4] == 0){
-                        $tute_number = $this->input->post('tutenumber');;
-                       
-                    }else{
-                        $tute_number = $parts[4];
+            $allowed_student_ids = array_fill_keys($allowed_student_ids, TRUE);
+            $record_ids = array();
+            foreach ($posted_records as $record_id => $student_id) {
+                if (!ctype_digit((string) $record_id) || !is_scalar($student_id) ||
+                    !ctype_digit((string) $student_id) ||
+                    !isset($allowed_student_ids[(int) $student_id])) {
+                    $this->session->set_flashdata('error', 'Invalid student tute record submitted.');
+                    redirect($summary_url);
+                }
+
+                $record_ids[(int) $record_id] = (int) $student_id;
+            }
+
+            $existing_records = $this->User_model->get_tute_distribution_records(array_keys($record_ids));
+            if (count($existing_records) !== count($record_ids)) {
+                $this->session->set_flashdata('error', 'One or more tute records no longer exist. Refresh and try again.');
+                redirect($summary_url);
+            }
+
+            $data = array();
+            foreach ($existing_records as $existing_record) {
+                $record_id = (int) $existing_record->ID;
+                $student_id = (int) $existing_record->student_record_id;
+                $date = DateTime::createFromFormat('!Y-m-d', $existing_record->class_date);
+                if (!isset($record_ids[$record_id]) || $record_ids[$record_id] !== $student_id ||
+                    !$date || $date->format('Y-m-d') !== $existing_record->class_date ||
+                    $date->format('Y-m') !== date('Y-m')) {
+                    $this->session->set_flashdata('error', 'Only current-month tute records for this class can be updated.');
+                    redirect($summary_url);
+                }
+
+                $checkbox_key = 'old_attendace_'.$student_id.'_'.$existing_record->class_date.
+                    '_'.(int) $existing_record->tute_number.'_'.$record_id;
+                $checked = isset($_POST[$checkbox_key]);
+                $tute_number = (int) $existing_record->tute_number;
+                if ($checked && $tute_number === 0) {
+                    if (count($selected_tute_ids) !== 1) {
+                        $this->session->set_flashdata('error', 'Select exactly one tute to mark an unassigned record as distributed.');
+                        redirect($summary_url);
                     }
-                    
-                    $attendace = array();
-                    $attendace = 'P';
-
-                    $data[] = array(
-                        'student_id' => $student_id,
-                        'class_date' => $date,
-                        'attendace' => $attendace,
-                        'tute_number' => $tute_number,
-                        'staff_id' => $this->session->userdata('user_id'),
-                        'created_at' => date('Y-m-d H:i:s'),
-                    );
-
-
-
-                     
-
-                   
-                    // call model function to update attendace
-                    // $result_attendance = $this->User_model->update_student_attendace($data);
+                    $tute_number = $selected_tute_ids[0];
                 }
 
-                // print_r($data);
-                $result_attendance = $this->User_model->update_student_tutes($data,$all_student_ids);
-                if($result_attendance == 1){
-                    $this->session->set_flashdata('success', 'Tutes update successfully');
-                    // append to url branch, class_detail, session_id
-                    redirect('welcome/tute_distribution_summary/'.$branch.'/'.$class_detail.'/'.$session_id);
-                    // redirect('welcome/attendanceview');
-                }else{
-                    $this->session->set_flashdata('error', 'Error updating tutes');
-                    redirect('welcome/tute_distribution_summary/'.$branch.'/'.$class_detail.'/'.$session_id);
-                    // redirect('welcome/attendanceview');
-                }
-               
-           
-        
-                    
-                // }
+                $data[] = array(
+                    'record_id' => $record_id,
+                    'student_id' => $student_id,
+                    'class_date' => $existing_record->class_date,
+                    'attendace' => $checked ? 'P' : 'AB',
+                    'tute_number' => $checked ? $tute_number : 0,
+                    'staff_id' => (int) $this->session->userdata('user_id')
+                );
+            }
+
+            $result_attendance = $this->User_model->update_student_tutes($data);
+            if($result_attendance == 1){
+                $this->session->set_flashdata('success', 'Tutes update successfully');
+                redirect($summary_url);
+            }else{
+                $this->session->set_flashdata('error', 'Error updating tutes');
+                redirect($summary_url);
+            }
         }elseif($this->input->post('btnsubmit') == 'Add New Attendance'){
-            
-            $attendancedate = $this->input->post('attendancedate');
-            
+            if (empty($selected_tute_ids)) {
+                $this->session->set_flashdata('error', 'Select one or more valid tutes for this class and subject.');
+                redirect($summary_url);
+            }
+            $attendancedate = trim((string) $this->input->post('attendancedate', TRUE));
+            $date = DateTime::createFromFormat('!Y-m-d', $attendancedate);
+            if (!$date || $date->format('Y-m-d') !== $attendancedate) {
+                $this->session->set_flashdata('error', 'Select a valid distribution date.');
+                redirect($summary_url);
+            }
 
-            $attendace = array();
-            $tutes = array();
+            $submitted_student_ids = $this->input->post('student_id');
+            $allowed_student_ids = $this->User_model->get_tute_distribution_student_ids(
+                $subject_id,
+                $session_id,
+                $branch
+            );
+            if (!is_array($submitted_student_ids) || empty($allowed_student_ids)) {
+                $this->session->set_flashdata('error', 'No valid students were submitted for this distribution.');
+                redirect($summary_url);
+            }
 
-                
-             // Collect only keys starting with the prefix
-   
-                $prefix = 'old_attendace';
-                $matchingKeys = array_filter(array_keys($_POST), function ($key) use ($prefix) {
-                    return strncmp($key, $prefix, strlen($prefix)) === 0; // starts with
-                });
-              
-                $old_date_found = false;
-                foreach($matchingKeys as $key){
-                    // extract student id and date from key
-                    // key format old_attendace_{student_id}_{date}
-                    $parts = explode('_', $key);
-                    $student_id = $parts[2];
-                    $date = $parts[3];
-                 
-                    if(trim($attendancedate) == trim($date)){
-                        $old_date_found = true;
-                        break;
-                    }
+            $allowed_student_ids = array_fill_keys($allowed_student_ids, TRUE);
+
+            $student_ids = array();
+            foreach ($submitted_student_ids as $student_id) {
+                if (is_scalar($student_id) && ctype_digit((string) $student_id) &&
+                    isset($allowed_student_ids[(int) $student_id])) {
+                    $student_ids[] = (int) $student_id;
                 }
+            }
+            $student_ids = array_values(array_unique($student_ids));
+            if (empty($student_ids)) {
+                $this->session->set_flashdata('error', 'No valid students were submitted for this distribution.');
+                redirect($summary_url);
+            }
 
-                // check whether $this->input->post('attendancedate') is already exists in $date array
-                         
-                if($old_date_found){
-                    $this->session->set_flashdata('error', 'Tutes submitted for this date already exists');
-                    // redirect('welcome/tute_distribution_summary/'.$branch.'/'.$class_detail.'/'.$session_id);
-                }else{
-                foreach($_POST['student_id'] as $key => $value){
-                   
-                    if(isset($_POST['old_attendace_'.$value])){
-                        $tutes[$value]= $this->input->post('tutenumber');
-                        $attendace[$value] = 'P';
-                      
+            if ($this->User_model->has_tute_distribution_for_date(
+                $student_ids,
+                $attendancedate,
+                $selected_tute_ids
+            )) {
+                $this->session->set_flashdata('error', 'One or more selected tutes are already assigned on this date.');
+                redirect($summary_url);
+            }
 
-                    }elseif(isset($_POST['new_attendace_'.$value])){
-                        $tutes[$value]= $this->input->post('tutenumber');
-                        $attendace[$value] = 'P';
-                        
-                    }else{
-                        $tutes[$value]= 0;
-                        $attendace[$value] = 'AB';
-                        
-                        
-                    }
-                    $data = array(
-                        'student_id' => $value,
-                        'class_date' => $this->input->post('attendancedate'),
-                        'attendace' => $attendace,
-                        'tute_number' => $tutes,
-                        'staff_id' => $this->session->userdata('user_id'),
-                        'created_at' => date('Y-m-d H:i:s'),
-                    );
-            
-                    
-                }
-                // call model function to insert attendace
+            $data = array(
+                'class_date' => $attendancedate,
+                'attendace' => array(),
+                'tute_number' => array(),
+                'staff_id' => (int) $this->session->userdata('user_id')
+            );
+            $has_present_student = FALSE;
+            foreach ($student_ids as $student_id) {
+                $checked = isset($_POST['old_attendace_'.$student_id]) ||
+                    isset($_POST['new_attendace_'.$student_id]);
+                $has_present_student = $has_present_student || $checked;
+                $data['attendace'][$student_id] = $checked ? 'P' : 'AB';
+                $data['tute_number'][$student_id] = $checked ? $selected_tute_ids : array(0);
+            }
 
-                $result_attendance = $this->User_model->insert_student_tutes($data);
-                if($result_attendance == 1){
-                    $this->session->set_flashdata('success', 'Tute submitted successfully');
-                    redirect('welcome/tute_distribution_summary/'.$branch.'/'.$class_detail.'/'.$session_id);
-                    
-                }else{
-                    $this->session->set_flashdata('error', 'Error submitting tute');
-                    redirect('welcome/tute_distribution_summary/'.$branch.'/'.$class_detail.'/'.$session_id);
-                    
-                }
+            if (!$has_present_student) {
+                $this->session->set_flashdata('error', 'Mark at least one student as present before distributing tutes.');
+                redirect($summary_url);
+            }
 
-                }
+            $result_attendance = $this->User_model->insert_student_tutes($data);
+            if($result_attendance == 1){
+                $this->session->set_flashdata('success', 'Tutes submitted successfully');
+            }else{
+                $this->session->set_flashdata('error', 'Error submitting tutes');
+            }
+            redirect($summary_url);
         }
         
         

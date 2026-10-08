@@ -555,6 +555,33 @@ class User_model extends CI_Model{
         }
     }
 
+    public function get_tute_distribution_student_ids($subject_id, $session_id, $branch)
+    {
+        $students = $this->db
+            ->select('ID')
+            ->from('wp_wlsm_student_records')
+            ->where('section_id', (int) $subject_id)
+            ->where('session_id', (int) $session_id)
+            ->like('admission_number', $branch, 'after')
+            ->get()
+            ->result();
+
+        return array_map(function ($student) {
+            return (int) $student->ID;
+        }, $students);
+    }
+
+    public function is_tute_distribution_student_in_class($student_id, $subject_id, $session_id, $branch)
+    {
+        return $this->db
+            ->from('wp_wlsm_student_records')
+            ->where('ID', (int) $student_id)
+            ->where('section_id', (int) $subject_id)
+            ->where('session_id', (int) $session_id)
+            ->like('admission_number', $branch, 'after')
+            ->count_all_results() === 1;
+    }
+
 
 
 
@@ -686,30 +713,37 @@ class User_model extends CI_Model{
         // create for multiple trasactions use approach using trans_commit and trans_rollback
        
 
-        $attendance_data = array(); 
-
+        $attendance_data = array();
         $this->db->trans_begin();
-        // loop through data array and attendace array to insert each record
-        foreach($data['attendace'] as $key => $record){
-           
-            // print_r($record);
-            $attendance_data['student_record_id'] = $key;
-            $attendance_data['class_date'] = $data['class_date'];
-            $attendance_data['attendace'] = $record;
-            $attendance_data['tute_number'] = $data['tute_number'][$key];
-            $attendance_data['staff_id'] = $data['staff_id'];
-            $attendance_data['created_at'] = date('Y-m-d H:i:s');
-            
-            // print_r($attendance_data);
-             $result_attendace = $this->db->insert('wp_wlsm_student_tutes_iattsl', $attendance_data);
-            if($this->db->affected_rows() != 1){
-                echo "Error";
-                $this->db->trans_rollback();
-                return(0);
+        foreach ($data['attendace'] as $student_id => $attendance) {
+            $tute_numbers = $data['tute_number'][$student_id];
+            if (!is_array($tute_numbers)) {
+                $tute_numbers = array($tute_numbers);
             }
-             
+
+            foreach ($tute_numbers as $tute_number) {
+                $attendance_data = array(
+                    'student_record_id' => (int) $student_id,
+                    'class_date' => $data['class_date'],
+                    'attendace' => $attendance,
+                    'tute_number' => (int) $tute_number,
+                    'staff_id' => (int) $data['staff_id'],
+                    'created_at' => date('Y-m-d H:i:s')
+                );
+
+                if (!$this->db->insert('wp_wlsm_student_tutes_iattsl', $attendance_data)) {
+                    $this->db->trans_rollback();
+                    return 0;
+                }
+            }
         }
-        $this->db-> trans_commit();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return 0;
+        }
+
+        $this->db->trans_commit();
         return(1);
         // return true;
         // if($this->db->affected_rows() == 1){
@@ -777,60 +811,103 @@ class User_model extends CI_Model{
         ->get('wp_wlsm_gradewise_tutes_iattsl');
         return $query->result();
     }
-// update_student_attendace
-    public function update_student_tutes($data,$student_ids){
 
-        // loop through $student_ids and get the value ,  get current month and year in the format of 'YYYY-MM'
-        $current_month_year = date('Y-m');
-        foreach($student_ids as $student_id){
-            // check attendace value from $data array using key old_attendace_{student_id}_{class_date}
-            $class_date_filter = $current_month_year;
-            // create sql query to filter like this query SELECT * FROM wp_wlsm_student_attendance_iattsl WHERE student_record_id =108 AND class_date LIKE '2025-12%';
-            $condition = "student_record_id='{$student_id}' AND class_date LIKE '{$class_date_filter}%'";
-            $query = $this->db->select('*')
-            ->where($condition)
-            ->get('wp_wlsm_student_tutes_iattsl');
-            print_r($this->db->last_query());
-            if($query->num_rows() > 0){
-                $attendance_records = $query->result();
-                // loop through attendance_records and update attendace value as 'AB'
-
-                foreach($attendance_records as $record){
-                    $checkbox_key = 'old_attendace_'.$student_id.'_'.$record->class_date;
-                   
-                    $this->db->set('attendace', 'AB');
-                    $this->db->set('tute_number', 0);
-                    $this->db->where('ID', $record->ID);
-                     $this->db->where('class_date', $record->class_date);
-                    $this->db->update('wp_wlsm_student_tutes_iattsl');
-                    if($this->db->affected_rows() == -1){
-                        echo "Error";
-                    }
-                }
-            }
-
-            
-
-           
+    public function has_tute_distribution_for_date($student_ids, $class_date, $tute_ids)
+    {
+        if (empty($student_ids) || empty($tute_ids)) {
+            return FALSE;
         }
-            $this->db->trans_begin();
-            foreach($data as $key => $record){   
-                // print_r($record);
-                $this->db->where('student_record_id', $record['student_id']);
-                $this->db->where('class_date', $record['class_date']);
-                $this->db->update('wp_wlsm_student_tutes_iattsl', array('attendace' => $record['attendace'], 'tute_number' => $record['tute_number'], 'staff_id' => $record['staff_id'], 'created_at' => date('Y-m-d H:i:s')));
 
-                // print_r($this->db->last_query());
-                // echo "<br>";
-                // echo "Affected Rows: ".$this->db->affected_rows();
-                if($this->db->affected_rows() == -1){
-                    echo "Error";
-                    $this->db->trans_rollback();
-                    return(0);
-                }
+        return $this->db
+            ->from('wp_wlsm_student_tutes_iattsl')
+            ->where('class_date', $class_date)
+            ->where_in('student_record_id', $student_ids)
+            ->where_in('tute_number', $tute_ids)
+            ->count_all_results() > 0;
+    }
+
+    public function get_tute_distribution_records($record_ids)
+    {
+        if (empty($record_ids)) {
+            return array();
+        }
+
+        return $this->db
+            ->select('ID, student_record_id, class_date, tute_number')
+            ->from('wp_wlsm_student_tutes_iattsl')
+            ->where_in('ID', $record_ids)
+            ->get()
+            ->result();
+    }
+
+    public function get_tute_distribution_record($record_id)
+    {
+        return $this->db
+            ->select('ID, student_record_id, class_date, tute_number')
+            ->from('wp_wlsm_student_tutes_iattsl')
+            ->where('ID', (int) $record_id)
+            ->get()
+            ->row();
+    }
+
+    public function insert_single_student_tute($student_id, $class_date, $tute_id, $staff_id)
+    {
+        $inserted = $this->db->insert('wp_wlsm_student_tutes_iattsl', array(
+            'student_record_id' => (int) $student_id,
+            'class_date' => $class_date,
+            'attendace' => 'P',
+            'tute_number' => (int) $tute_id,
+            'staff_id' => (int) $staff_id,
+            'created_at' => date('Y-m-d H:i:s')
+        ));
+
+        return $inserted ? (int) $this->db->insert_id() : FALSE;
+    }
+
+    public function delete_single_student_tute($record_id, $student_id)
+    {
+        $this->db
+            ->where('ID', (int) $record_id)
+            ->where('student_record_id', (int) $student_id)
+            ->delete('wp_wlsm_student_tutes_iattsl');
+
+        return $this->db->affected_rows() === 1;
+    }
+
+// update_student_attendace
+    public function update_student_tutes($data)
+    {
+        if (empty($data)) {
+            return 0;
+        }
+
+        $current_month_start = date('Y-m-01');
+        $current_month_end = date('Y-m-t');
+        $this->db->trans_begin();
+        foreach ($data as $record) {
+            $updated = $this->db
+                ->where('ID', (int) $record['record_id'])
+                ->where('student_record_id', (int) $record['student_id'])
+                ->where('class_date', $record['class_date'])
+                ->where('class_date >=', $current_month_start)
+                ->where('class_date <=', $current_month_end)
+                ->update('wp_wlsm_student_tutes_iattsl', array(
+                    'attendace' => $record['attendace'],
+                    'tute_number' => (int) $record['tute_number'],
+                    'staff_id' => (int) $record['staff_id'],
+                    'created_at' => date('Y-m-d H:i:s')
+                ));
+            if (!$updated) {
+                $this->db->trans_rollback();
+                return 0;
             }
+        }
 
-        
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return 0;
+        }
+
         $this->db->trans_commit();
         return(1);
 

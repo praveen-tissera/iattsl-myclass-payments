@@ -287,9 +287,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <?php
                 // pass form clicked submit button value to confirm submit function
 
-                $attributes = array('id' => 'studentMarkList');
+                $attributes = array(
+                    'class' => 'tute-distribution-form',
+                    'data-add-url' => site_url('welcome/tute_distribution_add_ajax'),
+                    'data-delete-url' => site_url('welcome/tute_distribution_delete_ajax')
+                );
                
-                echo form_open('welcome/tutedistributionsubmit', $attributes); 
+                echo form_open('welcome/tute_distribution_summary', $attributes);
                 // print_r($subjectsdata);
                 // if (isset($subjectsdata) && is_array($subjectsdata)) { 
                 if (true) {
@@ -383,11 +387,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <input type="hidden" class="form-control" value="<?php echo $pclass_name; ?>" name="selectclassname">  
                 <input type="hidden" class="form-control" value="<?php echo $subject_id[$subjectName]; ?>" name="selectsubjectid">
                 <input type="hidden" class="form-control" value="<?php echo $subject_name[$subjectName]; ?>" name="selectsubjectname">
-
-
-                  <input type="hidden" class="form-control" value="<?php echo $branch; ?>" name="branch">
-                  <input type="hidden" name="academicyear" value="<?php echo $selected_academic_year; ?>">
-                  <input type="hidden" name="btnsubmit" id="btnsubmit">
+                <input type="hidden" value="<?php echo (int) $pclass_id; ?>" name="class_id">
+                <input type="hidden" value="<?php echo (int) $subject_id[$subjectName]; ?>" name="subject_id">
+                <input type="hidden" value="<?php echo html_escape($branch); ?>" name="branch">
+                <input type="hidden" value="<?php echo (int) $selected_academic_year; ?>" name="session_id">
+                <input type="hidden" name="academicyear" value="<?php echo (int) $selected_academic_year; ?>">
 <!-- 
                 <input class="btn btn-primary btn-block mb-2" type="submit" name="btnsubmit" value="Submit" onclick="changeButtonText()" id="submitBtn"> -->
                 <?php
@@ -408,49 +412,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <div class="col-sm-12 my-2 my-md-0 my-sm-2 col-md-4">
                       <!-- show only current month in the calender  -->
                       
-                      <input type="date" id="calendar" class="form-control mb-2" name="attendancedate" value="<?php echo $currentDate; ?>">
-                      <small id="datemsg" class="form-text text-muted mt-0 mb-1">Select class date to add new tute</small>
-
-
-
-                    <!-- create dropdown to show tute details -->
-                     <?php 
-                      // create foreach loop to loop through tutes array and get tute details for the subject
-                      echo "<select name='tutenumber' id='tute_details' class='form-control mb-2'>";
-                      
-                      foreach($tutes as $subject => $tute_details) {
-                        if ($subject == $subjectName) {
-                          // print_r($tute_details);
-                          if (isset($tute_details) && is_array($tute_details)) {
-                            foreach ($tute_details as $tute) {
-                              echo "<option value='" . $tute->ID . "'>Tute : " . $tute->title . "</option>";
-                            }
-                          } else {
-                            // echo "No tute details found for subject: " . $subject;
-                          }
-                        }
-                      }
-                      echo "</select>";
-                     
-                     ?>
-                     
-                     <small id="tutemsg" class="form-text text-muted mt-0 mb-1">Select Tute to Distributes</small>
-
-
+                      <label for="calendar-<?php echo (int) $subject_id[$subjectName]; ?>">Distribution date</label>
+                      <input type="date" id="calendar-<?php echo (int) $subject_id[$subjectName]; ?>"
+                             class="form-control mb-2 distribution-date" name="attendancedate"
+                             min="<?php echo date('Y-m-01'); ?>" max="<?php echo html_escape($currentDate); ?>"
+                             value="<?php echo html_escape($currentDate); ?>">
+                      <small class="form-text text-muted">Choose a date in this month. Use the tute selector in each student's row to assign immediately.</small>
                     </div>
-                    <div class="col-sm-12 col-md-2">
-                      <!-- create submit button -->
-                    <!-- <input class="btn btn-primary btn-block mb-2" type="submit" id="submitBtn" name="btnsubmit" value="Add New Attendace" onclick="confirmSubmit(event,this.value)"> -->
-                   
-                    <button  class=" btn btn-primary btn-block  btn-sm  my-md-0" id="submitBtn" type="submit" onclick="confirmSubmit(event, 'Add New Attendance')" value="Add New Attendance">Assign New Tute</button>
-
-                    </div>
-                    <div class="col col-sm-12 col-md-2">
-                    <!-- <input class="btn btn-secondary btn-block mb-2" id="updateBtn" type="submit" name="btnsubmit" value="Update Old Attendace" onclick="confirmSubmit(event,this.value)"> -->
-                    <button class="btn btn-secondary btn-block btn-sm my-md-0 mb-2 my-sm-1" id="updateBtn" type="submit" onclick="confirmSubmit(event, 'Update Old Attendance')" value="Update Old Attendance">Update Old Tute</button>
-
-                   </div>
-                   <div class="col-sm-12 col-md-4 text-md-right text-sm-center">
+                   <div class="col-sm-12 col-md-8">
                     <?php 
                     $staff_name = '';
                     $last_added_date = '';
@@ -488,7 +457,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         }
                     }
 
-                      echo '<span class="badge badge-danger" style="font-weight: bold;"> Last Update By: ' . $staff_name . '</span>';
+                      echo '<span class="badge badge-danger" style="font-weight: bold;"> Last Update By: ' . html_escape($staff_name) . '</span>';
                                     echo '<br>';
                                     echo '<span class="badge badge-secondary" style="font-weight: bold;"> Last Update Date: ';
                                     // get date and time on Y-m-d format and H:i:s format am pm
@@ -567,7 +536,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                            echo "<tr>";
                             echo "<td >" . $i . "</td>";
                             echo "<td>";
-                            echo "<input type='hidden' name='student_id[]' value='" . $student->ID . "'>";
                             echo "<span class='admission'>" .$student->admission_number. "</span>";
                             echo "<span class='copy-icon' onclick='copyCode(this)'>📋</span>";
                             echo "</td>";
@@ -583,6 +551,43 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             // echo "<span class='copy-icon' title='Copy Email' value='$student->email' onclick='copyEmail(this)'>Email📋</span>";
                             echo "</td>";
 
+                            $current_month_records = isset($attendances[$currentMonth]) && is_array($attendances[$currentMonth])
+                                ? $attendances[$currentMonth]
+                                : array();
+                            $student_tutes = isset($tutes[$subjectName]) && is_array($tutes[$subjectName])
+                                ? $tutes[$subjectName]
+                                : array();
+                            $current_month_markup = '<div class="student-tute-list" data-student-id="' . (int) $student->ID . '">';
+                            foreach ($current_month_records as $status) {
+                                $assigned_tute_id = (int) $status->tute_number;
+                                if ($assigned_tute_id < 1) {
+                                    continue;
+                                }
+
+                                $assigned_tute_title = 'Unknown tute';
+                                foreach ($student_tutes as $available_tute) {
+                                    if ((int) $available_tute->ID === $assigned_tute_id) {
+                                        $assigned_tute_title = $available_tute->title;
+                                        break;
+                                    }
+                                }
+
+                                $current_month_markup .= '<div class="student-tute-item d-flex align-items-center mb-1" data-record-id="' .
+                                    (int) $status->ID . '" data-tute-id="' . $assigned_tute_id . '" data-class-date="' .
+                                    html_escape($status->class_date) . '"><span class="badge badge-success text-wrap">' .
+                                    html_escape($assigned_tute_title) . ' - ' .
+                                    html_escape(date('Y-m-d', strtotime($status->class_date))) . '</span>' .
+                                    '<button type="button" class="btn btn-sm btn-link text-danger student-tute-delete ml-1" ' .
+                                    'aria-label="Remove ' . html_escape($assigned_tute_title) . ' assigned on ' .
+                                    html_escape($status->class_date) . '" title="Remove tute">&times;</button></div>';
+                            }
+                            $current_month_markup .= '</div><select class="form-control form-control-sm student-tute-select mt-2" ' .
+                                'data-student-id="' . (int) $student->ID . '"><option value="">Assign a tute...</option>';
+                            foreach ($student_tutes as $available_tute) {
+                                $current_month_markup .= '<option value="' . (int) $available_tute->ID . '">' .
+                                    html_escape($available_tute->title) . '</option>';
+                            }
+                            $current_month_markup .= '</select><small class="d-block student-tute-status" role="status" aria-live="polite"></small>';
 
 
                             
@@ -600,58 +605,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             // echo "<br>";
                                            
                                             // print_r($attendace);
-                                            // if currentmonth is equal to month set checkbox to checked 
+                                            // Show per-student tutes in the active month.
                                             // if($month){ //uncheck if you need to enable to updaate previous months attendance
                                             if($month == $currentMonth){
-                                                foreach($attendace as $date => $status){
-                                                  
-                                                  if($status->tute_number > 0){
-
-                                                  foreach($tutes as $subject => $tute_details) {
-                                                    if($tute_details && is_array($tute_details)) {
-                                                      foreach($tute_details as $tute) {
-                                                        if($tute->ID == $status->tute_number) {
-                                                          $tute_title = $tute->title;
-                                                          break 2; // Exit both loops once the match is found
-                                                        }
-                                                      }
-                                                    }
-                                                     
-                                                  }
-                                                    echo "<div class='form-group form-check'>";
-
-                                                    echo "<input class='form-check-input' type='checkbox' checked id='old_attendace_".$student->ID."_".$status->class_date."' value='P' name='old_attendace_".$student->ID."_".$status->class_date."_".$status->tute_number."' >";
-
-                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-success text-wrap">'.$status->class_date. "<br> Tute: ".$tute_title."</label>";
-                                                    
-                                                    echo "</div>";
-
-
-                                                    // echo "<span class='mx-1 dot-active' title='Present'></span> &nbsp;<br> ";
-                                                  }else if($status->tute_number == '0'){
-                                                     echo "<div class='form-group form-check'>";
-
-                                                    echo "<input class='form-check-input' type='checkbox' id='old_attendace_".$student->ID."_".$status->class_date."' name='old_attendace_".$student->ID."_".$status->class_date."_0' >";
-
-                                                    echo '<label for="old_attendace_'.$student->ID.'_'.$status->class_date.'" class="form-check-label  badge badge-danger">'.$status->class_date."</label>";
-                                                    // echo "<span class='mx-1 dot-inactive'  title='Absent'></span> &nbsp;<br> ";
-
-                                                    echo "</div>";
-                                                  }
-                                                
-                                                }
-                                              echo "<hr> <input type='checkbox' id='new_attendace_".$student->ID."' value='P' name='new_attendace_".$student->ID."'>";
-                                              
-                                              echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
+                                                echo $current_month_markup;
                                             }else{
-                                              foreach($attendace as $date => $status){
-                                              echo $status->class_date.": ";
-                                              if($status->tute_number > 0){
-                                                echo "<span class='mx-1 dot-active' title='Present(New)'></span> &nbsp;<br> ";
-                                              }else if($status->tute_number == '0'){
-                                                echo "<span class='mx-1 dot-inactive' title='Absent'></span> &nbsp;<br> ";
-                                              }
-                                            }
+                                                foreach ($attendace as $status) {
+                                                    $historical_tute_title = 'No tute assigned';
+                                                    foreach ($student_tutes as $available_tute) {
+                                                        if ((int) $available_tute->ID === (int) $status->tute_number) {
+                                                            $historical_tute_title = $available_tute->title;
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    echo '<div class="mb-1"><span class="badge ' .
+                                                        ((int) $status->tute_number > 0 ? 'badge-success' : 'badge-secondary') .
+                                                        ' text-wrap">' . html_escape($historical_tute_title) . ' - ' .
+                                                        html_escape(date('Y-m-d', strtotime($status->class_date))) .
+                                                        '</span></div>';
+                                                }
                                             
                                             }
                                             
@@ -671,17 +644,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         // $found = false;
 
                                         
-                                    }else{
-                                        // $found = false;
-
-                                        // foreach ($months as $month) {
-                                          if($month == $currentMonth){
-                                            echo "<td>";
-                                              echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
-                                              echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
-                                            echo "</td>";
-                                          } 
-                                        // }
+                                    } elseif (!$found && $month == $currentMonth) {
+                                        echo "<td>" . $current_month_markup . "</td>";
                                     }
                                 }
                                
@@ -691,10 +655,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 // if no payments found for student display empty cells for each month
                                 foreach ($months as $month) {
                                   if($month == $currentMonth){
-                                    echo "<td>";
-                                      echo "<input type='checkbox' value='P' id='new_attendace_".$student->ID."' name='new_attendace_".$student->ID."'>";
-                                      echo "<label class='form-check-label mx-1' for='new_attendace_".$student->ID."'>Present(New)</label>";
-                                    echo "</td>";
+                                    echo "<td>" . $current_month_markup . "</td>";
                                   } else {
                                     echo "<td>";
                                       echo "Yet to be enable";
@@ -891,74 +852,6 @@ function downloadStudentInfo() {
 </script>
 
 <script>
-  // calender control
-    // Get today's date
-    const today = new Date();
-
-    // Calculate first and last day of the current month
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    // Format dates as YYYY-MM-DD
-    const formatDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    // Set min and max attributes on the input
-    const calendar = document.getElementById('calendar');
-    calendar.min = formatDate(firstDay);
-   Date(lastDay);
-
-
- // Disable future dates — set max to today
-  calendar.max = formatDate(today);
-
-  // (Optional) Set a default value within the allowed range
-  const todayStr = formatDate(today);
-  calendar.value = (todayStr >= calendar.min && todayStr <= calendar.max)
-    ? todayStr
-    : calendar.min;
-
-</script>
-<script>
-
-
-
-function isDateAlreadyExists() {
-    // ✅ Get active tab
-    let activeTab = document.querySelector('.tab-pane.active');
-
-    if (!activeTab) return false;
-
-    // ✅ Get selected date
-    let dateInput = activeTab.querySelector('input[name="attendancedate"]');
-    let selectedDate = dateInput ? dateInput.value.trim() : '';
-
-    if (!selectedDate) return false;
-
-    // ✅ Get all inputs starting with old_attendace
-    let inputs = activeTab.querySelectorAll("input[name^='old_attendace_']");
-
-    let found = false;
-
-    inputs.forEach(input => {
-        let parts = input.name.split('_');
-
-        // format: old_attendace_980_2026-05-12
-        let date = parts[3];
-
-        if (date === selectedDate) {
-            found = true;
-        }
-    });
-
-    return found;
-}
-
-
 
 
 
@@ -998,7 +891,7 @@ function isDateAlreadyExists() {
 // ✅ CHECK DATE EXIST
     if (action === 'Add New Attendance') {
         if (isDateAlreadyExists()) {
-            alert("⚠️ Date already exists for selected date!");
+            alert("One or more selected tutes are already assigned on this date. Choose different tutes or update the existing distribution.");
             return false;
         }
     }
@@ -1046,5 +939,141 @@ function isDateAlreadyExists() {
   }
 
   }
+</script>
+<script>
+document.querySelectorAll('.tute-distribution-form').forEach(function (form) {
+    const dateInput = form.querySelector('.distribution-date');
+
+    function refreshStudentOptions() {
+        const selectedDate = dateInput.value;
+        form.querySelectorAll('.student-tute-select').forEach(function (select) {
+            const studentList = form.querySelector(
+                '.student-tute-list[data-student-id="' + select.dataset.studentId + '"]'
+            );
+            const assignedTutes = new Set();
+            if (studentList) {
+                studentList.querySelectorAll('.student-tute-item').forEach(function (item) {
+                    if (item.dataset.classDate === selectedDate) {
+                        assignedTutes.add(item.dataset.tuteId);
+                    }
+                });
+            }
+
+            Array.from(select.options).forEach(function (option) {
+                if (option.value !== '') {
+                    option.hidden = assignedTutes.has(option.value);
+                    option.disabled = option.hidden;
+                }
+            });
+            select.value = '';
+        });
+    }
+
+    async function postAjax(url, values) {
+        const payload = new FormData();
+        ['class_id', 'subject_id', 'session_id', 'branch'].forEach(function (name) {
+            const input = form.querySelector('input[name="' + name + '"]');
+            if (input) payload.set(name, input.value);
+        });
+        Object.keys(values).forEach(function (key) {
+            payload.set(key, values[key]);
+        });
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            body: payload,
+            credentials: 'same-origin'
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'The tute request could not be completed.');
+        }
+        return result;
+    }
+
+    dateInput.addEventListener('change', refreshStudentOptions);
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+    });
+
+    form.addEventListener('change', async function (event) {
+        const select = event.target.closest('.student-tute-select');
+        if (!select || !select.value) return;
+
+        const studentList = form.querySelector(
+            '.student-tute-list[data-student-id="' + select.dataset.studentId + '"]'
+        );
+        const status = select.parentElement.querySelector('.student-tute-status');
+        if (!dateInput.value || !studentList) {
+            select.value = '';
+            return;
+        }
+
+        const tuteId = select.value;
+        select.disabled = true;
+        status.textContent = 'Saving...';
+        try {
+            const result = await postAjax(form.dataset.addUrl, {
+                student_id: select.dataset.studentId,
+                tute_id: tuteId,
+                class_date: dateInput.value
+            });
+            const item = document.createElement('div');
+            item.className = 'student-tute-item d-flex align-items-center mb-1';
+            item.dataset.recordId = result.record.id;
+            item.dataset.tuteId = result.record.tute_id;
+            item.dataset.classDate = result.record.class_date;
+
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-success text-wrap';
+            badge.textContent = result.record.tute_title + ' - ' + result.record.display_date;
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn btn-sm btn-link text-danger student-tute-delete ml-1';
+            remove.setAttribute('aria-label', 'Remove ' + result.record.tute_title + ' assigned on ' + result.record.display_date);
+            remove.title = 'Remove tute';
+            remove.textContent = '×';
+
+            item.appendChild(badge);
+            item.appendChild(remove);
+            studentList.appendChild(item);
+            status.textContent = 'Tute assigned.';
+            refreshStudentOptions();
+        } catch (error) {
+            status.textContent = error.message;
+            window.alert(error.message);
+            select.value = '';
+        } finally {
+            select.disabled = false;
+        }
+    });
+
+    form.addEventListener('click', async function (event) {
+        const remove = event.target.closest('.student-tute-delete');
+        if (!remove) return;
+
+        const item = remove.closest('.student-tute-item');
+        const studentList = remove.closest('.student-tute-list');
+        if (!item || !studentList || !window.confirm('Remove this tute assignment?')) return;
+
+        const status = studentList.parentElement.querySelector('.student-tute-status');
+        remove.disabled = true;
+        status.textContent = 'Removing...';
+        try {
+            await postAjax(form.dataset.deleteUrl, {record_id: item.dataset.recordId});
+            item.remove();
+            status.textContent = 'Tute assignment removed.';
+            refreshStudentOptions();
+        } catch (error) {
+            status.textContent = error.message;
+            window.alert(error.message);
+            remove.disabled = false;
+        }
+    });
+
+    refreshStudentOptions();
+});
 </script>
 </html>
