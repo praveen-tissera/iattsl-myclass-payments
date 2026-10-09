@@ -63,6 +63,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <dd class="col-sm-9"><?php echo html_escape($grade->label); ?> / <?php echo html_escape($subject->subject_name); ?></dd>
                     <dt class="col-sm-3">Source Scope</dt>
                     <dd class="col-sm-9"><?php echo html_escape($set->material_scope); ?></dd>
+                    <dt class="col-sm-3">Source Sections</dt>
+                    <dd class="col-sm-9">
+                        <?php if (empty($set_sections)): ?>
+                            Not recorded
+                        <?php else: ?>
+                            <?php $names = array(); foreach ($set_sections as $ss) { $names[] = $ss->name; } echo html_escape(implode(', ', $names)); ?>
+                        <?php endif; ?>
+                    </dd>
                     <dt class="col-sm-3">Source Materials</dt>
                     <dd class="col-sm-9">
                         <?php if (empty($sources)): ?>
@@ -272,3 +280,5 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </main>
 </body>
 </html>
+<script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
+<script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>

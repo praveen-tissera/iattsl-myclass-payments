@@ -130,6 +130,64 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <input class="form-control" id="custom_marks" name="custom_marks" type="number" min="1" max="100" value="1" disabled>
                         </div>
                     </div>
+                    <?php if (!empty($sections_ready)): ?>
+                    <fieldset class="border rounded p-3 mb-3" id="source_selection">
+                        <legend class="h6 w-auto px-2">Question Source</legend>
+                        <?php $current_section_id = isset($discussion->section_id) ? (int) $discussion->section_id : 0; ?>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="source_mode" id="mode_discussion" value="discussion" checked>
+                            <label class="form-check-label" for="mode_discussion">This discussion and its materials (default)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="source_mode" id="mode_current" value="current_section">
+                            <label class="form-check-label" for="mode_current">Current section only</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="source_mode" id="mode_selected" value="selected_sections">
+                            <label class="form-check-label" for="mode_selected">Selected sections</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="source_mode" id="mode_all" value="all_sections">
+                            <label class="form-check-label" for="mode_all">All sections in this Grade and Subject</label>
+                        </div>
+                        <div id="section_source_panel" style="display:none">
+                            <input type="hidden" name="material_filter" value="1">
+                            <p class="small text-muted">Only processed materials can be used. Section discussions are kept separate; tick only the discussions you want included.</p>
+                            <?php foreach ($section_options as $section): ?>
+                                <?php $sid = (int) $section->ID; ?>
+                                <div class="border rounded p-2 mb-2 source-section" data-section-id="<?php echo $sid; ?>">
+                                    <div class="form-check">
+                                        <input class="form-check-input section-check" type="checkbox" name="section_ids[]" id="section_<?php echo $sid; ?>" value="<?php echo $sid; ?>" <?php echo $sid === $current_section_id ? 'checked' : ''; ?>>
+                                        <label class="form-check-label font-weight-bold" for="section_<?php echo $sid; ?>"><?php echo html_escape($section->name); ?><?php echo $sid === $current_section_id ? ' (current)' : ''; ?></label>
+                                    </div>
+                                    <div class="ml-4">
+                                        <?php if (empty($section->materials)): ?>
+                                            <div class="small text-muted">No materials in this section.</div>
+                                        <?php endif; ?>
+                                        <?php foreach ($section->materials as $material): ?>
+                                            <?php $ready = $material->processing_status === 'processed'; ?>
+                                            <div class="form-check">
+                                                <input class="form-check-input material-check" type="checkbox" name="material_ids[]" id="material_<?php echo (int) $material->ID; ?>" value="<?php echo (int) $material->ID; ?>" <?php echo $ready ? 'checked' : 'disabled'; ?>>
+                                                <label class="form-check-label" for="material_<?php echo (int) $material->ID; ?>">
+                                                    <?php echo html_escape($material->original_filename); ?>
+                                                    <?php if (!$ready): ?>
+                                                        <span class="badge badge-warning"><?php echo html_escape($material->processing_status === 'unsupported' ? 'Unsupported - not used' : ($material->processing_status === 'failed' ? 'Failed - not used' : ucfirst($material->processing_status) . ' - not used')); ?></span>
+                                                    <?php endif; ?>
+                                                </label>
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <?php foreach ($section->discussions as $sd): ?>
+                                            <div class="form-check">
+                                                <input class="form-check-input discussion-check" type="checkbox" name="discussion_ids[]" id="disc_<?php echo (int) $sd->ID; ?>" value="<?php echo (int) $sd->ID; ?>" <?php echo (int) $sd->ID === (int) $discussion->ID ? 'checked' : ''; ?>>
+                                                <label class="form-check-label" for="disc_<?php echo (int) $sd->ID; ?>">Include discussion #<?php echo (int) $sd->ID; ?> as context</label>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </fieldset>
+                    <?php endif; ?>
                     <div class="form-group">
                         <label for="additional_instructions">Additional Instructions</label>
                         <textarea class="form-control" id="additional_instructions" name="additional_instructions" rows="4" maxlength="3000"></textarea>
@@ -155,6 +213,28 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </main>
     <script>
         (function () {
+            var panel = document.getElementById('section_source_panel');
+            if (panel) {
+                var sync = function () {
+                    var chosen = document.querySelector('input[name="source_mode"]:checked').value;
+                    panel.style.display = chosen === 'discussion' ? 'none' : 'block';
+                    var current = document.querySelector('.section-check[checked]');
+                    Array.prototype.forEach.call(panel.querySelectorAll('.source-section'), function (box) {
+                        var check = box.querySelector('.section-check');
+                        var active;
+                        if (chosen === 'all_sections') { check.checked = true; check.disabled = true; active = true; }
+                        else if (chosen === 'current_section') { check.checked = check.defaultChecked; check.disabled = true; active = check.checked; }
+                        else { check.disabled = false; active = check.checked; }
+                        if (chosen === 'discussion') { check.disabled = true; }
+                        Array.prototype.forEach.call(box.querySelectorAll('.material-check, .discussion-check'), function (c) {
+                            if (!c.hasAttribute('data-locked')) { c.disabled = chosen === 'discussion' || !active; }
+                        });
+                    });
+                };
+                Array.prototype.forEach.call(document.querySelectorAll('.material-check:disabled'), function (c) { c.setAttribute('data-locked', '1'); });
+                Array.prototype.forEach.call(document.querySelectorAll('input[name="source_mode"], .section-check'), function (el) { el.addEventListener('change', sync); });
+                sync();
+            }
             var mode = document.getElementById('marks_mode');
             var marks = document.getElementById('custom_marks');
             mode.addEventListener('change', function () {
@@ -165,3 +245,5 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </script>
 </body>
 </html>
+<script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
+<script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>

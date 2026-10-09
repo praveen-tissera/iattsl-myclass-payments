@@ -119,6 +119,43 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 Secure material actions could not be created. Refresh the page or contact an administrator.
                             </div>
                         <?php elseif ($materials_table_ready && $material_form_token !== ''): ?>
+                            <?php
+                            $section_names = array();
+                            foreach ($sections as $section_row) {
+                                $section_names[(int) $section_row->ID] = $section_row->name;
+                            }
+                            ?>
+                            <?php if (!$sections_ready): ?>
+                                <div class="alert alert-info" role="alert">
+                                    Teaching sections are not initialized. Ask an administrator to review and apply
+                                    <code>database/migrations/20261012_create_ai_teaching_sections.sql</code>
+                                    to group materials and discussions into sections.
+                                </div>
+                            <?php else: ?>
+                                <div class="border rounded p-3 mb-3">
+                                    <h3 class="h5">Sections</h3>
+                                    <p class="small text-muted mb-2">
+                                        Group materials and discussions into sections. When generating questions you can use
+                                        the current section, several sections, or all sections of this Grade and Subject.
+                                    </p>
+                                    <p class="mb-2">
+                                        <?php foreach ($sections as $section_row): ?>
+                                            <span class="badge badge-secondary mr-1"><?php echo html_escape($section_row->name); ?></span>
+                                        <?php endforeach; ?>
+                                    </p>
+                                    <form method="post" action="<?php echo site_url('ai_learning/create_section'); ?>" class="form-inline">
+                                        <input type="hidden" name="class_id" value="<?php echo (int) $selected_grade_id; ?>">
+                                        <input type="hidden" name="subject_id" value="<?php echo (int) $selected_subject_id; ?>">
+                                        <input type="hidden" name="_ai_workspace_material_token" value="<?php echo html_escape($material_form_token); ?>">
+                                        <?php if ($csrf_enabled): ?>
+                                            <input type="hidden" name="<?php echo html_escape($csrf_token_name); ?>" value="<?php echo html_escape($csrf_hash); ?>">
+                                        <?php endif; ?>
+                                        <label class="sr-only" for="section_name">Section name</label>
+                                        <input class="form-control form-control-sm mr-2" id="section_name" name="section_name" maxlength="120" placeholder="New section name" required>
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">Add Section</button>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
                             <form
                                 method="post"
                                 action="<?php echo site_url('ai_learning/upload_materials'); ?>"
@@ -158,6 +195,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         <?php echo (int) $max_total_size_mb; ?> MB total per upload.
                                     </small>
                                 </div>
+                                <?php if ($sections_ready): ?>
+                                    <div class="form-group">
+                                        <label for="upload_section_id">Section</label>
+                                        <select class="form-control" id="upload_section_id" name="section_id">
+                                            <?php foreach ($sections as $section_row): ?>
+                                                <option value="<?php echo (int) $section_row->ID; ?>"><?php echo html_escape($section_row->name); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                <?php endif; ?>
                                 <button class="btn btn-primary" type="submit">Upload Materials</button>
                             </form>
 
@@ -181,7 +228,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         <?php echo html_escape(strtoupper($material->file_type)); ?>
                                                         &middot; <?php echo html_escape($formatted_size); ?>
                                                         &middot; Uploaded <?php echo html_escape(date('Y-m-d', strtotime($material->created_at))); ?>
+                                                        <?php if ($sections_ready && isset($material->section_id) && isset($section_names[(int) $material->section_id])): ?>
+                                                            &middot; Section: <?php echo html_escape($section_names[(int) $material->section_id]); ?>
+                                                        <?php endif; ?>
                                                     </div>
+                                                    <?php if ($sections_ready && count($sections) > 1 && (int) $material->teacher_id === (int) $this->session->userdata('user_id')): ?>
+                                                        <form method="post" action="<?php echo site_url('ai_learning/move_material_section'); ?>" class="form-inline mt-1">
+                                                            <input type="hidden" name="material_id" value="<?php echo (int) $material->ID; ?>">
+                                                            <input type="hidden" name="_ai_workspace_material_token" value="<?php echo html_escape($material_form_token); ?>">
+                                                            <?php if ($csrf_enabled): ?>
+                                                                <input type="hidden" name="<?php echo html_escape($csrf_token_name); ?>" value="<?php echo html_escape($csrf_hash); ?>">
+                                                            <?php endif; ?>
+                                                            <label class="sr-only" for="move_section_<?php echo (int) $material->ID; ?>">Move to section</label>
+                                                            <select class="form-control form-control-sm mr-1" id="move_section_<?php echo (int) $material->ID; ?>" name="section_id">
+                                                                <?php foreach ($sections as $section_row): ?>
+                                                                    <option value="<?php echo (int) $section_row->ID; ?>" <?php echo isset($material->section_id) && (int) $material->section_id === (int) $section_row->ID ? 'selected' : ''; ?>><?php echo html_escape($section_row->name); ?></option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                            <button class="btn btn-sm btn-outline-secondary" type="submit">Move</button>
+                                                        </form>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <form
                                                     method="post"
@@ -307,6 +373,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 <?php echo (int) $discussion->ID === (int) $discussion_option->ID ? 'selected' : ''; ?>
                                             >
                                                 Discussion #<?php echo (int) $discussion_option->ID; ?>
+                                                <?php if ($sections_ready && isset($discussion_option->section_id, $section_names[(int) $discussion_option->section_id])): ?>
+                                                    [<?php echo html_escape($section_names[(int) $discussion_option->section_id]); ?>]
+                                                <?php endif; ?>
                                                 &mdash; <?php echo html_escape(date('Y-m-d H:i', strtotime($discussion_option->updated_at))); ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -327,6 +396,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             name="<?php echo html_escape($csrf_token_name); ?>"
                                             value="<?php echo html_escape($csrf_hash); ?>"
                                         >
+                                    <?php endif; ?>
+                                    <?php if ($sections_ready): ?>
+                                        <label class="sr-only" for="new_discussion_section_id">Section</label>
+                                        <select class="form-control form-control-sm mr-1" id="new_discussion_section_id" name="section_id">
+                                            <?php foreach ($sections as $section_row): ?>
+                                                <option value="<?php echo (int) $section_row->ID; ?>" <?php echo isset($discussion->section_id) && (int) $discussion->section_id === (int) $section_row->ID ? 'selected' : ''; ?>><?php echo html_escape($section_row->name); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     <?php endif; ?>
                                     <button class="btn btn-sm btn-outline-primary" type="submit">New Discussion</button>
                                 </form>
@@ -553,3 +630,5 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </script>
 </body>
 </html>
+<script src="<?php echo base_url() . '/script/jquery.js' ?>"></script>
+<script src="<?php echo base_url() . '/script/bootstrap.min.js' ?>"></script>

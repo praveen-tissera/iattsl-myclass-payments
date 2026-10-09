@@ -12,6 +12,7 @@ class Ai_learning_model extends CI_Model
     private $question_sources_table = 'wp_wlsm_ai_question_sources_iattsl';
     private $visual_assets_table = 'wp_wlsm_ai_visual_assets_iattsl';
     private $question_visuals_table = 'wp_wlsm_ai_question_visuals_iattsl';
+    private $sections_ready = NULL;
 
     public function get_subjects_for_grade($grade_id)
     {
@@ -69,17 +70,27 @@ class Ai_learning_model extends CI_Model
             $this->db->field_exists('material_id', 'wp_wlsm_ai_discussion_materials_iattsl');
     }
 
-    public function create_discussion($teacher_id, $class_id, $subject_id)
+    public function create_discussion($teacher_id, $class_id, $subject_id, $section_id = NULL)
     {
         $now = date('Y-m-d H:i:s');
-        $this->db->insert('wp_wlsm_ai_discussions_iattsl', array(
+        $row = array(
             'teacher_id' => (int) $teacher_id,
             'class_id' => (int) $class_id,
             'subject_id' => (int) $subject_id,
             'material_scope' => 'ALL',
             'created_at' => $now,
             'updated_at' => $now
-        ));
+        );
+        if ($this->sections_schema_ready()) {
+            if ($section_id === NULL) {
+                $section_id = $this->ensure_default_section($teacher_id, $class_id, $subject_id);
+            }
+            if ($section_id === FALSE || (int) $section_id < 1) {
+                return FALSE;
+            }
+            $row['section_id'] = (int) $section_id;
+        }
+        $this->db->insert('wp_wlsm_ai_discussions_iattsl', $row);
 
         if ($this->db->affected_rows() !== 1) {
             return FALSE;
@@ -96,7 +107,7 @@ class Ai_learning_model extends CI_Model
     public function get_discussion($discussion_id, $teacher_id, $class_id, $subject_id)
     {
         return $this->db
-            ->select('ID, teacher_id, class_id, subject_id, material_scope')
+            ->select('*')
             ->from('wp_wlsm_ai_discussions_iattsl')
             ->where('ID', (int) $discussion_id)
             ->where('teacher_id', (int) $teacher_id)
@@ -108,8 +119,11 @@ class Ai_learning_model extends CI_Model
 
     public function get_discussions_for_context($teacher_id, $class_id, $subject_id)
     {
+        $this->db->select('ID, material_scope, created_at, updated_at');
+        if ($this->sections_schema_ready()) {
+            $this->db->select('section_id');
+        }
         return $this->db
-            ->select('ID, material_scope, created_at, updated_at')
             ->from('wp_wlsm_ai_discussions_iattsl')
             ->where('teacher_id', (int) $teacher_id)
             ->where('class_id', (int) $class_id)
@@ -1131,6 +1145,9 @@ class Ai_learning_model extends CI_Model
             ->where('class_id', (int) $class_id)
             ->where('subject_id', (int) $subject_id);
 
+        if ($this->sections_schema_ready()) {
+            $this->db->select('section_id');
+        }
         if ($processing_schema_ready) {
             $this->db->select('processing_status, processed_at, extraction_error, page_count, character_count');
         } else {
@@ -1144,6 +1161,240 @@ class Ai_learning_model extends CI_Model
         return $this->db
             ->order_by('created_at', 'DESC')
             ->order_by('ID', 'DESC')
+            ->get()
+            ->result();
+    }
+
+    private $sections_table = 'wp_wlsm_ai_sections_iattsl';
+    private $question_set_sections_table = 'wp_wlsm_ai_question_set_sections_iattsl';
+
+    public function sections_schema_ready()
+    {
+        if ($this->sections_ready === NULL) {
+            $this->sections_ready = $this->db->table_exists($this->sections_table) &&
+                $this->db->table_exists($this->question_set_sections_table) &&
+                $this->db->field_exists('section_id', $this->materials_table) &&
+                $this->db->field_exists('section_id', 'wp_wlsm_ai_discussions_iattsl');
+        }
+
+        return $this->sections_ready;
+    }
+
+    public function get_sections($teacher_id, $class_id, $subject_id)
+    {
+        return $this->db
+            ->select('ID, name, is_default')
+            ->from($this->sections_table)
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->order_by('is_default', 'DESC')
+            ->order_by('name', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    public function get_valid_sections($section_ids, $teacher_id, $class_id, $subject_id)
+    {
+        $section_ids = array_values(array_unique(array_map('intval', $section_ids)));
+        if (empty($section_ids) || in_array(0, $section_ids, TRUE)) {
+            return FALSE;
+        }
+
+        $sections = $this->db
+            ->select('ID, name, is_default')
+            ->from($this->sections_table)
+            ->where_in('ID', $section_ids)
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->order_by('ID', 'ASC')
+            ->get()
+            ->result();
+
+        return count($sections) === count($section_ids) ? $sections : FALSE;
+    }
+
+    public function ensure_default_section($teacher_id, $class_id, $subject_id)
+    {
+        $existing = $this->db
+            ->select('ID')
+            ->from($this->sections_table)
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->where('is_default', 1)
+            ->get()
+            ->row();
+        if ($existing) {
+            return (int) $existing->ID;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $this->db->query(
+            'INSERT IGNORE INTO ' . $this->db->protect_identifiers($this->sections_table, TRUE) .
+            ' (teacher_id, class_id, subject_id, name, is_default, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)',
+            array((int) $teacher_id, (int) $class_id, (int) $subject_id, 'General', $now, $now)
+        );
+        $row = $this->db
+            ->select('ID')
+            ->from($this->sections_table)
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->where('name', 'General')
+            ->get()
+            ->row();
+
+        return $row ? (int) $row->ID : FALSE;
+    }
+
+    public function create_section($teacher_id, $class_id, $subject_id, $name)
+    {
+        $exists = $this->db
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->where('name', $name)
+            ->count_all_results($this->sections_table);
+        if ($exists > 0) {
+            return FALSE;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $this->db->insert($this->sections_table, array(
+            'teacher_id' => (int) $teacher_id,
+            'class_id' => (int) $class_id,
+            'subject_id' => (int) $subject_id,
+            'name' => $name,
+            'is_default' => 0,
+            'created_at' => $now,
+            'updated_at' => $now
+        ));
+
+        return $this->db->affected_rows() === 1 ? (int) $this->db->insert_id() : FALSE;
+    }
+
+    public function move_material_to_section($material_id, $section_id, $teacher_id, $class_id, $subject_id)
+    {
+        $this->db
+            ->where('ID', (int) $material_id)
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->update($this->materials_table, array(
+                'section_id' => (int) $section_id,
+                'updated_at' => date('Y-m-d H:i:s')
+            ));
+
+        return $this->db->affected_rows() === 1;
+    }
+
+    // Every material in the workspace with its section and processing state, for the selection screen. No file content.
+    public function get_materials_with_sections($teacher_id, $class_id, $subject_id)
+    {
+        return $this->db
+            ->select('ID, section_id, original_filename, file_type, processing_status, extraction_error, page_count, character_count, status', FALSE)
+            ->from($this->materials_table)
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->where('status', 'stored')
+            ->order_by('ID', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    // Processed materials inside the validated sections, optionally restricted to specific material IDs.
+    public function get_source_materials($teacher_id, $class_id, $subject_id, $section_ids, $material_ids = array(), $include_content = TRUE)
+    {
+        if (empty($section_ids)) {
+            return array();
+        }
+
+        $fields = 'ID, section_id, original_filename, file_type, page_count, character_count';
+        if ($include_content) {
+            $fields .= ', extracted_text';
+        }
+        $this->db
+            ->select($fields)
+            ->from($this->materials_table)
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->where_in('section_id', array_map('intval', $section_ids))
+            ->where('processing_status', 'processed')
+            ->where('status', 'stored');
+        if (!empty($material_ids)) {
+            $this->db->where_in('ID', array_map('intval', $material_ids));
+        }
+
+        return $this->db->order_by('section_id', 'ASC')->order_by('ID', 'ASC')->get()->result();
+    }
+
+    public function get_discussions_with_sections($teacher_id, $class_id, $subject_id)
+    {
+        return $this->db
+            ->select('ID, section_id, updated_at')
+            ->from('wp_wlsm_ai_discussions_iattsl')
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->order_by('updated_at', 'DESC')
+            ->order_by('ID', 'DESC')
+            ->get()
+            ->result();
+    }
+
+    // Returns the discussions only when every ID belongs to the teacher's Grade/Subject and one of the validated sections.
+    public function get_discussions_for_sections($discussion_ids, $section_ids, $teacher_id, $class_id, $subject_id)
+    {
+        $discussion_ids = array_values(array_unique(array_map('intval', $discussion_ids)));
+        if (empty($discussion_ids)) {
+            return array();
+        }
+        if (in_array(0, $discussion_ids, TRUE) || empty($section_ids)) {
+            return FALSE;
+        }
+
+        $discussions = $this->db
+            ->select('ID, section_id')
+            ->from('wp_wlsm_ai_discussions_iattsl')
+            ->where_in('ID', $discussion_ids)
+            ->where_in('section_id', array_map('intval', $section_ids))
+            ->where('teacher_id', (int) $teacher_id)
+            ->where('class_id', (int) $class_id)
+            ->where('subject_id', (int) $subject_id)
+            ->order_by('ID', 'ASC')
+            ->get()
+            ->result();
+
+        return count($discussions) === count($discussion_ids) ? $discussions : FALSE;
+    }
+
+    public function save_question_set_sections($set_id, $section_ids)
+    {
+        foreach (array_unique(array_map('intval', $section_ids)) as $section_id) {
+            $this->db->query(
+                'INSERT IGNORE INTO ' . $this->db->protect_identifiers($this->question_set_sections_table, TRUE) .
+                ' (question_set_id, section_id) VALUES (?, ?)',
+                array((int) $set_id, $section_id)
+            );
+        }
+    }
+
+    public function get_question_set_sections($set_id)
+    {
+        if (!$this->sections_schema_ready()) {
+            return array();
+        }
+
+        return $this->db
+            ->select('sections.ID, sections.name')
+            ->from($this->question_set_sections_table . ' AS set_sections')
+            ->join($this->sections_table . ' AS sections', 'sections.ID = set_sections.section_id')
+            ->where('set_sections.question_set_id', (int) $set_id)
+            ->order_by('sections.name', 'ASC')
             ->get()
             ->result();
     }

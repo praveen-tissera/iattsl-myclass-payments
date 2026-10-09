@@ -180,6 +180,8 @@ class Ai_learning extends CI_Controller
             $material_notices = array();
         }
         $discussion_notice = $this->session->flashdata('ai_discussion_notice');
+        $sections_ready = FALSE;
+        $sections = array();
         $discussion_draft = $this->session->flashdata('ai_discussion_draft');
         if (!is_array($discussion_notice)) {
             $discussion_notice = array();
@@ -257,6 +259,20 @@ class Ai_learning extends CI_Controller
                         $selected_grade_id,
                         $selected_subject_id,
                         $role === 'teacher' ? $teacher_id : NULL
+                    );
+                }
+
+                $sections_ready = $this->Ai_learning_model->sections_schema_ready();
+                if ($sections_ready) {
+                    $this->Ai_learning_model->ensure_default_section(
+                        $teacher_id,
+                        $selected_grade_id,
+                        $selected_subject_id
+                    );
+                    $sections = $this->Ai_learning_model->get_sections(
+                        $teacher_id,
+                        $selected_grade_id,
+                        $selected_subject_id
                     );
                 }
 
@@ -343,6 +359,8 @@ class Ai_learning extends CI_Controller
             'materials_processing_schema_ready' => $materials_processing_schema_ready,
             'discussion_table_ready' => $discussion_table_ready,
             'discussion' => $discussion,
+            'sections_ready' => $sections_ready,
+            'sections' => $sections,
             'discussions' => $discussions,
             'discussion_messages' => $discussion_messages,
             'discussion_materials' => $discussion_materials,
@@ -680,7 +698,11 @@ class Ai_learning extends CI_Controller
             show_error('AI discussion history is not initialized. Please ask an administrator to apply the AI discussion migration.', 503);
         }
 
-        $discussion = $this->Ai_learning_model->create_discussion($teacher_id, $class_id, $subject_id);
+        $section_id = NULL;
+        if ($this->Ai_learning_model->sections_schema_ready()) {
+            $section_id = $this->resolve_posted_section($teacher_id, $class_id, $subject_id);
+        }
+        $discussion = $this->Ai_learning_model->create_discussion($teacher_id, $class_id, $subject_id, $section_id);
         if (!$discussion) {
             show_error('A new AI discussion could not be created. Please try again later.', 500);
         }
@@ -693,6 +715,180 @@ class Ai_learning extends CI_Controller
             '',
             (int) $discussion->ID
         );
+    }
+
+    public function create_section()
+    {
+        $this->verify_material_post();
+        $role = $this->require_workspace_role();
+        $teacher_id = (int) $this->session->userdata('user_id');
+        $class_id = $this->post_positive_integer('class_id');
+        $subject_id = $this->post_positive_integer('subject_id');
+        if (!$this->is_authorized_workspace_pair($role, $teacher_id, $class_id, $subject_id)) {
+            show_error('You do not have permission to create a section for this grade and subject.', 403);
+        }
+
+        $this->load->model('Ai_learning_model');
+        if (!$this->Ai_learning_model->sections_schema_ready()) {
+            show_error('Teaching sections are not initialized. Please ask an administrator to apply database/migrations/20261012_create_ai_teaching_sections.sql.', 503);
+        }
+
+        $name = $this->input->post('section_name', FALSE);
+        $name = is_string($name) ? trim(preg_replace('/\s+/u', ' ', $name)) : '';
+        if ($name === '' || preg_match('//u', $name) !== 1 || !$this->text_within_limit($name, 120)) {
+            $this->set_material_notices(array(array('success' => FALSE, 'message' => 'Enter a section name of up to 120 characters.')));
+            $this->redirect_to_workspace($class_id, $subject_id);
+        }
+
+        $this->Ai_learning_model->ensure_default_section($teacher_id, $class_id, $subject_id);
+        $created = $this->Ai_learning_model->create_section($teacher_id, $class_id, $subject_id, $name);
+        $this->set_material_notices(array(array(
+            'success' => $created !== FALSE,
+            'message' => $created !== FALSE
+                ? 'Section "' . $name . '" was created.'
+                : 'A section with that name already exists, or it could not be created.'
+        )));
+        $this->redirect_to_workspace($class_id, $subject_id);
+    }
+
+    public function move_material_section()
+    {
+        $this->verify_material_post();
+        $role = $this->require_workspace_role();
+        $teacher_id = (int) $this->session->userdata('user_id');
+        $material_id = $this->post_positive_integer('material_id');
+
+        $this->load->model('Ai_learning_model');
+        if (!$this->Ai_learning_model->sections_schema_ready()) {
+            show_error('Teaching sections are not initialized. Please ask an administrator to apply database/migrations/20261012_create_ai_teaching_sections.sql.', 503);
+        }
+
+        $material = $this->Ai_learning_model->get_material($material_id);
+        $this->assert_material_access($material, $role, $teacher_id);
+        if ((int) $material->teacher_id !== $teacher_id) {
+            show_error('You do not have permission to move this material.', 403);
+        }
+        $class_id = (int) $material->class_id;
+        $subject_id = (int) $material->subject_id;
+        $section_id = $this->resolve_posted_section($teacher_id, $class_id, $subject_id);
+
+        $moved = (int) $material->section_id === $section_id ||
+            $this->Ai_learning_model->move_material_to_section($material_id, $section_id, $teacher_id, $class_id, $subject_id);
+        $this->set_material_notices(array(array(
+            'success' => $moved,
+            'message' => $moved ? 'The material section was updated.' : 'The material section could not be updated.'
+        )));
+        $this->redirect_to_workspace($class_id, $subject_id);
+    }
+
+    private function parse_id_list($raw)
+    {
+        if ($raw === NULL || $raw === '') {
+            return array();
+        }
+        if (!is_array($raw) || count($raw) > 200) {
+            return FALSE;
+        }
+
+        $ids = array();
+        foreach ($raw as $value) {
+            if (!is_string($value) || !ctype_digit($value) || (int) $value < 1) {
+                return FALSE;
+            }
+            $ids[(int) $value] = (int) $value;
+        }
+
+        return array_values($ids);
+    }
+
+    // Resolves and server-validates sections, materials and discussions for a cross-section generation request.
+    private function resolve_section_sources($mode, $discussion, $teacher_id, $class_id, $subject_id)
+    {
+        if (!$this->Ai_learning_model->sections_schema_ready()) {
+            return array('error' => 'Teaching sections are not initialized. Please ask an administrator to apply database/migrations/20261012_create_ai_teaching_sections.sql.');
+        }
+
+        if ($mode === 'current_section') {
+            $section_ids = !empty($discussion->section_id) ? array((int) $discussion->section_id) : array();
+        } elseif ($mode === 'selected_sections') {
+            $section_ids = $this->parse_id_list($this->input->post('section_ids', FALSE));
+            if ($section_ids === FALSE) {
+                return array('error' => 'The selected sections are invalid.');
+            }
+        } else {
+            $section_ids = array();
+            foreach ($this->Ai_learning_model->get_sections($teacher_id, $class_id, $subject_id) as $section) {
+                $section_ids[] = (int) $section->ID;
+            }
+        }
+        if (empty($section_ids)) {
+            return array('error' => 'Select at least one section to use as a source.');
+        }
+
+        $sections = $this->Ai_learning_model->get_valid_sections($section_ids, $teacher_id, $class_id, $subject_id);
+        if ($sections === FALSE) {
+            return array('error' => 'One or more selected sections do not belong to this Grade and Subject or are not available to you. Nothing was sent to the AI.');
+        }
+
+        $material_ids = $this->parse_id_list($this->input->post('material_ids', FALSE));
+        $discussion_ids = $this->parse_id_list($this->input->post('discussion_ids', FALSE));
+        if ($material_ids === FALSE || $discussion_ids === FALSE) {
+            return array('error' => 'The selected materials or discussions are invalid.');
+        }
+
+        $materials = $this->Ai_learning_model->get_source_materials($teacher_id, $class_id, $subject_id, $section_ids, array(), TRUE);
+        $restricted = $this->input->post('material_filter', FALSE) === '1' || !empty($material_ids);
+        if ($restricted) {
+            $by_id = array();
+            foreach ($materials as $material) {
+                $by_id[(int) $material->ID] = $material;
+            }
+            $materials = array();
+            foreach ($material_ids as $material_id) {
+                if (!isset($by_id[$material_id])) {
+                    return array('error' => 'One or more selected materials are not successfully processed materials in the chosen sections. Processing, failed and unsupported files cannot be used as sources. Nothing was sent to the AI.');
+                }
+                $materials[] = $by_id[$material_id];
+            }
+        }
+
+        $discussions = $this->Ai_learning_model->get_discussions_for_sections($discussion_ids, $section_ids, $teacher_id, $class_id, $subject_id);
+        if ($discussions === FALSE) {
+            return array('error' => 'One or more selected discussions do not belong to the chosen sections. Nothing was sent to the AI.');
+        }
+
+        if (empty($materials) && empty($discussions)) {
+            return array('error' => 'The chosen sections have no processed materials selected. Process or select at least one material, or choose a discussion as context.');
+        }
+
+        return array(
+            'sections' => $sections,
+            'materials' => $materials,
+            'discussions' => $discussions,
+            'restricted' => $restricted
+        );
+    }
+
+    // Validates the browser-submitted section_id server-side; falls back to the default section when none is posted.
+    private function resolve_posted_section($teacher_id, $class_id, $subject_id)
+    {
+        $raw = $this->input->post('section_id', FALSE);
+        if ($raw === NULL || $raw === '') {
+            $default_id = $this->Ai_learning_model->ensure_default_section($teacher_id, $class_id, $subject_id);
+            if ($default_id === FALSE) {
+                show_error('The default teaching section could not be prepared.', 500);
+            }
+            return $default_id;
+        }
+        if (!is_string($raw) || !ctype_digit($raw) || (int) $raw < 1) {
+            show_error('The selected section is invalid.', 400);
+        }
+        $sections = $this->Ai_learning_model->get_valid_sections(array((int) $raw), $teacher_id, $class_id, $subject_id);
+        if ($sections === FALSE) {
+            show_error('You do not have permission to use the selected section.', 403);
+        }
+
+        return (int) $raw;
     }
 
     public function question_generator()
@@ -740,7 +936,30 @@ class Ai_learning extends CI_Controller
         if ($form_token === FALSE) {
             show_error('A secure question form token could not be created. Please contact an administrator.', 500);
         }
+        $sections_ready = $this->Ai_learning_model->sections_schema_ready();
+        $section_options = array();
+        if ($sections_ready) {
+            $this->Ai_learning_model->ensure_default_section($teacher_id, $class_id, $subject_id);
+            $section_materials = array();
+            foreach ($this->Ai_learning_model->get_materials_with_sections($teacher_id, $class_id, $subject_id) as $section_material) {
+                $section_materials[(int) $section_material->section_id][] = $section_material;
+            }
+            $section_discussions = array();
+            foreach ($this->Ai_learning_model->get_discussions_with_sections($teacher_id, $class_id, $subject_id) as $section_discussion) {
+                $section_discussions[(int) $section_discussion->section_id][] = $section_discussion;
+            }
+            foreach ($this->Ai_learning_model->get_sections($teacher_id, $class_id, $subject_id) as $section) {
+                $section_options[] = (object) array(
+                    'ID' => (int) $section->ID,
+                    'name' => $section->name,
+                    'materials' => isset($section_materials[(int) $section->ID]) ? $section_materials[(int) $section->ID] : array(),
+                    'discussions' => isset($section_discussions[(int) $section->ID]) ? $section_discussions[(int) $section->ID] : array()
+                );
+            }
+        }
         $this->load->view('ai_learning/question_generator', array(
+            'sections_ready' => $sections_ready,
+            'section_options' => $section_options,
             'grade' => $grade,
             'subject' => $subject,
             'discussion' => $discussion,
@@ -786,12 +1005,39 @@ class Ai_learning extends CI_Controller
             show_error('Question generation requires the reviewed teaching-material processing migration.', 503);
         }
 
+        $source_mode = $this->input->post('source_mode', FALSE);
+        if ($source_mode === NULL || $source_mode === '') {
+            $source_mode = 'discussion';
+        }
+        if (!is_string($source_mode) ||
+            !in_array($source_mode, array('discussion', 'current_section', 'selected_sections', 'all_sections'), TRUE)) {
+            $this->question_notice_redirect('Choose a valid source scope.', FALSE, $class_id, $subject_id, $discussion_id);
+        }
+        $section_source = NULL;
+        if ($source_mode !== 'discussion') {
+            $section_source = $this->resolve_section_sources($source_mode, $discussion, $teacher_id, $class_id, $subject_id);
+            if (isset($section_source['error'])) {
+                $this->question_notice_redirect($section_source['error'], FALSE, $class_id, $subject_id, $discussion_id);
+            }
+        }
+
         $question_context_limit = (int) $this->config->item('ai_question_max_context_bytes');
-        $estimated_source_context = $this->Ai_learning_model->get_discussion_materials_context_size(
-            $discussion,
-            $teacher_id
-        );
-        $discussion_history_bytes = $this->Ai_learning_model->get_discussion_history_bytes($discussion_id);
+        if ($section_source !== NULL) {
+            $estimated_source_context = array('text_bytes' => 0, 'material_count' => count($section_source['materials']));
+            foreach ($section_source['materials'] as $source_material) {
+                $estimated_source_context['text_bytes'] += strlen((string) $source_material->extracted_text);
+            }
+            $discussion_history_bytes = 0;
+            foreach ($section_source['discussions'] as $source_discussion) {
+                $discussion_history_bytes += $this->Ai_learning_model->get_discussion_history_bytes($source_discussion->ID);
+            }
+        } else {
+            $estimated_source_context = $this->Ai_learning_model->get_discussion_materials_context_size(
+                $discussion,
+                $teacher_id
+            );
+            $discussion_history_bytes = $this->Ai_learning_model->get_discussion_history_bytes($discussion_id);
+        }
         if ($question_context_limit < 1 ||
             $estimated_source_context['text_bytes'] + $discussion_history_bytes > $question_context_limit - 4096) {
             $this->question_notice_redirect(
@@ -855,8 +1101,13 @@ class Ai_learning extends CI_Controller
         $title = trim($title);
         $instructions = trim($instructions);
 
-        $materials = $this->Ai_learning_model->get_discussion_materials($discussion, $teacher_id, TRUE);
-        $history = $this->Ai_learning_model->get_discussion_messages($discussion_id);
+        if ($section_source !== NULL) {
+            $materials = $section_source['materials'];
+            $history = array();
+        } else {
+            $materials = $this->Ai_learning_model->get_discussion_materials($discussion, $teacher_id, TRUE);
+            $history = $this->Ai_learning_model->get_discussion_messages($discussion_id);
+        }
         $grade = $this->find_grade($this->Mark_model->get_classes(), $class_id);
         $subject = $this->find_subject($this->Ai_learning_model->get_subjects_for_grade($class_id), $subject_id);
         if (!$grade || !$subject) {
@@ -865,7 +1116,7 @@ class Ai_learning extends CI_Controller
         $context = array(
             'grade' => $grade->label,
             'subject' => $subject->subject_name,
-            'material_scope' => $discussion->material_scope,
+            'material_scope' => $section_source !== NULL ? $source_mode : $discussion->material_scope,
             'materials' => array(),
             'teacher_discussion' => array(),
             'generation_settings' => array(
@@ -878,16 +1129,41 @@ class Ai_learning extends CI_Controller
                 'additional_instructions' => $instructions
             )
         );
+        $section_name_by_id = array();
+        $source_scope_record = NULL;
+        if ($section_source !== NULL) {
+            foreach ($section_source['sections'] as $source_section) {
+                $section_name_by_id[(int) $source_section->ID] = $source_section->name;
+                $context['selected_sections'][] = array(
+                    'section_id' => (int) $source_section->ID,
+                    'name' => $source_section->name
+                );
+            }
+            $source_scope_record = array(
+                'mode' => $source_mode,
+                'section_ids' => array_keys($section_name_by_id),
+                'material_ids' => array(),
+                'discussion_ids' => array(),
+                'materials_restricted' => $section_source['restricted']
+            );
+        }
         $material_ids = array();
         foreach ($materials as $material) {
             if (!is_string($material->extracted_text) || !is_string($material->original_filename)) {
                 show_error('A processed source material could not be safely loaded.', 500);
             }
-            $context['materials'][] = array(
+            $material_entry = array(
                 'material_id' => (int) $material->ID,
                 'filename' => $material->original_filename,
                 'content' => $material->extracted_text
             );
+            if ($section_source !== NULL) {
+                $material_entry['section'] = isset($section_name_by_id[(int) $material->section_id])
+                    ? $section_name_by_id[(int) $material->section_id]
+                    : '';
+                $source_scope_record['material_ids'][] = (int) $material->ID;
+            }
+            $context['materials'][] = $material_entry;
             $material_ids[] = (int) $material->ID;
         }
         foreach ($history as $history_message) {
@@ -900,7 +1176,28 @@ class Ai_learning extends CI_Controller
                 'content' => $history_message->content
             );
         }
-
+        if ($section_source !== NULL) {
+            // Each chosen discussion stays a separate, labelled conversation; histories are never merged.
+            foreach ($section_source['discussions'] as $source_discussion) {
+                $messages = array();
+                foreach ($this->Ai_learning_model->get_discussion_messages($source_discussion->ID) as $history_message) {
+                    if (!in_array($history_message->role, array('user', 'assistant'), TRUE) ||
+                        !is_string($history_message->content)) {
+                        show_error('The saved discussion context is invalid.', 500);
+                    }
+                    $messages[] = array('role' => $history_message->role, 'content' => $history_message->content);
+                }
+                $context['teacher_discussion'][] = array(
+                    'section' => isset($section_name_by_id[(int) $source_discussion->section_id])
+                        ? $section_name_by_id[(int) $source_discussion->section_id]
+                        : '',
+                    'discussion_id' => (int) $source_discussion->ID,
+                    'messages' => $messages
+                );
+                $source_scope_record['discussion_ids'][] = (int) $source_discussion->ID;
+            }
+            $context['generation_settings']['source_scope'] = $source_scope_record;
+        }
         $context_json = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $maximum_context_bytes = (int) $this->config->item('ai_question_max_context_bytes');
         if ($context_json === FALSE || $maximum_context_bytes < 1 ||
@@ -921,7 +1218,11 @@ class Ai_learning extends CI_Controller
         $developer_instructions .= ' Aim to generate up to ' . $question_count . ' questions, and use only these requested question types: ' . implode(', ', $requested_types) . '. Return every complete question you can produce within the response limits; the application accepts any positive number up to ' . (int) $this->config->item('ai_question_max_count') . '. Do not add a partial or invalid question merely to reach the target. Do not substitute another question type. Use a JSON integer for marks and for every sub-question display_order, starting at 1 with no gaps.';
         $developer_instructions .= ' For each question, decide whether an actual visual is essential to answer it. Most questions should set visual_required=false, visual_source="none", visual_description="", visual_alt_text="", visual_source_material_id=0, and visual_source_page=0. Set visual_required=true only when the question explicitly requires a diagram, chart, flowchart, map, or other visual. For a new visual, use visual_source="ai_generated" and provide a precise visual_description and useful visual_alt_text. When the teacher explicitly requests a visual already present in an uploaded PDF, use visual_source="source_material", name its material_id from the supplied context, and give the exact 1-based page number; for image materials use page 0. Never claim a source visual exists if the provided context does not establish its source. Source references do not prevent creating new AI visuals when requested.';
         $developer_instructions .= ' Every MCQ must always contain exactly four non-empty entries in its options array, exactly one with is_correct=true and its text identical to answer, even when the question uses a visual. Never put the choices only in question_text, a visual, or leave options empty; the visual contains no options.';
-        $developer_instructions .= ' The teacher\'s current additional instructions and the selected question settings are authoritative and override any earlier discussion messages. Never reuse an old example, code snippet, topic or number range from earlier discussion when it conflicts with the current instructions. When the current instructions ask for a flowchart or diagram showing specific logic (for example printing 1 to 10), the question must be about exactly that logic, must not embed a different code listing, and visual_description must describe exactly that logic.';
+        $developer_instructions .= ' The teacher\'s current additional instructions and the selected question settings are authoritative and override any earlier discussion messages.';
+        if ($section_source !== NULL) {
+            $developer_instructions .= ' This request combines several teaching sections of one Grade and Subject. The context lists selected_sections, each material with its section, and any teacher discussions as separate labelled conversations per section; do not treat the conversations as one merged history, and do not attribute a question to a single document when several sources informed it. Cover the selected sections fairly.';
+        }
+        $developer_instructions .= ' Never reuse an old example, code snippet, topic or number range from earlier discussion when it conflicts with the current instructions. When the current instructions ask for a flowchart or diagram showing specific logic (for example printing 1 to 10), the question must be about exactly that logic, must not embed a different code listing, and visual_description must describe exactly that logic.';
         for ($generation_attempt = 1; $generation_attempt <= 2; $generation_attempt++) {
             $result = $this->openai_service->generate_structured_data(
                 $context_json,
@@ -1093,7 +1394,7 @@ class Ai_learning extends CI_Controller
             'description' => $generated->description,
             'source_limitations' => json_encode($generated->source_limitations, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'status' => 'draft',
-            'material_scope' => $discussion->material_scope,
+            'material_scope' => $section_source !== NULL ? 'SECTIONS' : $discussion->material_scope,
             'generation_instructions' => $instructions,
             'teacher_context' => json_encode($context['teacher_discussion'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'generation_settings' => json_encode($context['generation_settings'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
@@ -1108,6 +1409,9 @@ class Ai_learning extends CI_Controller
         }
 
         $saved_questions = $this->Ai_learning_model->get_questions($set_id);
+        if ($section_source !== NULL) {
+            $this->Ai_learning_model->save_question_set_sections($set_id, $source_scope_record['section_ids']);
+        }
         $visual_failures = 0;
         foreach ($saved_questions as $index => $saved_question) {
             if (empty($generated->questions[$index]->visual_required)) {
@@ -1571,6 +1875,7 @@ class Ai_learning extends CI_Controller
             show_error('The question set Grade or Subject could not be verified.', 500);
         }
         $this->load->view('ai_learning/question_set', array(
+            'set_sections' => $this->Ai_learning_model->get_question_set_sections((int) $set->ID),
             'set' => $set,
             'grade' => $grade,
             'subject' => $subject,
@@ -2335,6 +2640,11 @@ class Ai_learning extends CI_Controller
             return;
         }
 
+        $section_id = NULL;
+        if ($this->Ai_learning_model->sections_schema_ready()) {
+            $section_id = $this->resolve_posted_section($teacher_id, $class_id, $subject_id);
+        }
+
         $notices = array();
         $max_bytes = $max_file_size_mb * 1024 * 1024;
         $max_total_bytes = $max_total_size_mb * 1024 * 1024;
@@ -2418,7 +2728,7 @@ class Ai_learning extends CI_Controller
                 continue;
             }
             $now = date('Y-m-d H:i:s');
-            $created = $this->Ai_learning_model->create_material(array(
+            $material_row = array(
                 'teacher_id' => $teacher_id,
                 'class_id' => $class_id,
                 'subject_id' => $subject_id,
@@ -2430,7 +2740,11 @@ class Ai_learning extends CI_Controller
                 'status' => 'stored',
                 'created_at' => $now,
                 'updated_at' => $now
-            ));
+            );
+            if ($section_id !== NULL) {
+                $material_row['section_id'] = $section_id;
+            }
+            $created = $this->Ai_learning_model->create_material($material_row);
 
             if (!$created) {
                 if (!unlink($destination)) {
