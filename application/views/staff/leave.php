@@ -55,8 +55,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             </select>
                         </div>
                         <div class="form-group col-md-5">
-                            <label for="note">Note <span class="text-muted">(optional)</span></label>
-                            <input class="form-control" type="text" id="note" name="note" maxlength="2000">
+                            <label for="note">Reason <span class="text-danger">*</span></label>
+                            <input class="form-control" type="text" id="note" name="note" maxlength="2000" required placeholder="Reason for leave">
                         </div>
                     </div>
                     <button class="btn btn-primary" type="submit">Submit leave request</button>

@@ -42,8 +42,8 @@ class Staff_leave extends CI_Controller
         $date = is_string($leave_date) ? DateTime::createFromFormat('!Y-m-d', $leave_date) : FALSE;
         $valid_date = $date && $date->format('Y-m-d') === $leave_date;
 
-        if (!$valid_date || !in_array($type, array('Full', 'Half'), TRUE) || strlen($note) > 2000) {
-            $this->session->set_flashdata('error', 'Enter a valid leave date and type. The note must be 2000 characters or fewer.');
+        if (!$valid_date || !in_array($type, array('Full', 'Half'), TRUE) || $note === '' || strlen($note) > 2000) {
+            $this->session->set_flashdata('error', 'Enter a valid leave date, type and reason. The reason must be 2000 characters or fewer.');
         } elseif (!$this->Staff_leave_model->apply_leave(
             (int) $this->session->userdata('user_id'),
             $leave_date,
