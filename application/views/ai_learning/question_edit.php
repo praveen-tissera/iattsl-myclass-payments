@@ -19,6 +19,7 @@ foreach ($question->options as $index => $option) {
     <link rel="stylesheet" href="<?php echo base_url('css/institute-inner.css'); ?>">
 </head>
 <body class="institute-inner">
+    <?php $this->load->view('ai_learning/_sidebar'); ?>
     <main class="container" style="max-width: 65rem; margin: 2rem auto;">
         <section class="card shadow-sm">
             <div class="card-body p-4">

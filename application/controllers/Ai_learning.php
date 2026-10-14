@@ -124,12 +124,12 @@ class Ai_learning extends CI_Controller
     public function workspace()
     {
         $role = $this->session->userdata('user_role');
-        if ($role !== 'administrator' && $role !== 'teacher') {
+        if ($role !== 'administrator' && !in_array($role, array('teacher', 'cordinator'), TRUE)) {
             show_error('You do not have permission to access this page.', 403);
         }
 
         $teacher_id = (int) $this->session->userdata('user_id');
-        if ($role === 'teacher' && $teacher_id < 1) {
+        if ($role !== 'administrator' && $teacher_id < 1) {
             show_error('You do not have permission to access this page.', 403);
         }
 
@@ -182,6 +182,8 @@ class Ai_learning extends CI_Controller
         $discussion_notice = $this->session->flashdata('ai_discussion_notice');
         $sections_ready = FALSE;
         $sections = array();
+        $shared_sections = array();
+        $admin_material_groups = array();
         $discussion_draft = $this->session->flashdata('ai_discussion_draft');
         if (!is_array($discussion_notice)) {
             $discussion_notice = array();
@@ -258,7 +260,7 @@ class Ai_learning extends CI_Controller
                     $materials = $this->Ai_learning_model->get_materials_for_subject(
                         $selected_grade_id,
                         $selected_subject_id,
-                        $role === 'teacher' ? $teacher_id : NULL
+                        $role !== 'administrator' ? $teacher_id : NULL
                     );
                 }
 
@@ -274,6 +276,10 @@ class Ai_learning extends CI_Controller
                         $selected_grade_id,
                         $selected_subject_id
                     );
+                    if ($role !== 'administrator') {
+                        $shared_sections = $this->Ai_learning_model->get_admin_sections_for_staff($selected_grade_id, $selected_subject_id);
+                        $admin_material_groups = $this->Ai_learning_model->get_admin_materials_for_staff($selected_grade_id, $selected_subject_id);
+                    }
                 }
 
                 $discussion_table_ready = $this->Ai_learning_model->discussion_table_exists();
@@ -361,6 +367,8 @@ class Ai_learning extends CI_Controller
             'discussion' => $discussion,
             'sections_ready' => $sections_ready,
             'sections' => $sections,
+            'shared_sections' => $shared_sections,
+            'admin_material_groups' => $admin_material_groups,
             'discussions' => $discussions,
             'discussion_messages' => $discussion_messages,
             'discussion_materials' => $discussion_materials,
@@ -721,6 +729,9 @@ class Ai_learning extends CI_Controller
     {
         $this->verify_material_post();
         $role = $this->require_workspace_role();
+        if ($role !== 'administrator') {
+            show_error('Only an administrator can create sections.', 403);
+        }
         $teacher_id = (int) $this->session->userdata('user_id');
         $class_id = $this->post_positive_integer('class_id');
         $subject_id = $this->post_positive_integer('subject_id');
@@ -2595,6 +2606,9 @@ class Ai_learning extends CI_Controller
     {
         $this->verify_material_post();
         $role = $this->require_workspace_role();
+        if ($role !== 'administrator') {
+            show_error('Only an administrator can upload teaching materials.', 403);
+        }
         $teacher_id = (int) $this->session->userdata('user_id');
         $class_id = $this->post_positive_integer('class_id');
         $subject_id = $this->post_positive_integer('subject_id');
@@ -2892,6 +2906,60 @@ class Ai_learning extends CI_Controller
         ));
     }
 
+    // Streams a private material file. Owners and administrators may download their own scope; staff may also
+    // download administrator files in sections the administrator has made visible, for their assigned Grade and Subject.
+    public function download_material($material_id = NULL)
+    {
+        $role = $this->require_workspace_role();
+        $user_id = (int) $this->session->userdata('user_id');
+        if (!is_string($material_id) || !ctype_digit($material_id) || (int) $material_id < 1) {
+            show_error('The selected material could not be found.', 404);
+        }
+        $this->load->model('Ai_learning_model');
+        $material = $this->Ai_learning_model->get_material((int) $material_id);
+        if (!$material) {
+            show_error('The selected material could not be found.', 404);
+        }
+        if ($role !== 'administrator' && (int) $material->teacher_id !== $user_id) {
+            if (!$this->Ai_learning_model->is_admin_material_visible_to_staff($material) ||
+                !$this->is_authorized_workspace_pair($role, $user_id, (int) $material->class_id, (int) $material->subject_id)) {
+                show_error('You do not have permission to download this material.', 403);
+            }
+        } elseif (!$this->is_authorized_workspace_pair($role, $user_id, (int) $material->class_id, (int) $material->subject_id)) {
+            show_error('You do not have permission to download this material.', 403);
+        }
+        if (!is_string($material->stored_filename) ||
+            !preg_match('/^[a-f0-9]{32}\.(pdf|doc|docx|ppt|pptx|txt|jpg|jpeg|png)$/', $material->stored_filename)) {
+            show_error('The selected material has an invalid storage reference.', 500);
+        }
+        $directory = $this->private_material_directory(FALSE);
+        if ($directory === FALSE) {
+            show_error('Private teaching-material storage is unavailable.', 500);
+        }
+        $path = $directory . DIRECTORY_SEPARATOR . $material->stored_filename;
+        if (!is_file($path)) {
+            show_error('The file is no longer available.', 404);
+        }
+        $name = preg_replace('/[^A-Za-z0-9._ -]/', '_', (string) $material->original_filename);
+        $name = $name === '' ? $material->stored_filename : $name;
+        $mimes = array('pdf' => 'application/pdf', 'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'txt' => 'text/plain', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png');
+        $extension = strtolower(pathinfo($material->stored_filename, PATHINFO_EXTENSION));
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header('Content-Type: ' . $mimes[$extension]);
+        header('Content-Disposition: attachment; filename="' . $name . '"');
+        header('Content-Length: ' . filesize($path));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-store');
+        readfile($path);
+        exit;
+    }
+
     public function delete_material()
     {
         $this->verify_material_post();
@@ -2909,7 +2977,7 @@ class Ai_learning extends CI_Controller
             show_error('The selected material could not be found.', 404);
         }
 
-        if ($role === 'teacher' && (int) $material->teacher_id !== $teacher_id) {
+        if ($role !== 'administrator' && (int) $material->teacher_id !== $teacher_id) {
             show_error('You do not have permission to remove this material.', 403);
         }
 
@@ -2952,7 +3020,7 @@ class Ai_learning extends CI_Controller
     private function require_workspace_role()
     {
         $role = $this->session->userdata('user_role');
-        if ($role !== 'administrator' && $role !== 'teacher') {
+        if ($role !== 'administrator' && !in_array($role, array('teacher', 'cordinator'), TRUE)) {
             show_error('You do not have permission to access this page.', 403);
         }
 
@@ -2969,7 +3037,7 @@ class Ai_learning extends CI_Controller
             show_error('The selected material could not be found.', 404);
         }
 
-        if ($role === 'teacher' && (int) $material->teacher_id !== (int) $teacher_id) {
+        if ($role !== 'administrator' && (int) $material->teacher_id !== (int) $teacher_id) {
             show_error('You do not have permission to access this material.', 403);
         }
 

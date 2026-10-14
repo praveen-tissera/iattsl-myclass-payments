@@ -16,8 +16,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </style>
 </head>
 <body class="institute-inner">
+    <?php $this->load->view('ai_learning/_sidebar'); ?>
     <?php if ($user_role === 'administrator'): ?>
         <?php $this->load->view('includesui/menu_admin'); ?>
+    <?php elseif ($user_role === 'cordinator'): ?>
+        <?php $this->load->view('includesui/menu_cordinator'); ?>
     <?php elseif ($user_role === 'teacher'): ?>
         <?php $this->load->view('includesui/menu_teacher'); ?>
     <?php endif; ?>
@@ -97,8 +100,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <section class="mt-4" aria-labelledby="teaching-materials-heading">
                         <h2 class="h4" id="teaching-materials-heading">Teaching Materials</h2>
                         <p class="text-muted">
-                            Upload materials that you want the AI to use when creating questions and activities for this class.
-                            Files are stored privately. Text extraction does not send material content to AI.
+                            <?php echo $user_role === 'administrator'
+                                ? 'Upload materials that you want the AI to use when creating questions and activities for this class. Files are stored privately. Text extraction does not send material content to AI.'
+                                : 'Teaching files for this class are uploaded by the administrator. Download them below.'; ?>
                         </p>
 
                         <?php if (!$materials_table_ready): ?>
@@ -143,6 +147,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <span class="badge badge-secondary mr-1"><?php echo html_escape($section_row->name); ?></span>
                                         <?php endforeach; ?>
                                     </p>
+                                    <?php if ($user_role !== 'administrator'): ?>
+                                        <?php if (!empty($shared_sections)): ?>
+                                            <p class="small text-muted mb-1">Sections created by the administrator (view only):</p>
+                                            <p class="mb-2">
+                                                <?php foreach ($shared_sections as $shared_row): ?>
+                                                    <span class="badge badge-info mr-1"><?php echo html_escape($shared_row->name); ?></span>
+                                                <?php endforeach; ?>
+                                            </p>
+                                        <?php endif; ?>
+                                        <p class="small text-muted mb-0">Only an administrator can create or delete sections.</p>
+                                    <?php else: ?>
                                     <form method="post" action="<?php echo site_url('ai_learning/create_section'); ?>" class="form-inline">
                                         <input type="hidden" name="class_id" value="<?php echo (int) $selected_grade_id; ?>">
                                         <input type="hidden" name="subject_id" value="<?php echo (int) $selected_subject_id; ?>">
@@ -154,8 +169,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         <input class="form-control form-control-sm mr-2" id="section_name" name="section_name" maxlength="120" placeholder="New section name" required>
                                         <button class="btn btn-sm btn-outline-primary" type="submit">Add Section</button>
                                     </form>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
+                            <?php if ($user_role === 'administrator'): ?>
                             <form
                                 method="post"
                                 action="<?php echo site_url('ai_learning/upload_materials'); ?>"
@@ -207,8 +224,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <?php endif; ?>
                                 <button class="btn btn-primary" type="submit">Upload Materials</button>
                             </form>
+                            <?php endif; ?>
 
-                            <h3 class="h5">Uploaded Materials</h3>
+                            <?php if ($user_role !== 'administrator'): ?>
+                                <h3 class="h5">Files from the administrator</h3>
+                                <?php if (empty($admin_material_groups)): ?>
+                                    <p class="text-muted">The administrator has not shared any files for this Grade and Subject yet.</p>
+                                <?php else: ?>
+                                    <?php foreach ($admin_material_groups as $group): ?>
+                                        <div class="card mb-3">
+                                            <div class="card-header bg-white"><strong><?php echo html_escape($group['section']->name); ?></strong></div>
+                                            <ul class="list-group list-group-flush">
+                                                <?php foreach ($group['files'] as $file): ?>
+                                                    <?php $file_size = (int) $file->file_size; ?>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                                        <span>
+                                                            <?php echo html_escape($file->original_filename); ?>
+                                                            <small class="text-muted">&middot; <?php echo html_escape(strtoupper($file->file_type)); ?> &middot; <?php echo $file_size >= 1048576 ? number_format($file_size / 1048576, 1) . ' MB' : number_format($file_size / 1024, 1) . ' KB'; ?></small>
+                                                        </span>
+                                                        <a class="btn btn-sm btn-outline-primary" href="<?php echo site_url('ai_learning/download_material/' . (int) $file->ID); ?>">Download</a>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                            <h3 class="h5"><?php echo $user_role === 'administrator' ? 'Uploaded Materials' : 'Your Uploaded Materials'; ?></h3>
                             <?php if (empty($materials)): ?>
                                 <p class="text-muted">No materials have been uploaded for this Grade and Subject.</p>
                             <?php else: ?>
@@ -339,6 +381,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <?php endif; ?>
                     </section>
 
+                    <?php if ($user_role === 'administrator'): ?>
                     <section class="mt-5" aria-labelledby="ai-discussion-heading">
                         <h2 class="h4" id="ai-discussion-heading">AI Teacher Discussion</h2>
                         <p class="text-muted">
@@ -603,9 +646,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         'subject_id' => (int) $selected_subject_id
                                     ))); ?>"
                                 >View Question Sets</a>
+                                <a
+                                    class="btn btn-outline-secondary"
+                                    href="<?php echo site_url('ai_activities?' . http_build_query(array(
+                                        'grade_id' => (int) $selected_grade_id,
+                                        'subject_id' => (int) $selected_subject_id
+                                    ))); ?>"
+                                >Learning Activities</a>
                             </div>
                         <?php endif; ?>
                     </section>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </section>

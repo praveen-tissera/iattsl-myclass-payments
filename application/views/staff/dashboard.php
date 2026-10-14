@@ -202,6 +202,7 @@ foreach ($assignments as $assignment) {
                 <a class="btn btn-outline-primary" href="<?php echo site_url('staff_leave'); ?>">Apply for leave</a>
             </div>
         </header>
+        <?php $this->load->view('includesui/hot_topics'); ?>
         <?php if (!empty($success)): ?><div class="alert alert-success"><?php echo html_escape($success); ?></div><?php endif; ?>
         <?php if (!empty($error)): ?><div class="alert alert-danger"><?php echo html_escape($error); ?></div><?php endif; ?>
 
@@ -287,6 +288,10 @@ foreach ($assignments as $assignment) {
                                 <div class="staff-class-actions">
                                     <a class="btn btn-primary" href="<?php echo site_url('welcome/gradewiseattendaceSumamry/' . $class_route); ?>">Take attendance</a>
                                     <a class="btn btn-outline-primary" href="<?php echo site_url('welcome/tute_distribution_summary/' . $class_route); ?>">Tute distribution</a>
+                                    <?php foreach ($class['subjects'] as $subject_id => $subject): $progress_path = (int) $class['academic_year_id'] . '/' . rawurlencode($class['branch']) . '/' . (int) $class['class_id'] . '/' . (int) $subject_id; ?>
+                                        <a class="btn btn-outline-success" href="<?php echo site_url('class_progress/roster/' . $progress_path); ?>">Student progress: <?php echo html_escape($subject['subject_name']); ?></a>
+                                        <a class="btn btn-outline-secondary" href="<?php echo site_url('class_progress/units/' . $progress_path); ?>">Show/hide units: <?php echo html_escape($subject['subject_name']); ?></a>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
                         </article>

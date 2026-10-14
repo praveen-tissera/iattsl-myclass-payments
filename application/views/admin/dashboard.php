@@ -120,6 +120,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             </div>
             <a class="btn btn-primary" href="<?php echo site_url('online/enter_payments'); ?>">Enter payments</a>
         </header>
+        <?php $this->load->view('includesui/hot_topics'); ?>
 
         <div class="row">
             <?php if ($dashboard['pending_leaves'] > 0): ?>

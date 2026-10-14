@@ -1236,6 +1236,9 @@ class Ai_learning_model extends CI_Model
             ' (teacher_id, class_id, subject_id, name, is_default, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)',
             array((int) $teacher_id, (int) $class_id, (int) $subject_id, 'General', $now, $now)
         );
+        if ($this->db->affected_rows() === 1) {
+            $this->hide_new_section((int) $this->db->insert_id(), $teacher_id);
+        }
         $row = $this->db
             ->select('ID')
             ->from($this->sections_table)
@@ -1272,7 +1275,185 @@ class Ai_learning_model extends CI_Model
             'updated_at' => $now
         ));
 
-        return $this->db->affected_rows() === 1 ? (int) $this->db->insert_id() : FALSE;
+        if ($this->db->affected_rows() !== 1) {
+            return FALSE;
+        }
+        $section_id = (int) $this->db->insert_id();
+        $this->hide_new_section($section_id, $teacher_id);
+        return $section_id;
+    }
+
+    // New sections stay hidden from students until the allocated teacher shows them (skipped until migration 20261016 is applied).
+    private function hide_new_section($section_id, $user_id)
+    {
+        if ($section_id < 1 || !$this->db->table_exists('wp_wlsm_ai_section_visibility_iattsl')) {
+            return;
+        }
+        $this->db->insert('wp_wlsm_ai_section_visibility_iattsl', array(
+            'section_id' => $section_id,
+            'is_hidden' => 1,
+            'updated_by' => (int) $user_id,
+            'updated_at' => date('Y-m-d H:i:s')
+        ));
+    }
+
+    // Administrator-only rename. Returns TRUE, 'duplicate' or FALSE.
+    public function rename_section($section_id, $name)
+    {
+        $section = $this->db->select('ID, teacher_id, class_id, subject_id')->where('ID', (int) $section_id)->get($this->sections_table)->row();
+        if (!$section) {
+            return FALSE;
+        }
+        $duplicate = $this->db->where('teacher_id', (int) $section->teacher_id)->where('class_id', (int) $section->class_id)
+            ->where('subject_id', (int) $section->subject_id)->where('name', $name)->where('ID !=', (int) $section_id)
+            ->count_all_results($this->sections_table);
+        if ($duplicate > 0) {
+            return 'duplicate';
+        }
+        $this->db->where('ID', (int) $section_id)->update($this->sections_table, array('name' => $name, 'updated_at' => date('Y-m-d H:i:s')));
+        return $this->db->trans_status() !== FALSE;
+    }
+
+    // Administrator-only. Refuses (returns 'in_use') while materials, discussions, question sets or activities still use the section.
+    public function delete_section($section_id)
+    {
+        $section = $this->db->select('ID, is_default')->where('ID', (int) $section_id)->get($this->sections_table)->row();
+        if (!$section) {
+            return FALSE;
+        }
+        $checks = array(
+            array($this->materials_table, 'section_id', FALSE),
+            array('wp_wlsm_ai_discussions_iattsl', 'section_id', FALSE),
+            array('wp_wlsm_ai_question_set_sections_iattsl', 'section_id', FALSE),
+            array('wp_wlsm_ai_activities_iattsl', 'section_id', TRUE)
+        );
+        foreach ($checks as $check) {
+            if (!$this->db->table_exists($check[0]) || !$this->db->field_exists($check[1], $check[0])) {
+                continue;
+            }
+            $this->db->where($check[1], (int) $section_id);
+            if ($check[2]) {
+                $this->db->where('status !=', 'deleted');
+            }
+            if ($this->db->count_all_results($check[0]) > 0) {
+                return 'in_use';
+            }
+        }
+        $this->db->where('ID', (int) $section_id)->delete($this->sections_table);
+        foreach (array('wp_wlsm_ai_section_visibility_iattsl', 'wp_wlsm_ai_section_staff_visibility_iattsl') as $table) {
+            if ($this->db->table_exists($table)) {
+                $this->db->where('section_id', (int) $section_id)->delete($table);
+            }
+        }
+        return TRUE;
+    }
+
+    // Read-only listing for staff: administrator-owned sections not hidden from staff.
+    public function get_admin_sections_for_staff($class_id, $subject_id)
+    {
+        $hidden = $this->get_staff_hidden_section_ids();
+        $sections = $this->db->query(
+            'SELECT sections.ID, sections.name, sections.is_default, sections.teacher_id, users.display_name AS owner_name ' .
+            'FROM ' . $this->sections_table . ' AS sections LEFT JOIN wp_users AS users ON users.ID = sections.teacher_id ' .
+            "WHERE sections.class_id = ? AND sections.subject_id = ? AND sections.teacher_id IN (SELECT user_id FROM wp_usermeta WHERE meta_key = 'wp_capabilities' AND meta_value LIKE '%administrator%') " .
+            'ORDER BY sections.is_default DESC, sections.name ASC',
+            array((int) $class_id, (int) $subject_id)
+        )->result();
+        return array_values(array_filter($sections, function ($s) use ($hidden) {
+            return !in_array((int) $s->ID, $hidden, TRUE);
+        }));
+    }
+
+    // Files uploaded by administrators, grouped by the administrator's sections that are visible to staff.
+    public function get_admin_materials_for_staff($class_id, $subject_id)
+    {
+        if (!$this->materials_table_exists() || !$this->sections_schema_ready()) {
+            return array();
+        }
+        $groups = array();
+        foreach ($this->get_admin_sections_for_staff($class_id, $subject_id) as $section) {
+            $files = $this->db
+                ->select('ID, teacher_id, section_id, original_filename, file_type, file_size, created_at')
+                ->where('class_id', (int) $class_id)
+                ->where('subject_id', (int) $subject_id)
+                ->where('section_id', (int) $section->ID)
+                ->where('teacher_id', (int) $section->teacher_id)
+                ->order_by('created_at', 'DESC')->order_by('ID', 'DESC')
+                ->get($this->materials_table)->result();
+            if (!empty($files)) {
+                $groups[] = array('section' => $section, 'files' => $files);
+            }
+        }
+        return $groups;
+    }
+
+    // TRUE when the material is an administrator's file inside an administrator section that staff can see.
+    public function is_admin_material_visible_to_staff($material)
+    {
+        if (!$material || !isset($material->section_id) || (int) $material->section_id < 1) {
+            return FALSE;
+        }
+        foreach ($this->get_admin_materials_for_staff((int) $material->class_id, (int) $material->subject_id) as $group) {
+            foreach ($group['files'] as $file) {
+                if ((int) $file->ID === (int) $material->ID) {
+                    return TRUE;
+                }
+            }
+        }
+        return FALSE;
+    }
+
+    // Every owner's sections for a Grade and Subject, with owner name and both visibility flags (administrator page).
+    public function get_all_sections_for_subject($class_id, $subject_id)
+    {
+        $student = $this->db->table_exists('wp_wlsm_ai_section_visibility_iattsl');
+        $staff = $this->db->table_exists('wp_wlsm_ai_section_staff_visibility_iattsl');
+        return $this->db->query(
+            'SELECT sections.ID, sections.name, sections.is_default, sections.teacher_id, users.display_name AS owner_name, ' .
+            ($student ? 'COALESCE(sv.is_hidden, 0)' : '0') . ' AS student_hidden, ' .
+            ($staff ? 'COALESCE(tv.is_hidden, 0)' : '0') . ' AS staff_hidden ' .
+            'FROM ' . $this->sections_table . ' AS sections ' .
+            'LEFT JOIN wp_users AS users ON users.ID = sections.teacher_id ' .
+            ($student ? 'LEFT JOIN wp_wlsm_ai_section_visibility_iattsl AS sv ON sv.section_id = sections.ID ' : '') .
+            ($staff ? 'LEFT JOIN wp_wlsm_ai_section_staff_visibility_iattsl AS tv ON tv.section_id = sections.ID ' : '') .
+            'WHERE sections.class_id = ? AND sections.subject_id = ? ORDER BY users.display_name ASC, sections.is_default DESC, sections.name ASC',
+            array((int) $class_id, (int) $subject_id)
+        )->result();
+    }
+
+    public function staff_visibility_ready()
+    {
+        return $this->db->table_exists('wp_wlsm_ai_section_staff_visibility_iattsl');
+    }
+
+    public function set_section_staff_hidden($section_id, $hidden, $user_id)
+    {
+        if (!$this->staff_visibility_ready() ||
+            !$this->db->select('ID')->where('ID', (int) $section_id)->get($this->sections_table)->row()) {
+            return FALSE;
+        }
+        $row = array('is_hidden' => $hidden ? 1 : 0, 'updated_by' => (int) $user_id, 'updated_at' => date('Y-m-d H:i:s'));
+        $table = 'wp_wlsm_ai_section_staff_visibility_iattsl';
+        if ($this->db->select('section_id')->where('section_id', (int) $section_id)->get($table)->row()) {
+            $this->db->where('section_id', (int) $section_id)->update($table, $row);
+        } else {
+            $row['section_id'] = (int) $section_id;
+            $this->db->insert($table, $row);
+        }
+        return TRUE;
+    }
+
+    // IDs of sections the administrator has hidden from staff.
+    public function get_staff_hidden_section_ids()
+    {
+        if (!$this->staff_visibility_ready()) {
+            return array();
+        }
+        $ids = array();
+        foreach ($this->db->select('section_id')->where('is_hidden', 1)->get('wp_wlsm_ai_section_staff_visibility_iattsl')->result() as $row) {
+            $ids[] = (int) $row->section_id;
+        }
+        return $ids;
     }
 
     public function move_material_to_section($material_id, $section_id, $teacher_id, $class_id, $subject_id)

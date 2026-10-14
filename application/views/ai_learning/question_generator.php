@@ -10,10 +10,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <link rel="stylesheet" href="<?php echo base_url('css/institute-inner.css'); ?>">
 </head>
 <body class="institute-inner">
+    <?php $this->load->view('ai_learning/_sidebar'); ?>
     <?php
     $role = $this->session->userdata('user_role');
     if ($role === 'administrator') {
         $this->load->view('includesui/menu_admin');
+    } elseif ($role === 'cordinator') {
+        $this->load->view('includesui/menu_cordinator');
     } elseif ($role === 'teacher') {
         $this->load->view('includesui/menu_teacher');
     }
