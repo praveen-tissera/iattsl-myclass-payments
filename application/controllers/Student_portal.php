@@ -932,13 +932,27 @@ class Student_portal extends CI_Controller
             redirect('student_portal/admin_accounts');
         }
 
-        $username = 'learner_' . bin2hex(random_bytes(8));
-        $temporary_password = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
-        $result = $this->Student_portal_model->create_student_account(
-            $username,
-            $this->wphasher->hash($temporary_password),
-            $registration_ids
-        );
+        // Username = student name + current time (HHMM); the temporary password is the same value and must be changed at first login.
+        $student_name = '';
+        foreach ($resolution['candidates'] as $candidate) {
+            if ((int) $candidate->student_record_id === $registration_ids[0]) {
+                $student_name = isset($candidate->name) ? (string) $candidate->name : '';
+                break;
+            }
+        }
+        $base_time = time();
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $username = $this->student_username($student_name, $base_time + 60 * $attempt);
+            $temporary_password = $username;
+            $result = $this->Student_portal_model->create_student_account(
+                $username,
+                $this->wphasher->hash($temporary_password),
+                $registration_ids
+            );
+            if ($result['success'] || $result['error'] !== 'username') {
+                break;
+            }
+        }
         if (!$result['success']) {
             $messages = array(
                 'invalid' => 'One or more selected registrations could not be verified.',
@@ -960,6 +974,20 @@ class Student_portal extends CI_Controller
             'username' => $username,
             'temporary_password' => $temporary_password
         ));
+    }
+
+    // e.g. "Oshem Nethan" at 14:17 -> "oshem_nethan1417" (max 30 characters, valid per Student_portal_model::is_valid_username).
+    private function student_username($student_name, $timestamp)
+    {
+        $name = trim((string) $student_name);
+        if (function_exists('iconv')) {
+            $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name);
+            $name = is_string($ascii) ? $ascii : $name;
+        }
+        $name = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '_', $name), '_'));
+        $name = $name === '' ? 'student' : substr($name, 0, 26);
+
+        return rtrim($name, '_') . date('Hi', $timestamp);
     }
 
     public function reset_student_password()

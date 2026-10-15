@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class OpenAI_service
@@ -287,6 +287,23 @@ class OpenAI_service
 
     public function generate_image_asset($prompt)
     {
+        $models = array(trim((string) $this->CI->config->item('openai_image_model')));
+        $fallback = trim((string) $this->CI->config->item('openai_image_fallback_model'));
+        if ($fallback !== '' && !in_array($fallback, $models, TRUE)) {
+            $models[] = $fallback;
+        }
+        $result = array('success' => FALSE, 'error' => 'The image-generation service is not configured.');
+        foreach ($models as $model) {
+            $result = $this->request_image_asset($prompt, $model);
+            if (!empty($result['success'])) {
+                return $result;
+            }
+        }
+        return $result;
+    }
+
+    private function request_image_asset($prompt, $model)
+    {
         if (!is_string($prompt) || trim($prompt) === '' || strlen($prompt) > 20000) {
             return array(
                 'success' => FALSE,
@@ -295,7 +312,6 @@ class OpenAI_service
         }
 
         $api_key = $this->load_api_key();
-        $model = $this->CI->config->item('openai_image_model');
         if ($api_key === FALSE || !is_string($model) || trim($model) === '') {
             return array(
                 'success' => FALSE,
@@ -388,7 +404,7 @@ class OpenAI_service
         if (!is_string($image_bytes) || $maximum_bytes < 1 || strlen($image_bytes) > $maximum_bytes ||
             !is_array($image_info) || !isset($image_info['mime'], $image_info[0], $image_info[1]) ||
             $image_info['mime'] !== 'image/png' ||
-            $image_info[0] < 1 || $image_info[1] < 1) {
+            $image_info[0] < 1 || $image_info[1] < 1 || strlen($image_bytes) < 8000) {
             return array(
                 'success' => FALSE,
                 'error' => 'The image-generation service returned an unsupported or oversized visual. Retry it or edit the question.'

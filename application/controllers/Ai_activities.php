@@ -352,38 +352,112 @@ class Ai_activities extends CI_Controller
         $count = $this->ai_activity_engine->requested_count($type, $instructions);
         $tokens = $count !== NULL && $count > 10 ? 10000 : 5000;
         $error = 'The AI could not produce a valid activity. Please try again.';
+        $feedback = '';
+        $best = NULL;
+        $ratio = (float) $this->config->item('ai_activity_min_reasoning_ratio');
         for ($attempt = 1; $attempt <= 2; $attempt++) {
             $response = $this->openai_service->generate_structured_data(
-                $context['json'],
-                $this->ai_activity_engine->schema($type),
+                $context['json'] . $feedback,
+                $this->ai_activity_engine->schema($type, TRUE),
                 'learning_activity_' . $type,
-                $this->ai_activity_engine->developer_instructions($type, $count),
+                $this->ai_activity_engine->developer_instructions($type, $count, TRUE),
                 $tokens
             );
             if (empty($response['success'])) {
                 return array('ok' => FALSE, 'error' => isset($response['error']) ? $response['error'] : $error);
             }
             $data = json_decode($response['response'], TRUE);
-            $validated = $this->ai_activity_engine->validate_generated($type, $data, $context['question_ids'], $context['material_ids']);
+            $validated = $this->ai_activity_engine->validate_generated($type, $data, $context['question_ids'], $context['material_ids'], TRUE);
             if ($validated['ok'] && $visuals['image'] !== NULL && empty($validated['activity']['image_jobs'])) {
                 $validated = array('ok' => FALSE, 'error' => 'the AI did not create any image-based questions');
             }
-            if ($validated['ok']) {
-                $activity = $validated['activity'];
-                // Fall back to the full supplied context when the AI cites no valid source IDs.
-                if (empty($activity['source_question_ids']) && empty($activity['source_material_ids'])) {
-                    $activity['source_question_ids'] = $context['question_ids'];
-                    $activity['source_material_ids'] = $context['material_ids'];
-                }
-                $attached = $this->attach_images($activity, $class_id, $subject_id);
-                if (!$attached['ok']) {
-                    return array('ok' => FALSE, 'error' => $attached['error']);
-                }
-                return array('ok' => TRUE, 'activity' => $attached['activity'], 'files' => $attached['files'], 'image_note' => $attached['note']);
+            if (!$validated['ok']) {
+                $error = 'The AI activity was rejected: ' . $validated['error'];
+                $feedback = "\n\nREVISION NOTES: your previous attempt was rejected because " . $validated['error'] . '. Fix this and follow every quality rule.';
+                continue;
             }
-            $error = 'The AI activity was rejected: ' . $validated['error'];
+
+            $activity = $validated['activity'];
+            $quality = $validated['quality'];
+            $notes = array();
+            $graded = $quality['applied'] + $quality['recall'];
+            if ($graded >= 4 && $activity['difficulty'] !== 'easy' && $ratio > 0 && $quality['applied'] / $graded < $ratio) {
+                $best = $best === NULL || $quality['applied'] > $best['quality']['applied'] ? array('validated' => $validated, 'quality' => $quality) : $best;
+                if ($attempt < 2) {
+                    $feedback = "\n\nREVISION NOTES: too many questions only test recall. Rewrite them as scenario, application, analysis or problem-solving questions. Recall-style examples to replace: " .
+                        json_encode($quality['weak']);
+                    $error = 'The questions were too recall-based.';
+                    continue;
+                }
+                $validated = $best['validated'];
+                $activity = $validated['activity'];
+                $quality = $best['quality'];
+                $notes[] = 'only ' . $quality['applied'] . ' of ' . $graded . ' questions were judged to need application or analysis, so review the questions before approving';
+            }
+
+            // Fall back to the full supplied context when the AI cites no valid source IDs.
+            if (empty($activity['source_question_ids']) && empty($activity['source_material_ids'])) {
+                $activity['source_question_ids'] = $context['question_ids'];
+                $activity['source_material_ids'] = $context['material_ids'];
+            }
+
+            if ($this->config->item('ai_activity_verify_answers') !== FALSE) {
+                $verified = $this->verify_answers($type, $activity, $context);
+                if (!$verified['ok']) {
+                    $error = 'The AI activity was rejected: ' . $verified['error'];
+                    $feedback = "\n\nREVISION NOTES: your previous attempt was rejected because " . $verified['error'] . '. Write unambiguous questions whose answer follows clearly from the source.';
+                    continue;
+                }
+                $activity = $verified['activity'];
+                if ($verified['note'] !== '') {
+                    $notes[] = $verified['note'];
+                }
+            }
+            if (!empty($quality['dropped'])) {
+                $notes[] = count($quality['dropped']) . ' weak or invalid question(s) were excluded by the quality checks';
+            }
+
+            $attached = $this->attach_images($activity, $class_id, $subject_id);
+            if (!$attached['ok']) {
+                return array('ok' => FALSE, 'error' => $attached['error']);
+            }
+            $note = trim((string) $attached['note'] . (empty($notes) ? '' : ' Quality check: ' . implode('; ', $notes) . '.'));
+            return array('ok' => TRUE, 'activity' => $attached['activity'], 'files' => $attached['files'], 'image_note' => $note);
         }
         return array('ok' => FALSE, 'error' => $error);
+    }
+
+    /**
+     * Independent answer check: a second AI call answers the finished activity without the key.
+     * Returns array('ok', 'activity', 'note') or array('ok' => FALSE, 'error').
+     */
+    private function verify_answers($type, $activity, $context)
+    {
+        $skip = array();
+        foreach ($activity['image_jobs'] as $item_id => $job) {
+            $skip[$item_id] = TRUE;
+        }
+        $quiz = $this->ai_activity_engine->solver_payload($type, $activity['student_content'], $skip);
+        if (empty($quiz)) {
+            return array('ok' => TRUE, 'activity' => $activity, 'note' => '');
+        }
+        $response = $this->openai_service->generate_structured_data(
+            "SOURCE CONTEXT:\n" . $context['json'] . "\n\nQUIZ TO ANSWER:\n" . json_encode($quiz),
+            $this->ai_activity_engine->solver_schema(),
+            'activity_answer_check',
+            $this->ai_activity_engine->solver_instructions(),
+            4000
+        );
+        $data = !empty($response['success']) ? json_decode($response['response'], TRUE) : NULL;
+        if (!is_array($data)) {
+            return array('ok' => TRUE, 'activity' => $activity, 'note' => 'the independent answer check was unavailable, so please verify the answers yourself');
+        }
+        $applied = $this->ai_activity_engine->apply_solver($type, $activity, $data, $skip);
+        if (!$applied['ok']) {
+            return array('ok' => FALSE, 'error' => $applied['error']);
+        }
+        $note = $applied['removed'] > 0 ? $applied['removed'] . ' question(s) were removed because an independent check could not confirm their answers' : '';
+        return array('ok' => TRUE, 'activity' => $applied['activity'], 'note' => $note);
     }
 
     private function build_context($type, $teacher_id, $class_id, $subject_id, $section, $question_set_id, $use_materials, $instructions, $difficulty)

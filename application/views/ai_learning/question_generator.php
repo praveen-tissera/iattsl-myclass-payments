@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?><!DOCTYPE html>
 <html lang="en">
@@ -24,7 +24,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <main class="container" style="max-width: 65rem; margin: 2rem auto;">
         <section class="card shadow-sm">
             <div class="card-body p-4">
-                <h1 class="h3">AI Question Generator</h1>
+                <?php $append_mode = !empty($append_set); ?>
+                <h1 class="h3"><?php echo $append_mode ? 'Add Questions to: ' . html_escape($append_set->title) : 'AI Question Generator'; ?></h1>
+                <?php if ($append_mode): ?>
+                    <p class="alert alert-info">The new questions are added to the end of this existing set, which returns to Draft so it can be reviewed again. Choose the number, difficulty, types, source, image questions, model paper and instructions below, exactly as when creating a set.</p>
+                <?php endif; ?>
                 <p class="text-muted">
                     Questions are saved as a draft for teacher review. They are not automatically finalized or formatted as a worksheet.
                 </p>
@@ -66,15 +70,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <input type="hidden" name="class_id" value="<?php echo (int) $discussion->class_id; ?>">
                     <input type="hidden" name="subject_id" value="<?php echo (int) $discussion->subject_id; ?>">
                     <input type="hidden" name="discussion_id" value="<?php echo (int) $discussion->ID; ?>">
+                    <?php if ($append_mode): ?><input type="hidden" name="append_set_id" value="<?php echo (int) $append_set->ID; ?>"><?php endif; ?>
                     <input type="hidden" name="_ai_workspace_material_token" value="<?php echo html_escape($form_token); ?>">
                     <?php if ($csrf_enabled): ?>
                         <input type="hidden" name="<?php echo html_escape($csrf_token_name); ?>" value="<?php echo html_escape($csrf_hash); ?>">
                     <?php endif; ?>
 
+                    <?php if (!$append_mode): ?>
                     <div class="form-group">
                         <label for="title">Question Set Title (optional)</label>
                         <input class="form-control" id="title" name="title" maxlength="255" placeholder="The AI can suggest a title">
                     </div>
+                    <?php endif; ?>
                     <div class="form-row">
                         <div class="form-group col-md-4">
                             <label for="question_count">Target Number of Questions</label>
@@ -261,7 +268,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <label for="additional_instructions">Additional Instructions</label>
                         <textarea class="form-control" id="additional_instructions" name="additional_instructions" rows="4" maxlength="3000"></textarea>
                     </div>
-                    <button class="btn btn-primary" type="submit">Generate Questions</button>
+                    <button class="btn btn-primary" type="submit"><?php echo $append_mode ? 'Add Questions to This Set' : 'Generate Questions'; ?></button>
+                    <?php if ($append_mode): ?><a class="btn btn-outline-secondary" href="<?php echo site_url('ai_learning/question_sets/' . (int) $append_set->ID); ?>">Cancel</a><?php endif; ?>
                     <a class="btn btn-outline-secondary" href="<?php echo site_url('ai_learning/workspace?' . http_build_query(array('grade_id' => (int) $discussion->class_id, 'subject_id' => (int) $discussion->subject_id, 'discussion_id' => (int) $discussion->ID))); ?>">Back to Discussion</a>
                 </form>
 

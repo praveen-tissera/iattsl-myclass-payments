@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?><!DOCTYPE html>
 <html lang="en">
@@ -101,15 +101,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <div class="d-flex flex-wrap mb-3">
                     <?php if ($set->status !== 'finalized'): ?>
                         <a class="btn btn-primary mr-2 mb-2" href="<?php echo site_url('ai_learning/edit_question/' . (int) $set->ID . '/0'); ?>">Add Manual Question</a>
-                        <form method="post" action="<?php echo site_url('ai_learning/generate_more_questions'); ?>" class="form-inline mr-2 mb-2">
-                            <input type="hidden" name="question_set_id" value="<?php echo (int) $set->ID; ?>">
-                            <input type="hidden" name="_ai_workspace_material_token" value="<?php echo html_escape($form_token); ?>">
-                            <?php if ($csrf_enabled): ?><input type="hidden" name="<?php echo html_escape($csrf_token_name); ?>" value="<?php echo html_escape($csrf_hash); ?>"><?php endif; ?>
-                            <label for="additional_question_count" class="mr-2">Generate more with AI</label>
-                            <input class="form-control form-control-sm mr-2" id="additional_question_count" name="additional_question_count" type="number" min="1" max="<?php echo (int) $this->config->item('ai_question_max_count'); ?>" value="5" required style="width:6rem;">
-                            <button class="btn btn-sm btn-outline-primary" type="submit">Generate More</button>
-                            <small class="form-text text-muted w-100">Uses this set's saved discussion, materials, question types and settings. The AI may return fewer than requested; any valid questions it returns will be appended.</small>
-                        </form>
+                        <a class="btn btn-primary mr-2 mb-2" href="<?php echo site_url('ai_learning/question_generator?' . http_build_query(array('grade_id' => (int) $set->class_id, 'subject_id' => (int) $set->subject_id, 'discussion_id' => (int) $set->discussion_id, 'append_set_id' => (int) $set->ID))); ?>">Add More Questions with AI</a>
                     <?php endif; ?>
                     <?php if ($set->status === 'draft'): ?>
                         <form method="post" action="<?php echo site_url('ai_learning/review_question_set'); ?>" class="mr-2 mb-2">
@@ -212,6 +204,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <?php if ($question->type_data['answer_guidance'] !== ''): ?><p class="mb-1"><strong>Answer guidance:</strong> <?php echo nl2br(html_escape($question->type_data['answer_guidance'])); ?></p><?php endif; ?>
                             </details>
 
+                            <?php if ($set->status !== 'finalized'): ?>
+                                <details class="mb-3 border rounded p-2">
+                                    <summary class="font-weight-bold text-primary" style="cursor:pointer;">Modify this question with AI</summary>
+                                    <form method="post" action="<?php echo site_url('ai_learning/modify_question'); ?>" class="mt-2" onsubmit="var b=this.querySelector('button[type=submit]');b.disabled=true;b.textContent='Changing... please wait';">
+                                        <input type="hidden" name="question_set_id" value="<?php echo (int) $set->ID; ?>">
+                                        <input type="hidden" name="question_id" value="<?php echo (int) $question->ID; ?>">
+                                        <input type="hidden" name="_ai_workspace_material_token" value="<?php echo html_escape($form_token); ?>">
+                                        <?php if ($csrf_enabled): ?><input type="hidden" name="<?php echo html_escape($csrf_token_name); ?>" value="<?php echo html_escape($csrf_hash); ?>"><?php endif; ?>
+                                        <label class="small mb-1" for="modify_<?php echo (int) $question->ID; ?>">Tell the AI what to change. It rewrites the question text, options, answer and picture for you.</label>
+                                        <textarea class="form-control mb-2" id="modify_<?php echo (int) $question->ID; ?>" name="modify_instruction" rows="3" maxlength="2000" required placeholder="e.g. Make it harder and use a shop scenario. / Change the picture to show a flowchart with a loop. / Point the arrows at the Insert tab instead."></textarea>
+                                        <button class="btn btn-sm btn-primary" type="submit">Apply Changes with AI</button>
+                                        <small class="text-muted ml-2">The picture is regenerated only if it needs to change. This can take up to a minute.</small>
+                                    </form>
+                                </details>
+                            <?php endif; ?>
                             <?php if ($set->status !== 'finalized'): ?>
                                 <div class="d-flex flex-wrap">
                                     <a class="btn btn-sm btn-outline-primary mr-2 mb-2" href="<?php echo site_url('ai_learning/edit_question/' . (int) $set->ID . '/' . (int) $question->ID); ?>">Edit</a>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Ai_learning_model extends CI_Model
@@ -410,6 +410,24 @@ class Ai_learning_model extends CI_Model
         return $this->db->trans_status() && $set_id > 0 ? $set_id : FALSE;
     }
 
+    // Links extra source materials to an existing question set without duplicating existing links.
+    public function link_question_set_materials($set_id, $material_ids)
+    {
+        foreach (array_unique(array_map('intval', is_array($material_ids) ? $material_ids : array())) as $material_id) {
+            if ($material_id < 1) {
+                continue;
+            }
+            $exists = $this->db->where('question_set_id', (int) $set_id)
+                ->where('material_id', $material_id)
+                ->count_all_results($this->question_set_materials_table);
+            if ($exists < 1) {
+                $this->db->insert($this->question_set_materials_table, array(
+                    'question_set_id' => (int) $set_id,
+                    'material_id' => $material_id
+                ));
+            }
+        }
+    }
     public function append_question_batch($set_id, $questions, $source_limitations)
     {
         if (!is_array($questions) || empty($questions) || !is_array($source_limitations)) {

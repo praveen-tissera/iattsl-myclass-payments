@@ -36,3 +36,8 @@ $config['ai_practice_require_materials'] = TRUE;
 $config['ai_practice_verify_against_materials'] = TRUE;
 // After submission, show each generated question's explanation (the practice content is not teacher-published).
 $config['ai_practice_show_explanations'] = TRUE;
+
+// Teacher activity quality: a second AI call answers each activity without the key; questions it cannot confirm are removed.
+$config['ai_activity_verify_answers'] = TRUE;
+// Share of MCQ/fill items that must need application or analysis (not recall) for medium/hard activities. 0 disables the check.
+$config['ai_activity_min_reasoning_ratio'] = 0.5;

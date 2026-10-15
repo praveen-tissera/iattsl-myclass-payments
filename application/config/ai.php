@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $private_root = getenv('IATTSL_PRIVATE_ROOT');
@@ -10,6 +10,7 @@ $private_root = rtrim($private_root, '/\\');
 $config['openai_secret_file'] = $private_root . DIRECTORY_SEPARATOR . 'iattsl-secrets' . DIRECTORY_SEPARATOR . 'openai.php';
 $config['openai_model'] = 'gpt-4o-mini';
 $config['openai_image_model'] = 'gpt-image-2.5-flare';
+$config['openai_image_fallback_model'] = 'gpt-image-1';
 $config['ai_visual_max_file_size_mb'] = 15;
 $config['ai_materials_directory'] = $private_root . DIRECTORY_SEPARATOR . 'iattsl-private' . DIRECTORY_SEPARATOR . 'ai_materials';
 $config['ai_material_max_file_size_mb'] = 10;

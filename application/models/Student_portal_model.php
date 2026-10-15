@@ -309,7 +309,7 @@ class Student_portal_model extends CI_Model
     public function create_student_account($username, $password_hash, $registration_ids)
     {
         $registration_ids = $this->normalize_registration_ids($registration_ids);
-        if (!is_string($username) || !preg_match('/^learner_[a-f0-9]{16}$/D', $username) ||
+        if (!is_string($username) || !self::is_valid_username($username) ||
             !is_string($password_hash) || $registration_ids === FALSE || empty($registration_ids)) {
             return array('success' => FALSE, 'error' => 'invalid');
         }
