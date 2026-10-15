@@ -328,6 +328,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                     ? $status_labels[$processing_status]
                                                     : 'Uploaded';
                                                 ?>
+                                                <?php $config_visual_enabled = $this->config->item('ai_visual_processing_enabled') === TRUE; ?>
                                                 <div class="mt-2">
                                                     <strong>Status:</strong>
                                                     <?php echo html_escape($status_label); ?>
@@ -343,6 +344,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                     <?php if (!empty($material->extraction_error)): ?>
                                                         <div class="small text-muted"><?php echo html_escape($material->extraction_error); ?></div>
                                                     <?php endif; ?>
+                                                    <?php if ($processing_status === 'processed' && in_array($material->file_type, array('pdf', 'docx'), TRUE)): ?>
+                                                        <div class="small text-muted">
+                                                            <?php
+                                                            $visual_labels = array(
+                                                                'processed' => 'Text and embedded images processed.',
+                                                                'partial' => 'Text extracted; some images could not be processed.',
+                                                                'failed' => 'Text extracted; image processing failed.',
+                                                                'disabled' => 'Image processing disabled; text only.',
+                                                                'none_found' => 'Text extracted; no embedded images found.'
+                                                            );
+                                                            $visual_status = isset($material->visual_status) ? (string) $material->visual_status : '';
+                                                            echo isset($visual_labels[$visual_status])
+                                                                ? html_escape($visual_labels[$visual_status] . ' ' . (string) $material->visual_summary)
+                                                                : 'Images: not processed (text only).';
+                                                            ?>
+                                                        </div>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <div class="mt-2 d-flex flex-wrap">
                                                     <?php if ($processing_status === 'processed'): ?>
@@ -350,6 +368,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                             class="btn btn-sm btn-outline-primary mr-2 mb-2"
                                                             href="<?php echo site_url('ai_learning/view_extracted_content/' . (int) $material->ID); ?>"
                                                         >View Extracted Content</a>
+                                                        <?php if ($config_visual_enabled && property_exists($material, 'visual_status') && in_array($material->file_type, array('pdf', 'docx'), TRUE) && empty($material->visual_processed_at)): ?>
+                                                            <form method="post" action="<?php echo site_url('ai_learning/process_material_visuals'); ?>" class="mr-2 mb-2">
+                                                                <input type="hidden" name="material_id" value="<?php echo (int) $material->ID; ?>">
+                                                                <input type="hidden" name="_ai_workspace_material_token" value="<?php echo html_escape($material_form_token); ?>">
+                                                                <?php if ($csrf_enabled): ?>
+                                                                    <input type="hidden" name="<?php echo html_escape($csrf_token_name); ?>" value="<?php echo html_escape($csrf_hash); ?>">
+                                                                <?php endif; ?>
+                                                                <div class="form-check small mb-1">
+                                                                    <input class="form-check-input" type="checkbox" name="visual_consent" value="1" id="vd_<?php echo (int) $material->ID; ?>">
+                                                                    <label class="form-check-label" for="vd_<?php echo (int) $material->ID; ?>">I allow this document's images to be sent to OpenAI.</label>
+                                                                </div>
+                                                                <button class="btn btn-sm btn-outline-primary" type="submit">Describe Embedded Images</button>
+                                                            </form>
+                                                        <?php endif; ?>
                                                     <?php elseif ($processing_status === 'uploaded' || $processing_status === 'failed'): ?>
                                                         <form
                                                             method="post"
@@ -369,7 +401,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                                     value="<?php echo html_escape($csrf_hash); ?>"
                                                                 >
                                                             <?php endif; ?>
-                                                            <button class="btn btn-sm btn-outline-primary" type="submit">Process Material</button>
+<?php $visual_available = $config_visual_enabled && property_exists($material, 'visual_status'); ?>
+<?php if ($visual_available && in_array($material->file_type, array('pdf', 'docx'), TRUE)): ?>
+    <div class="form-check small mb-1">
+        <input class="form-check-input" type="checkbox" name="visual_consent" value="1" id="vc_<?php echo (int) $material->ID; ?>">
+        <label class="form-check-label" for="vc_<?php echo (int) $material->ID; ?>">Also describe embedded images using AI. This sends the document's images to OpenAI.</label>
+    </div>
+<?php endif; ?>                                                            <button class="btn btn-sm btn-outline-primary" type="submit">Process Material</button>
                                                         </form>
                                                     <?php endif; ?>
                                                 </div>

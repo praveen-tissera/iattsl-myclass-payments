@@ -59,6 +59,41 @@ class Ai_learning_model extends CI_Model
         return TRUE;
     }
 
+    public function visual_columns_ready()
+    {
+        return $this->materials_table_exists() &&
+            $this->db->field_exists('visual_status', $this->materials_table) &&
+            $this->db->field_exists('visual_summary', $this->materials_table) &&
+            $this->db->field_exists('visual_descriptions', $this->materials_table) &&
+            $this->db->field_exists('visual_processed_at', $this->materials_table);
+    }
+
+    // Appends the stored AI image descriptions (kept separately from the extracted text) to each row's extracted_text
+    // so every AI consumer of material text also sees them.
+    private function append_visual_context($rows)
+    {
+        $has_columns = FALSE;
+        foreach ($rows as $row) {
+            if (isset($row->visual_descriptions) && isset($row->extracted_text)) {
+                $has_columns = TRUE;
+                break;
+            }
+        }
+        if (!$has_columns) {
+            return $rows;
+        }
+        if (!class_exists('Ai_visual_describer', FALSE)) {
+            $this->load->library('Ai_visual_describer');
+        }
+        foreach ($rows as $row) {
+            if (!empty($row->visual_descriptions) && isset($row->extracted_text) && $row->extracted_text !== NULL) {
+                $row->extracted_text .= Ai_visual_describer::build_context_block($row->visual_descriptions);
+            }
+        }
+
+        return $rows;
+    }
+
     public function discussion_table_exists()
     {
         return $this->db->table_exists($this->discussion_messages_table) &&
@@ -164,7 +199,7 @@ class Ai_learning_model extends CI_Model
         }
 
         $query = $this->db
-            ->select('COALESCE(SUM(OCTET_LENGTH(materials.extracted_text)), 0) AS text_bytes, COUNT(*) AS material_count', FALSE)
+            ->select('COALESCE(SUM(OCTET_LENGTH(materials.extracted_text)' . ($this->visual_columns_ready() ? ' + OCTET_LENGTH(COALESCE(materials.visual_descriptions, \'\'))' : '') . '), 0) AS text_bytes, COUNT(*) AS material_count', FALSE)
             ->from($this->materials_table . ' AS materials')
             ->where('materials.class_id', (int) $discussion->class_id)
             ->where('materials.subject_id', (int) $discussion->subject_id)
@@ -246,6 +281,9 @@ class Ai_learning_model extends CI_Model
         $fields = 'materials.ID, materials.original_filename, materials.file_type, materials.page_count';
         if ($include_content) {
             $fields .= ', materials.extracted_text';
+            if ($this->visual_columns_ready()) {
+                $fields .= ', materials.visual_descriptions';
+            }
         }
         $query = $this->db
             ->select($fields)
@@ -265,7 +303,7 @@ class Ai_learning_model extends CI_Model
             $query->where('materials.teacher_id', (int) $teacher_id);
         }
 
-        return $query->order_by('materials.ID', 'ASC')->get()->result();
+        return $this->append_visual_context($query->order_by('materials.ID', 'ASC')->get()->result());
     }
 
     public function save_discussion_scope($discussion_id, $scope, $material_ids)
@@ -620,8 +658,10 @@ class Ai_learning_model extends CI_Model
 
     public function get_question_set_materials_with_content($set_id, $teacher_id, $class_id, $subject_id)
     {
-        return $this->db
-            ->select('materials.ID, materials.original_filename, materials.file_type, materials.extracted_text')
+        $visual_field = $this->visual_columns_ready() ? ', materials.visual_descriptions' : '';
+
+        return $this->append_visual_context($this->db
+            ->select('materials.ID, materials.original_filename, materials.file_type, materials.extracted_text' . $visual_field)
             ->from($this->materials_table . ' AS materials')
             ->join(
                 'wp_wlsm_ai_question_set_materials_iattsl AS set_materials',
@@ -636,7 +676,7 @@ class Ai_learning_model extends CI_Model
             ->where('materials.status', 'stored')
             ->order_by('materials.ID', 'ASC')
             ->get()
-            ->result();
+            ->result());
     }
 
     public function get_question_set_source_count($set_id)
@@ -1150,6 +1190,9 @@ class Ai_learning_model extends CI_Model
         }
         if ($processing_schema_ready) {
             $this->db->select('processing_status, processed_at, extraction_error, page_count, character_count');
+            if ($this->visual_columns_ready()) {
+                $this->db->select('visual_status, visual_summary, visual_processed_at');
+            }
         } else {
             $this->db->select("'uploaded' AS processing_status, NULL AS processed_at, NULL AS extraction_error, NULL AS page_count, 0 AS character_count", FALSE);
         }
@@ -1496,6 +1539,9 @@ class Ai_learning_model extends CI_Model
         $fields = 'ID, section_id, original_filename, file_type, page_count, character_count';
         if ($include_content) {
             $fields .= ', extracted_text';
+            if ($this->visual_columns_ready()) {
+                $fields .= ', visual_descriptions';
+            }
         }
         $this->db
             ->select($fields)
@@ -1510,7 +1556,7 @@ class Ai_learning_model extends CI_Model
             $this->db->where_in('ID', array_map('intval', $material_ids));
         }
 
-        return $this->db->order_by('section_id', 'ASC')->order_by('ID', 'ASC')->get()->result();
+        return $this->append_visual_context($this->db->order_by('section_id', 'ASC')->order_by('ID', 'ASC')->get()->result());
     }
 
     public function get_discussions_with_sections($teacher_id, $class_id, $subject_id)
@@ -1595,18 +1641,25 @@ class Ai_learning_model extends CI_Model
 
     public function claim_material_for_processing($material_id)
     {
+        $reset = array(
+            'processing_status' => 'processing',
+            'processed_at' => NULL,
+            'extracted_text' => NULL,
+            'extraction_error' => NULL,
+            'page_count' => NULL,
+            'character_count' => 0,
+            'updated_at' => date('Y-m-d H:i:s')
+        );
+        if ($this->visual_columns_ready()) {
+            $reset['visual_status'] = NULL;
+            $reset['visual_summary'] = NULL;
+            $reset['visual_descriptions'] = NULL;
+            $reset['visual_processed_at'] = NULL;
+        }
         $this->db
             ->where('ID', (int) $material_id)
             ->where('processing_status !=', 'processing')
-            ->update($this->materials_table, array(
-                'processing_status' => 'processing',
-                'processed_at' => NULL,
-                'extracted_text' => NULL,
-                'extraction_error' => NULL,
-                'page_count' => NULL,
-                'character_count' => 0,
-                'updated_at' => date('Y-m-d H:i:s')
-            ));
+            ->update($this->materials_table, $reset);
 
         return $this->db->affected_rows() === 1;
     }
@@ -1620,10 +1673,36 @@ class Ai_learning_model extends CI_Model
         return $this->db->affected_rows() === 1;
     }
 
+    public function save_material_visuals($material_id, $status, $summary, $descriptions)
+    {
+        if (!$this->visual_columns_ready()) {
+            return FALSE;
+        }
+
+        // The OpenAI calls can outlast MySQL's wait_timeout, so refresh the connection first.
+        $this->db->reconnect();
+        if (!$this->db->conn_id) {
+            $this->db->initialize();
+        }
+
+        return $this->db
+            ->where('ID', (int) $material_id)
+            ->where('processing_status', 'processed')
+            ->update($this->materials_table, array(
+                'visual_status' => $status,
+                'visual_summary' => mb_substr((string) $summary, 0, 255),
+                'visual_descriptions' => empty($descriptions) ? NULL : json_encode($descriptions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'visual_processed_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ));
+    }
+
     public function get_material_extracted_content($material_id)
     {
+        $visual_fields = $this->visual_columns_ready() ? ', visual_status, visual_summary, visual_descriptions, visual_processed_at' : '';
+
         return $this->db
-            ->select('ID, teacher_id, class_id, subject_id, original_filename, file_type, processing_status, processed_at, extracted_text, extraction_error, page_count, character_count')
+            ->select('ID, teacher_id, class_id, subject_id, original_filename, file_type, processing_status, processed_at, extracted_text, extraction_error, page_count, character_count' . $visual_fields)
             ->where('ID', (int) $material_id)
             ->get($this->materials_table)
             ->row();

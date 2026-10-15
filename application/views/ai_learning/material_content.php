@@ -52,6 +52,37 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 </p>
                 <hr>
                 <pre class="extracted-content border rounded bg-light p-3"><?php echo html_escape($material->extracted_text); ?></pre>
+                <?php if (isset($material->visual_status) && $material->visual_status !== NULL && $material->visual_status !== ''): ?>
+                    <h2 class="h5 mt-4">AI-generated image descriptions</h2>
+                    <p class="small text-muted">
+                        Status: <?php echo html_escape($material->visual_status); ?>.
+                        <?php echo html_escape((string) $material->visual_summary); ?>
+                        These are machine interpretations of images embedded in the document, kept separate from the extracted text above.
+                    </p>
+                    <?php $visual_items = json_decode((string) $material->visual_descriptions, TRUE); ?>
+                    <?php if (is_array($visual_items) && !empty($visual_items)): ?>
+                        <ul class="list-group mb-3">
+                            <?php foreach ($visual_items as $item): ?>
+                                <li class="list-group-item">
+                                    <strong>
+                                        <?php echo $item['source'] === 'pdf_page' && !empty($item['page']) ? 'PDF page ' . (int) $item['page'] : 'DOCX image ' . (int) $item['ordinal']; ?>
+                                        (<?php echo html_escape($item['kind']); ?>)
+                                    </strong>
+                                    <div><?php echo html_escape($item['description']); ?></div>
+                                    <?php if (!empty($item['context'])): ?>
+                                        <div class="small text-muted">Document context: <?php echo html_escape($item['context']); ?></div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($item['readable_text'])): ?>
+                                        <div class="small">Readable labels: <?php echo html_escape(implode('; ', $item['readable_text'])); ?></div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($item['uncertainty'])): ?>
+                                        <div class="small text-muted">Uncertain: <?php echo html_escape($item['uncertainty']); ?></div>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                <?php endif; ?>
                 <a
                     class="btn btn-outline-secondary"
                     href="<?php echo site_url('ai_learning/workspace?' . http_build_query(array(

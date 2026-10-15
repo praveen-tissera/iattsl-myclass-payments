@@ -191,6 +191,72 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         </div>
                     </fieldset>
                     <?php endif; ?>
+                    <fieldset class="border rounded p-3 mb-3" id="image_questions_box">
+                        <legend class="h6 w-auto px-2">Image-based Questions (optional)</legend>
+                        <div class="custom-control custom-checkbox mb-2">
+                            <input class="custom-control-input" type="checkbox" id="image_questions" name="image_questions" value="1">
+                            <label class="custom-control-label" for="image_questions">Include questions that show an image and ask about it</label>
+                        </div>
+                        <div id="image_questions_options" style="display:none">
+                            <div class="form-row">
+                                <div class="form-group col-md-3">
+                                    <label for="image_count">How many image questions</label>
+                                    <input class="form-control" type="number" id="image_count" name="image_count" min="1" max="<?php echo (int) $max_question_count; ?>" value="3">
+                                    <small class="form-text text-muted">Cannot be more than the total number of questions.</small>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="image_kind">Type of image</label>
+                                    <select class="form-control" id="image_kind" name="image_kind">
+                                        <option value="software">Software screenshot / tool interface (e.g. PowerPoint, Word)</option>
+                                        <option value="labelled">Labelled diagram (device or component)</option>
+                                        <option value="flowchart">Flowchart</option>
+                                        <option value="spreadsheet">Spreadsheet sheet</option>
+                                        <option value="table">Data table</option>
+                                        <option value="chart">Chart / graph</option>
+                                        <option value="network">Network or logic diagram</option>
+                                        <option value="mixed">Mixed - let the AI choose</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-5">
+                                    <label for="image_topic">What should the images show? (optional)</label>
+                                    <input class="form-control" type="text" id="image_topic" name="image_topic" maxlength="200" placeholder="e.g. PowerPoint Ribbon, Home tab and Slide Sorter view">
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-0">The AI draws each image from a description, so check every image before marking the set Reviewed. Text inside AI-drawn screenshots is sometimes wrong; use the numbered arrows and the answer key to verify it.</p>
+                        </div>
+                    </fieldset>                    <?php
+                    $paper_candidates = array();
+                    $paper_pool = array();
+                    if (!empty($sections_ready)) {
+                        foreach ($section_options as $paper_section) {
+                            foreach ($paper_section->materials as $paper_item) {
+                                $paper_pool[] = $paper_item;
+                            }
+                        }
+                    } else {
+                        $paper_pool = $materials;
+                    }
+                    foreach ($paper_pool as $paper_item) {
+                        if ((!isset($paper_item->processing_status) || $paper_item->processing_status === 'processed') && !isset($paper_candidates[(int) $paper_item->ID])) {
+                            $paper_candidates[(int) $paper_item->ID] = $paper_item->original_filename;
+                        }
+                    }
+                    ?>
+                    <?php if (!empty($paper_candidates)): ?>
+                    <fieldset class="border rounded p-3 mb-3">
+                        <legend class="h6 w-auto px-2">Model Past Paper (optional)</legend>
+                        <div class="form-group mb-1">
+                            <label for="model_paper_id">Create questions like this uploaded paper</label>
+                            <select class="form-control" id="model_paper_id" name="model_paper_id">
+                                <option value="0">None - use the settings above</option>
+                                <?php foreach ($paper_candidates as $paper_id => $paper_name): ?>
+                                    <option value="<?php echo (int) $paper_id; ?>"><?php echo html_escape($paper_name); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <p class="small text-muted mb-0">The AI reads the paper first, then writes new questions with the same sections, question formats (multiple choice, structured or essay-style, image or table based), marks and depth. The question types you tick above are replaced by the types found in the paper. The paper must also be inside the Question Source you chose. For image-based questions, run "Describe Embedded Images" on the paper first so the AI can see its diagrams. This makes one extra AI request.</p>
+                    </fieldset>
+                    <?php endif; ?>
                     <div class="form-group">
                         <label for="additional_instructions">Additional Instructions</label>
                         <textarea class="form-control" id="additional_instructions" name="additional_instructions" rows="4" maxlength="3000"></textarea>
@@ -215,6 +281,24 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </section>
     </main>
     <script>
+        (function () {
+            var box = document.getElementById('image_questions');
+            var options = document.getElementById('image_questions_options');
+            var count = document.getElementById('image_count');
+            var total = document.getElementById('question_count');
+            if (!box || !options) { return; }
+            var sync = function () {
+                options.style.display = box.checked ? 'block' : 'none';
+                if (count && total) {
+                    count.max = total.value || count.max;
+                    if (parseInt(count.value, 10) > parseInt(total.value, 10)) { count.value = total.value; }
+                }
+            };
+            box.addEventListener('change', sync);
+            if (total) { total.addEventListener('input', sync); }
+            sync();
+        })();
+    </script>    <script>
         (function () {
             var panel = document.getElementById('section_source_panel');
             if (panel) {

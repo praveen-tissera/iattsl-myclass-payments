@@ -17,8 +17,18 @@ class Ai_activity_model extends CI_Model
         return $this->ready;
     }
 
+    // Image generation can outlast MySQL's wait_timeout, so make sure the connection is alive before saving.
+    private function refresh_connection()
+    {
+        $this->db->reconnect();
+        if (!$this->db->conn_id) {
+            $this->db->initialize();
+        }
+    }
+
     public function create_activity($teacher_id, $class_id, $subject_id, $section_id, $question_set_id, $activity, $instructions)
     {
+        $this->refresh_connection();
         $now = date('Y-m-d H:i:s');
         $this->db->trans_begin();
         $this->db->insert($this->activities_table, array(
@@ -61,6 +71,7 @@ class Ai_activity_model extends CI_Model
     // Regeneration swaps content and provenance atomically and returns the activity to draft.
     public function replace_content($activity_id, $teacher_id, $activity)
     {
+        $this->refresh_connection();
         $this->db->trans_begin();
         $this->db->where('ID', (int) $activity_id)->where('teacher_id', (int) $teacher_id)
             ->where('status !=', 'deleted')

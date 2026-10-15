@@ -58,7 +58,7 @@ $form_url = isset($form_action) ? $form_action : site_url('student_portal/submit
             <?php if ($csrf_name !== ''): ?>
                 <input type="hidden" name="<?php echo html_escape($csrf_name); ?>" value="<?php echo html_escape($csrf_hash); ?>">
             <?php endif; ?>
-            <?php $this->load->view('student_portal/activity_renderers/' . $type, array('content' => $content, 'answers' => $answers)); ?>
+            <?php $this->load->view('student_portal/activity_renderers/' . $type, array('content' => $content, 'answers' => $answers, 'visual_base' => site_url('student_portal/activity_visual/' . (int) $registration->student_record_id . '/' . (int) $activity->ID) . '/')); ?>
 
             <div class="d-flex flex-wrap align-items-center mt-3">
                 <button type="button" class="btn btn-outline-secondary mr-2 d-none" id="step-prev">Previous</button>

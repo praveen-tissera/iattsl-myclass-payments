@@ -519,6 +519,15 @@ class Student_portal extends CI_Controller
         $this->render_activity_player($registration, $activity, '', array());
     }
 
+    public function activity_visual($registration_id = '', $activity_id = '', $key = '')
+    {
+        $state = $this->authorized_state();
+        $registration = $this->find_registration($state, $registration_id);
+        $activity = $this->find_playable_activity($registration, $activity_id);
+        $this->load->library('Ai_activity_visuals');
+        $this->ai_activity_visuals->stream($activity->student_content, (string) $key);
+    }
+
     public function submit_activity($registration_id = '', $activity_id = '')
     {
         $state = $this->authorized_state();

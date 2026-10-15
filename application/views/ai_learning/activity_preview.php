@@ -73,7 +73,7 @@ $back_url = site_url('ai_activities?' . http_build_query(array('grade_id' => (in
                             <?php else: ?>
                                 <form method="post" action="<?php echo site_url('ai_activities/check/' . $id); ?>">
                                     <?php $hidden(); ?>
-                                    <?php $this->load->view('ai_learning/activity_renderers/' . $activity->activity_type, array('content' => $content, 'answers' => $answers, 'result' => $result)); ?>
+                                    <?php $this->load->view('ai_learning/activity_renderers/' . $activity->activity_type, array('content' => $content, 'answers' => $answers, 'result' => $result, 'visual_base' => site_url('ai_activities/visual/' . (int) $activity->ID) . '/')); ?>
                                     <button class="btn btn-primary" type="submit">Check answers (preview)</button>
                                 </form>
                             <?php endif; ?>

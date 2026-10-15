@@ -115,6 +115,71 @@ $status_class = array('draft' => 'warning', 'approved' => 'info', 'published' =>
                             <label for="instructions">Teacher instructions (optional)</label>
                             <textarea class="form-control" id="instructions" name="instructions" rows="2" maxlength="1000" placeholder="e.g. Focus on loops and keep the language simple. For a longer quiz write e.g. 30 questions (up to 40)."></textarea>
                         </div>
+                        <fieldset class="border rounded p-3 mb-3">
+                            <legend class="h6 w-auto px-2 mb-0">Picture questions (optional)</legend>
+                            <p class="small text-muted mb-2">Tick a box and the AI will build multiple-choice questions around a picture or a sample sheet. No prompt writing needed.</p>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="image_questions" name="image_questions" value="1">
+                                <label class="form-check-label" for="image_questions">Include AI-drawn picture questions (screenshots with numbered arrows, labelled diagrams, flowcharts, charts)</label>
+                            </div>
+                            <div id="image_options" class="form-row d-none">
+                                <div class="form-group col-md-2">
+                                    <label for="image_count">How many</label>
+                                    <select class="form-control" id="image_count" name="image_count">
+                                        <?php for ($n = 1; $n <= 5; $n++): ?><option value="<?php echo $n; ?>" <?php echo $n === 3 ? 'selected' : ''; ?>><?php echo $n; ?></option><?php endfor; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="image_kind">Picture type</label>
+                                    <select class="form-control" id="image_kind" name="image_kind">
+                                        <option value="software">Software screenshot (e.g. PowerPoint, Excel)</option>
+                                        <option value="labelled">Labelled diagram</option>
+                                        <option value="flowchart">Flowchart</option>
+                                        <option value="chart">Chart or graph</option>
+                                        <option value="network">Network or logic diagram</option>
+                                        <option value="mixed">Mixed</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="image_topic">What should the pictures show? (optional)</label>
+                                    <input class="form-control" type="text" id="image_topic" name="image_topic" maxlength="200" placeholder="e.g. PowerPoint Ribbon tabs and Slide Show view">
+                                </div>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="sheet_questions" name="sheet_questions" value="1">
+                                <label class="form-check-label" for="sheet_questions">Include a sample spreadsheet or data table with a scenario</label>
+                            </div>
+                            <div id="sheet_options" class="form-row d-none">
+                                <div class="form-group col-md-2">
+                                    <label for="sheet_count">How many</label>
+                                    <select class="form-control" id="sheet_count" name="sheet_count">
+                                        <?php for ($n = 1; $n <= 10; $n++): ?><option value="<?php echo $n; ?>" <?php echo $n === 3 ? 'selected' : ''; ?>><?php echo $n; ?></option><?php endfor; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="sheet_style">Style</label>
+                                    <select class="form-control" id="sheet_style" name="sheet_style">
+                                        <option value="spreadsheet">Spreadsheet (columns A, B, C and row numbers)</option>
+                                        <option value="table">Plain data table</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="sheet_topic">Scenario (optional)</label>
+                                    <input class="form-control" type="text" id="sheet_topic" name="sheet_topic" maxlength="200" placeholder="e.g. school canteen sales">
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-0">Picture questions make the activity multiple-choice, take longer to generate, and each picture is checked by AI against its answer. AI-drawn text can still contain mistakes, so look at every picture in the preview before approving.</p>
+                        </fieldset>
+                        <script>
+                        (function () {
+                            [['image_questions', 'image_options'], ['sheet_questions', 'sheet_options']].forEach(function (pair) {
+                                var box = document.getElementById(pair[0]), area = document.getElementById(pair[1]);
+                                if (!box || !area) { return; }
+                                function sync() { area.classList.toggle('d-none', !box.checked); }
+                                box.addEventListener('change', sync); sync();
+                            });
+                        }());
+                        </script>
                         <button class="btn btn-primary" type="submit" onclick="this.disabled=true;this.textContent='Generating... please wait';this.form.submit();">Generate activity</button>
                     </form>
                     <?php endif; ?>

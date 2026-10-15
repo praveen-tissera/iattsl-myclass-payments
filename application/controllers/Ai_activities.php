@@ -126,6 +126,24 @@ class Ai_activities extends CI_Controller
             return;
         }
 
+        $visuals = $this->normalise_visual_options(array(
+            'image_questions' => $this->input->post('image_questions', FALSE),
+            'image_count' => $this->input->post('image_count', FALSE),
+            'image_kind' => $this->input->post('image_kind', FALSE),
+            'image_topic' => $this->input->post('image_topic', FALSE),
+            'sheet_questions' => $this->input->post('sheet_questions', FALSE),
+            'sheet_count' => $this->input->post('sheet_count', FALSE),
+            'sheet_style' => $this->input->post('sheet_style', FALSE),
+            'sheet_topic' => $this->input->post('sheet_topic', FALSE)
+        ));
+        if ($visuals === FALSE) {
+            $this->finish('Choose a valid number, type and topic for the image or sample-sheet questions.', FALSE, $back);
+            return;
+        }
+        if (($visuals['image'] !== NULL || $visuals['sheet'] !== NULL) && $this->ai_activity_engine->is_available('mcq_quiz')) {
+            $type = 'mcq_quiz';
+        }
+
         $question_set_id = 0;
         $raw_set = $this->input->post('question_set_id', FALSE);
         if (is_string($raw_set) && $raw_set !== '') {
@@ -138,7 +156,7 @@ class Ai_activities extends CI_Controller
 
         $result = $this->run_generation(
             $type, $owner_id, $class_id, $subject_id, $sections[0], $question_set_id,
-            $use_materials, $instructions, $difficulty
+            $use_materials, $instructions, $difficulty, $visuals
         );
         if (!$result['ok']) {
             $this->finish($result['error'], FALSE, $back);
@@ -147,14 +165,16 @@ class Ai_activities extends CI_Controller
 
         $activity_id = $this->Ai_activity_model->create_activity(
             $owner_id, $class_id, $subject_id, $section_id, $question_set_id ?: NULL,
-            $result['activity'], $this->pack_instructions($instructions, $difficulty, $use_materials)
+            $result['activity'], $this->pack_instructions($instructions, $difficulty, $use_materials, $visuals)
         );
         if ($activity_id === FALSE) {
+            $this->load->library('Ai_activity_visuals');
+            $this->ai_activity_visuals->delete($result['files']);
             $this->finish('The activity was generated but could not be saved. Nothing was changed.', FALSE, $back);
             return;
         }
         $this->Ai_activity_model->add_contribution($activity_id, $teacher_id, 'created');
-        $this->finish('Draft activity generated. Review it before approving.', TRUE, 'ai_activities/preview/' . (int) $activity_id);
+        $this->finish('Draft activity generated. Review it before approving.' . $result['image_note'], TRUE, 'ai_activities/preview/' . (int) $activity_id);
     }
 
     public function regenerate()
@@ -177,14 +197,19 @@ class Ai_activities extends CI_Controller
         $saved = $this->unpack_instructions($activity->generation_instructions);
         $result = $this->run_generation(
             $activity->activity_type, $owner_id, (int) $activity->class_id, (int) $activity->subject_id,
-            $sections[0], (int) $activity->question_set_id, $saved['use_materials'], $saved['instructions'], $saved['difficulty']
+            $sections[0], (int) $activity->question_set_id, $saved['use_materials'], $saved['instructions'], $saved['difficulty'], $saved['visuals']
         );
+        $this->load->library('Ai_activity_visuals');
         if (!$result['ok'] || !$this->Ai_activity_model->replace_content($activity->ID, $owner_id, $result['activity'])) {
+            if ($result['ok']) {
+                $this->ai_activity_visuals->delete($result['files']);
+            }
             $this->finish(($result['ok'] ? 'The new version could not be saved.' : $result['error']) . ' The existing activity was kept.', FALSE, $back);
             return;
         }
+        $this->ai_activity_visuals->delete($this->ai_activity_visuals->files_in($activity->student_content));
         $this->Ai_activity_model->add_contribution($activity->ID, $teacher_id, 'edited');
-        $this->finish('Activity regenerated and returned to draft.', TRUE, $back);
+        $this->finish('Activity regenerated and returned to draft.' . $result['image_note'], TRUE, $back);
     }
 
     public function preview($activity_id = 0)
@@ -273,7 +298,10 @@ class Ai_activities extends CI_Controller
         if ($role !== 'administrator' && (int) $activity->teacher_id !== $teacher_id) {
             show_error('Only an administrator can remove shared activities.', 403);
         }
-        $this->Ai_activity_model->transition($activity->ID, (int) $activity->teacher_id, $teacher_id, array('draft', 'approved', 'published'), 'deleted');
+        if ($this->Ai_activity_model->transition($activity->ID, (int) $activity->teacher_id, $teacher_id, array('draft', 'approved', 'published'), 'deleted')) {
+            $this->load->library('Ai_activity_visuals');
+            $this->ai_activity_visuals->delete($this->ai_activity_visuals->files_in($activity->student_content));
+        }
         $this->finish('Activity removed. Source questions and materials were not changed.', TRUE, 'ai_activities?' . http_build_query(array(
             'grade_id' => (int) $activity->class_id, 'subject_id' => (int) $activity->subject_id, 'section_id' => (int) $activity->section_id,
             'owner_id' => (int) $activity->teacher_id
@@ -310,14 +338,15 @@ class Ai_activities extends CI_Controller
         $this->finish($message, TRUE, $back);
     }
 
-    private function run_generation($type, $teacher_id, $class_id, $subject_id, $section, $question_set_id, $use_materials, $instructions, $difficulty)
+    private function run_generation($type, $teacher_id, $class_id, $subject_id, $section, $question_set_id, $use_materials, $instructions, $difficulty, $visuals = NULL)
     {
-        $context = $this->build_context($type, $teacher_id, $class_id, $subject_id, $section, $question_set_id, $use_materials, $instructions, $difficulty);
+        $visuals = is_array($visuals) ? $visuals : array('image' => NULL, 'sheet' => NULL);
+        $context = $this->build_context($type, $teacher_id, $class_id, $subject_id, $section, $question_set_id, $use_materials, trim($instructions . ' ' . $this->visual_instruction($visuals)), $difficulty);
         if (is_string($context)) {
             return array('ok' => FALSE, 'error' => $context);
         }
         if (function_exists('set_time_limit')) {
-            @set_time_limit(240);
+            @set_time_limit($visuals['image'] !== NULL ? 720 : 240);
         }
 
         $count = $this->ai_activity_engine->requested_count($type, $instructions);
@@ -336,6 +365,9 @@ class Ai_activities extends CI_Controller
             }
             $data = json_decode($response['response'], TRUE);
             $validated = $this->ai_activity_engine->validate_generated($type, $data, $context['question_ids'], $context['material_ids']);
+            if ($validated['ok'] && $visuals['image'] !== NULL && empty($validated['activity']['image_jobs'])) {
+                $validated = array('ok' => FALSE, 'error' => 'the AI did not create any image-based questions');
+            }
             if ($validated['ok']) {
                 $activity = $validated['activity'];
                 // Fall back to the full supplied context when the AI cites no valid source IDs.
@@ -343,7 +375,11 @@ class Ai_activities extends CI_Controller
                     $activity['source_question_ids'] = $context['question_ids'];
                     $activity['source_material_ids'] = $context['material_ids'];
                 }
-                return array('ok' => TRUE, 'activity' => $activity);
+                $attached = $this->attach_images($activity, $class_id, $subject_id);
+                if (!$attached['ok']) {
+                    return array('ok' => FALSE, 'error' => $attached['error']);
+                }
+                return array('ok' => TRUE, 'activity' => $attached['activity'], 'files' => $attached['files'], 'image_note' => $attached['note']);
             }
             $error = 'The AI activity was rejected: ' . $validated['error'];
         }
@@ -519,9 +555,177 @@ class Ai_activities extends CI_Controller
         }
     }
 
-    private function pack_instructions($instructions, $difficulty, $use_materials)
+    // Generates the pictures for the questions that asked for one. Questions whose picture cannot be produced and
+    // verified are dropped, so no saved question ever depends on a missing picture.
+    private function attach_images($activity, $class_id, $subject_id)
     {
-        return json_encode(array('instructions' => $instructions, 'difficulty' => $difficulty, 'use_materials' => $use_materials));
+        $jobs = isset($activity['image_jobs']) && is_array($activity['image_jobs']) ? $activity['image_jobs'] : array();
+        unset($activity['image_jobs']);
+        if (empty($jobs)) {
+            return array('ok' => TRUE, 'activity' => $activity, 'files' => array(), 'note' => '');
+        }
+        $this->load->library('Ai_activity_visuals');
+        $grade = $this->find_grade($class_id);
+        $subject = $this->find_subject($class_id, $subject_id);
+        $grade_label = $grade ? $grade->label : '';
+        $subject_label = $subject ? $subject->subject_name : '';
+        $started = microtime(TRUE);
+        $budget = (float) $this->config->item('ai_activity_image_time_budget');
+        $budget = $budget > 0 ? $budget : 420;
+
+        $files = array();
+        $dropped = array();
+        foreach ($activity['student_content']['items'] as $index => $item) {
+            if (!isset($jobs[$item['id']])) {
+                continue;
+            }
+            $job = $jobs[$item['id']];
+            $evaluation = $activity['evaluation']['items'][$item['id']];
+            $options = array();
+            $correct = '';
+            foreach ($item['options'] as $option) {
+                $options[] = $option['text'];
+                if ($option['id'] === $evaluation['correct_option']) {
+                    $correct = $option['text'];
+                }
+            }
+            $question = array('question' => $item['prompt'], 'options' => $options, 'correct_answer' => $correct,
+                'explanation' => $evaluation['explanation'], 'image_specification' => $job['description']);
+            $file = NULL;
+            for ($try = 1; $try <= 2 && $file === NULL; $try++) {
+                if ((microtime(TRUE) - $started) > $budget) {
+                    break;
+                }
+                $made = $this->ai_activity_visuals->create($job['description'], $question, $grade_label, $subject_label);
+                if ($made['ok']) {
+                    $file = $made['file'];
+                }
+            }
+            if ($file === NULL) {
+                $dropped[$item['id']] = TRUE;
+                continue;
+            }
+            $files[] = $file;
+            $activity['student_content']['items'][$index]['image'] = array('file' => $file, 'alt' => $job['alt']);
+        }
+
+        if (!empty($dropped)) {
+            $kept = array();
+            foreach ($activity['student_content']['items'] as $item) {
+                if (isset($dropped[$item['id']])) {
+                    unset($activity['evaluation']['items'][$item['id']]);
+                } else {
+                    $kept[] = $item;
+                }
+            }
+            $activity['student_content']['items'] = $kept;
+        }
+        if (count($activity['student_content']['items']) < 3 || empty($files)) {
+            $this->ai_activity_visuals->delete($files);
+            return array('ok' => FALSE, 'error' => 'The images for the questions could not be created and checked. Nothing was saved. Please try again.');
+        }
+        $note = ' ' . count($files) . ' question' . (count($files) === 1 ? '' : 's') . ' include an AI-drawn image: check each image against its answer key.';
+        if (!empty($dropped)) {
+            $note .= ' ' . count($dropped) . ' image question' . (count($dropped) === 1 ? ' was' : 's were') . ' left out because its image could not be created or did not match the question.';
+        }
+
+        return array('ok' => TRUE, 'activity' => $activity, 'files' => $files, 'note' => $note);
+    }
+
+    // Validates the tick-box choices for image and sample-sheet questions. Returns FALSE when a ticked box has invalid values.
+    private function normalise_visual_options($raw)
+    {
+        $kinds = $this->image_kinds();
+        $options = array('image' => NULL, 'sheet' => NULL);
+        $topic = function ($value) {
+            return is_string($value) ? trim(preg_replace('/\s+/u', ' ', $value)) : '';
+        };
+        if (isset($raw['image_questions']) && $raw['image_questions'] === '1') {
+            $kind = isset($raw['image_kind']) ? $raw['image_kind'] : '';
+            $count = isset($raw['image_count']) ? $raw['image_count'] : '';
+            $text = $topic(isset($raw['image_topic']) ? $raw['image_topic'] : '');
+            if (!is_string($kind) || !isset($kinds[$kind]) || !is_string($count) || !ctype_digit($count) ||
+                (int) $count < 1 || (int) $count > 5 || mb_strlen($text, 'UTF-8') > 200) {
+                return FALSE;
+            }
+            $options['image'] = array('count' => (int) $count, 'kind' => $kind, 'topic' => $text);
+        }
+        if (isset($raw['sheet_questions']) && $raw['sheet_questions'] === '1') {
+            $style = isset($raw['sheet_style']) ? $raw['sheet_style'] : '';
+            $count = isset($raw['sheet_count']) ? $raw['sheet_count'] : '';
+            $text = $topic(isset($raw['sheet_topic']) ? $raw['sheet_topic'] : '');
+            if (!in_array($style, array('spreadsheet', 'table'), TRUE) || !is_string($count) || !ctype_digit($count) ||
+                (int) $count < 1 || (int) $count > 10 || mb_strlen($text, 'UTF-8') > 200) {
+                return FALSE;
+            }
+            $options['sheet'] = array('count' => (int) $count, 'style' => $style, 'topic' => $text);
+        }
+
+        return $options;
+    }
+
+    private function image_kinds()
+    {
+        return array(
+            'software' => 'a realistic screenshot of a software window or interface (for example the Ribbon, tabs, toolbars and panes), with large numbered or lettered arrows pointing to the parts being asked about',
+            'labelled' => 'a clearly labelled diagram of a device, component or system, with large numbered arrows and no part names written on it',
+            'flowchart' => 'a flowchart with exact start, steps, decisions, branch directions and loop-backs',
+            'chart' => 'a simple bar, line or pie chart with labelled axes and values',
+            'network' => 'a network or logic diagram with labelled components and connections',
+            'mixed' => 'whichever picture type best suits each question (screenshot, labelled diagram, flowchart, chart or network diagram)'
+        );
+    }
+
+    // Fixed instruction text built from validated choices, so teachers never have to write a prompt.
+    private function visual_instruction($visuals)
+    {
+        $kinds = $this->image_kinds();
+        $text = '';
+        if (!empty($visuals['image'])) {
+            $image = $visuals['image'];
+            $text .= 'IMAGE-BASED QUESTIONS requested by the teacher: exactly ' . (int) $image['count'] . ' of the questions must each show a picture and ask about it. For each of them set image_description to a precise specification of ' . $kinds[$image['kind']] . '. ';
+            if ($image['topic'] !== '') {
+                $text .= 'The pictures are about: ' . $image['topic'] . '. ';
+            }
+            $text .= 'Ask things such as "What is the name of the part labelled 2?", "Which button is highlighted by the arrow?" or "What is the output of the flowchart?". ';
+        }
+        if (!empty($visuals['sheet'])) {
+            $sheet = $visuals['sheet'];
+            $text .= 'SAMPLE-SHEET QUESTIONS requested by the teacher: exactly ' . (int) $sheet['count'] . ' of the questions must each carry a sample ' . $sheet['style'] . ' (set sheet_style to "' . $sheet['style'] . '", a scenario sheet_title and realistic sheet_rows). ';
+            if ($sheet['topic'] !== '') {
+                $text .= 'The sheet scenario is about: ' . $sheet['topic'] . '. ';
+            }
+        }
+
+        return $text;
+    }
+
+    public function visual($activity_id = 0, $key = '')
+    {
+        list($role, $teacher_id) = $this->require_role();
+        $this->require_schema();
+        $activity = $this->load_activity($activity_id, $role, $teacher_id);
+        $this->load->library('Ai_activity_visuals');
+        $this->ai_activity_visuals->stream($activity->student_content, (string) $key);
+    }
+
+    private function pack_instructions($instructions, $difficulty, $use_materials, $visuals = NULL)
+    {
+        return json_encode(array('instructions' => $instructions, 'difficulty' => $difficulty, 'use_materials' => $use_materials, 'visuals' => is_array($visuals) ? $visuals : NULL));
+    }
+
+    private function unpack_visuals($stored)
+    {
+        $raw = array();
+        if (is_array($stored) && !empty($stored['image'])) {
+            $raw += array('image_questions' => '1', 'image_count' => (string) (int) $stored['image']['count'], 'image_kind' => $stored['image']['kind'], 'image_topic' => $stored['image']['topic']);
+        }
+        if (is_array($stored) && !empty($stored['sheet'])) {
+            $raw += array('sheet_questions' => '1', 'sheet_count' => (string) (int) $stored['sheet']['count'], 'sheet_style' => $stored['sheet']['style'], 'sheet_topic' => $stored['sheet']['topic']);
+        }
+        $options = $this->normalise_visual_options($raw);
+
+        return is_array($options) ? $options : array('image' => NULL, 'sheet' => NULL);
     }
 
     private function unpack_instructions($stored)
@@ -530,7 +734,8 @@ class Ai_activities extends CI_Controller
         return array(
             'instructions' => is_array($data) && isset($data['instructions']) && is_string($data['instructions']) ? $data['instructions'] : '',
             'difficulty' => is_array($data) && isset($data['difficulty']) && in_array($data['difficulty'], array('auto', 'easy', 'medium', 'hard'), TRUE) ? $data['difficulty'] : 'auto',
-            'use_materials' => is_array($data) && !empty($data['use_materials'])
+            'use_materials' => is_array($data) && !empty($data['use_materials']),
+            'visuals' => $this->unpack_visuals(is_array($data) && isset($data['visuals']) ? $data['visuals'] : NULL)
         );
     }
 
