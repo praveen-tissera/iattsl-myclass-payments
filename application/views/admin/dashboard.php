@@ -118,7 +118,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <h1 class="mb-2">Dashboard</h1>
                 <p class="text-muted mb-0"><?php echo html_escape(date('l, F j, Y', strtotime($dashboard['today']))); ?> · Today’s activity and current-month overview</p>
             </div>
-            <a class="btn btn-primary" href="<?php echo site_url('online/enter_payments'); ?>">Enter payments</a>
+            <div class="d-flex flex-wrap"><a class="btn btn-outline-danger mr-2" href="<?php echo site_url('admin_leave_notice'); ?>">Pending leave notices</a><a class="btn btn-primary" href="<?php echo site_url('online/enter_payments'); ?>">Enter payments</a></div>
         </header>
         <?php $this->load->view('includesui/hot_topics'); ?>
 

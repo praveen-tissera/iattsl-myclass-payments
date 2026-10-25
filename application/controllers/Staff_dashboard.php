@@ -18,11 +18,13 @@ class Staff_dashboard extends CI_Controller
         }
 
         $this->load->model('Staff_assignment_model');
+        $this->load->model('Staff_leave_notice_model');
     }
 
     public function index()
     {
         $data = array(
+            'leave_notices' => $this->Staff_leave_notice_model->get_active_for_staff((int) $this->session->userdata('user_id')),
             'assignments' => $this->Staff_assignment_model->get_assignments_for_staff(
                 (int) $this->session->userdata('user_id')
             ),

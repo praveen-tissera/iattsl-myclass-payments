@@ -25,6 +25,7 @@
            <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_due_payment_report">Due Payment Report</a>
            <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_registration_report">Student Registration Report</a>
            <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_staff_leave">Staff Leave Requests</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_leave_notice">Pending Leave Notices</a>
           
         </div>
      </li>

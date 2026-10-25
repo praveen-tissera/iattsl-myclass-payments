@@ -202,6 +202,7 @@ foreach ($assignments as $assignment) {
                 <a class="btn btn-outline-primary" href="<?php echo site_url('staff_leave'); ?>">Apply for leave</a>
             </div>
         </header>
+        <?php $this->load->view('includesui/leave_notice', array('leave_notices' => $leave_notices)); ?>
         <?php $this->load->view('includesui/hot_topics'); ?>
         <?php if (!empty($success)): ?><div class="alert alert-success"><?php echo html_escape($success); ?></div><?php endif; ?>
         <?php if (!empty($error)): ?><div class="alert alert-danger"><?php echo html_escape($error); ?></div><?php endif; ?>
