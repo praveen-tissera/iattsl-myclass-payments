@@ -26,3 +26,6 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 *.sublime-workspace
 *.sublime-project
 application/libraries/phpqrcode/cache/*
+
+# Secret key for encrypted payment links
+application/config/link.php
