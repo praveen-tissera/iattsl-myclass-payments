@@ -321,8 +321,10 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                   <?php
                     $this->load->helper('link');
                     $this->config->load('link', FALSE, TRUE);
+                    // HED/25-232-2 -> HED/25-232 (drop the trailing sub-number)
+                    $link_registration = preg_replace('/^(.+\/\d+-\d+)-\d+$/', '$1', strtoupper(trim($student_display_id)));
                     $payment_link = rtrim($this->config->item('student_site_url'), '/') . '/welcome/paymentHistory/' .
-                        make_pay_token(strtoupper(trim($student_display_id)));
+                        make_pay_token($link_registration);
                   ?>
                   <div class="form-group mb-3">
                     <label for="payment-link" class="mb-1">Student payment link</label>
