@@ -318,6 +318,36 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
 
                   <p class="card-text">Class/Course Registration# : <?php echo $student_display_id; ?> </p>
                   
+                  <?php
+                    $this->load->helper('link');
+                    $this->config->load('link', FALSE, TRUE);
+                    $payment_link = rtrim($this->config->item('student_site_url'), '/') . '/welcome/paymentHistory/' .
+                        make_pay_token(strtoupper(trim($student_display_id)));
+                  ?>
+                  <div class="form-group mb-3">
+                    <label for="payment-link" class="mb-1">Student payment link</label>
+                    <div class="input-group">
+                      <input type="text" id="payment-link" class="form-control" value="<?php echo html_escape($payment_link); ?>" readonly onclick="this.select();">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-primary" id="copy-payment-link">Copy link</button>
+                      </div>
+                    </div>
+                    <small id="copy-payment-link-msg" class="text-success"></small>
+                  </div>
+                  <script>
+                    document.getElementById('copy-payment-link').addEventListener('click', function () {
+                      var field = document.getElementById('payment-link');
+                      var done = function () { document.getElementById('copy-payment-link-msg').textContent = 'Link copied'; };
+                      field.select();
+                      if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(field.value).then(done);
+                      } else {
+                        document.execCommand('copy');
+                        done();
+                      }
+                    });
+                  </script>
+
                   <img src="<?= base_url('uploads/student_qr/'.$qr_file); ?>" width="150">
 
                         <a href="<?= base_url('uploads/student_qr/'.$qr_file); ?>" class="btn btn-sm btn-outline-primary" download>
