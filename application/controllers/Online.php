@@ -268,6 +268,12 @@ class Online extends CI_Controller {
         else{
             date_default_timezone_set('Asia/Colombo');
             $currentDate = date('Y-m-d H:i:s');
+            if ($this->session->userdata('user_role') === 'administrator') {
+                $chosen_date = $this->parse_transaction_date($this->input->post('transaction_date'));
+                if ($chosen_date !== FALSE) {
+                    $currentDate = $chosen_date;
+                }
+            }
             $data = array(
                 'ID' => NULL,
                 'amount' => $_POST['amount'],
@@ -347,6 +353,41 @@ class Online extends CI_Controller {
         }
 
         
+    }
+
+    // Converts a datetime-local value (Y-m-d\TH:i) to a DB datetime, or FALSE when invalid.
+    private function parse_transaction_date($value)
+    {
+        if (!is_string($value)) {
+            return FALSE;
+        }
+        $parsed = DateTime::createFromFormat('Y-m-d\TH:i', $value, new DateTimeZone('Asia/Colombo'));
+        return ($parsed && $parsed->format('Y-m-d\TH:i') === $value) ? $parsed->format('Y-m-d H:i:s') : FALSE;
+    }
+
+    // Administrators can correct the transaction date of an already submitted payment.
+    public function updateTransactionDate()
+    {
+        if (strtoupper($this->input->method()) !== 'POST' || $this->session->userdata('user_role') !== 'administrator') {
+            show_error('You do not have permission to update the transaction date.', 403);
+        }
+
+        $payment_id = (int) $this->input->post('payment_id');
+        $date = $this->parse_transaction_date($this->input->post('transaction_date'));
+        $admission = (string) $this->input->post('student_id');
+        $session_id = (int) $this->input->post('academicyear');
+
+        if ($payment_id < 1 || $date === FALSE || !$this->Online_User_model->update_payment_date($payment_id, $date)) {
+            $this->session->set_flashdata('error', 'Unable to update the transaction date. Please check the date and try again.');
+        } else {
+            $this->session->set_flashdata('success', 'Transaction date updated.');
+        }
+
+        $parts = explode('/', $admission);
+        $branch = $parts[0];
+        $number = end($parts);
+        $short = substr_count($number, '-') > 1 ? substr($number, 0, strrpos($number, '-')) : $number;
+        redirect('online/idValidator/' . rawurlencode($short) . '/' . rawurlencode($branch) . '/' . $session_id);
     }
 
     public function pdfgenerator(){

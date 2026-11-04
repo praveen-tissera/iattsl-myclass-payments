@@ -547,15 +547,12 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                                                 echo $lastPart;
                                               echo "</td>";
                                           echo "<td>";
-                                          // if paid return receipt payment date
-                                          // echo $student_detail['payment_completion'][$index]->created_at;
-                                          $originalTime = $student_detail['payment_completion'][$index]->created_at;
-                                          $timestamp = strtotime($originalTime);
-                                          $newTime = date("y-m-d h:i A", $timestamp);
-                                          echo $newTime;
-                                          // echo (empty($payment->updated_at))? $payment->created_at : $payment->updated_at;
-                                          
-                                      
+                                          $this->load->view('includesui/transaction_date_paid', array(
+                                            'is_admin' => $this->session->userdata('user_role') === 'administrator',
+                                            'completion' => ($index !== false) ? $student_detail['payment_completion'][$index] : NULL,
+                                            'admission_number' => $student_detail['profile']->admission_number,
+                                            'academic_year' => $selected_academic_year
+                                          ));
                                         echo "</td>";
                                           echo "<td>";
                                           echo $payment->status;
@@ -612,23 +609,10 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                                             
                                                  echo "<input type='text' name='note' class='form-control' placeholder='Enter Note'>";
                                               echo "</td>";
-                                              echo "<td>";
-                                              if(empty($payment->updated_at)){
-                                                // echo $payment->created_at;
-
-                                                 $originalTime =$payment->created_at;
-                                                  $timestamp = strtotime($originalTime);
-                                                  $newTime = date("y-m-d h:i A", $timestamp);
-                                                  echo $newTime;
-
-                                              }else{
-                                                // echo $payment->updated_at;
-                                                $originalTime = $payment->updated_at;
-                                                  $timestamp = strtotime($originalTime);
-                                                  $newTime = date("y-m-d h:i A", $timestamp);
-                                                  echo $newTime;
-                                              }
-                                            echo "</td>";
+                                              $this->load->view('includesui/transaction_date_unpaid', array(
+                                                'is_admin' => $this->session->userdata('user_role') === 'administrator',
+                                                'invoice' => $payment
+                                              ));
                                               echo "<td>";
                                               echo $payment->status;
                                             echo "</td>";
@@ -770,23 +754,14 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                                               echo "<td>";
                                                 echo $lastPart;
                                               echo "</td>";
-                                              echo "<td>";
-                                              if(empty($payment->updated_at)){
-                                                // echo $payment->created_at;
-
-                                                 $originalTime =$payment->created_at;
-                                                  $timestamp = strtotime($originalTime);
-                                                  $newTime = date("y-m-d h:i A", $timestamp);
-                                                  echo $newTime;
-
-                                              }else{
-                                                // echo $payment->updated_at;
-                                                $originalTime = $payment->updated_at;
-                                                  $timestamp = strtotime($originalTime);
-                                                  $newTime = date("y-m-d h:i A", $timestamp);
-                                                  echo $newTime;
-                                              }
-                                            echo "</td>";
+                                          echo "<td>";
+                                          $this->load->view('includesui/transaction_date_paid', array(
+                                            'is_admin' => $this->session->userdata('user_role') === 'administrator',
+                                            'completion' => ($index !== false) ? $student_detail['payment_completion'][$index] : NULL,
+                                            'admission_number' => $student_detail['profile']->admission_number,
+                                            'academic_year' => $selected_academic_year
+                                          ));
+                                          echo "</td>";
                                           echo "<td>";
                                           echo $payment->status;
                                         echo "</td>";
@@ -840,13 +815,10 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                                             
                                                  echo "<input type='text' name='note' class='form-control' placeholder='Enter Note'>";
                                               echo "</td>";
-                                              echo "<td>";
-                                              if(empty($payment->updated_at)){
-                                                echo $payment->created_at;
-                                              }else{
-                                                echo $payment->updated_at;
-                                              }
-                                            echo "</td>";
+                                              $this->load->view('includesui/transaction_date_unpaid', array(
+                                                'is_admin' => $this->session->userdata('user_role') === 'administrator',
+                                                'invoice' => $payment
+                                              ));
                                               echo "<td>";
                                               echo $payment->status;
                                             echo "</td>";

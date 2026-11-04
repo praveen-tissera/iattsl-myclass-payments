@@ -142,6 +142,12 @@ class Online_User_model extends CI_Model{
         // print_r($query->result());
     }
 
+    public function update_payment_date($payment_id, $datetime)
+    {
+        $this->db->where('ID', (int) $payment_id)->update('wp_wlsm_payments', array('created_at' => $datetime));
+        return $this->db->where('ID', (int) $payment_id)->count_all_results('wp_wlsm_payments') === 1;
+    }
+
     // methos to insert new payment
     public function insert_payment($data){
         // Set the desired timezone
