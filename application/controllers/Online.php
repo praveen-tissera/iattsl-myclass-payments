@@ -390,6 +390,30 @@ class Online extends CI_Controller {
         redirect('online/idValidator/' . rawurlencode($short) . '/' . rawurlencode($branch) . '/' . $session_id);
     }
 
+    // Administrators can undo a payment: the payment record is deleted and the invoice returns to unpaid.
+    public function revertPayment()
+    {
+        if (strtoupper($this->input->method()) !== 'POST' || $this->session->userdata('user_role') !== 'administrator') {
+            show_error('You do not have permission to change the payment status.', 403);
+        }
+
+        $payment_id = (int) $this->input->post('payment_id');
+        $admission = (string) $this->input->post('student_id');
+        $session_id = (int) $this->input->post('academicyear');
+
+        if ($payment_id < 1 || !$this->Online_User_model->revert_payment($payment_id)) {
+            $this->session->set_flashdata('error', 'Unable to mark this invoice as unpaid.');
+        } else {
+            $this->session->set_flashdata('success', 'Payment removed. The invoice is now unpaid.');
+        }
+
+        $parts = explode('/', $admission);
+        $branch = $parts[0];
+        $number = end($parts);
+        $short = substr_count($number, '-') > 1 ? substr($number, 0, strrpos($number, '-')) : $number;
+        redirect('online/idValidator/' . rawurlencode($short) . '/' . rawurlencode($branch) . '/' . $session_id);
+    }
+
     public function pdfgenerator(){
         $result = $this->Online_User_model->get_payment_detail($_POST['invoiceid']);
         $admission = $result[1]->admission_number;

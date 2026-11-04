@@ -148,6 +148,26 @@ class Online_User_model extends CI_Model{
         return $this->db->where('ID', (int) $payment_id)->count_all_results('wp_wlsm_payments') === 1;
     }
 
+    // Deletes the payment and sets its invoice back to unpaid in one transaction.
+    public function revert_payment($payment_id)
+    {
+        $payment = $this->db->select('ID, invoice_id')->where('ID', (int) $payment_id)->get('wp_wlsm_payments')->row();
+        if (!$payment) {
+            return FALSE;
+        }
+
+        $this->db->trans_begin();
+        $this->db->where('ID', (int) $payment->ID)->delete('wp_wlsm_payments');
+        $this->db->where('ID', (int) $payment->invoice_id)->update('wp_wlsm_invoices', array('status' => 'unpaid'));
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return FALSE;
+        }
+        $this->db->trans_commit();
+        return TRUE;
+    }
+
     // methos to insert new payment
     public function insert_payment($data){
         // Set the desired timezone

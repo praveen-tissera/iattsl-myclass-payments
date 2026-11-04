@@ -11,3 +11,4 @@ if (empty($is_admin) || empty($completion->ID)) {
 <input type="hidden" name="student_id" value="<?php echo html_escape($admission_number); ?>">
 <input type="hidden" name="academicyear" value="<?php echo (int) $academic_year; ?>">
 <button type="submit" class="btn btn-outline-secondary btn-sm" name="payment_id" value="<?php echo (int) $completion->ID; ?>" formaction="<?php echo site_url('online/updateTransactionDate'); ?>">Update date</button>
+<button type="submit" class="btn btn-outline-danger btn-sm mt-1" name="payment_id" value="<?php echo (int) $completion->ID; ?>" formaction="<?php echo site_url('online/revertPayment'); ?>" onclick="return confirm('Mark this invoice as unpaid? The recorded payment will be permanently deleted.');">Mark unpaid</button>
