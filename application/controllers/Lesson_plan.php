@@ -271,6 +271,10 @@ class Lesson_plan extends CI_Controller
             'student' => $student,
             'units' => $this->Lesson_plan_model->get_student_progress($plan->ID, $student->ID),
             'assignment' => $assignment,
+            'other_students' => $assignment === NULL ? array() : array_values(array_filter(
+                $this->Lesson_plan_model->get_mapped_students($plan->ID),
+                function ($row) use ($student) { return (int) $row->ID !== (int) $student->ID; }
+            )),
             'can_update' => $assignment !== NULL
         ));
     }
@@ -298,10 +302,36 @@ class Lesson_plan extends CI_Controller
             }
         }
 
-        if (!$valid || empty($updates) || !$this->Lesson_plan_model->save_student_progress($plan->ID, (int) $student_id, $updates, $this->user_id)) {
+        $targets = array((int) $student_id);
+        $extra = $this->input->post('extra_students');
+        if (is_array($extra)) {
+            foreach ($extra as $extra_id) {
+                $targets[] = (int) $extra_id;
+            }
+        }
+        $targets = array_values(array_unique($targets));
+
+        $saved = $valid && !empty($updates);
+        if ($saved) {
+            $this->db->trans_begin();
+            foreach ($targets as $target) {
+                if (!$this->Lesson_plan_model->save_student_progress($plan->ID, $target, $updates, $this->user_id)) {
+                    $saved = FALSE;
+                    break;
+                }
+            }
+            if ($saved && $this->db->trans_status() !== FALSE) {
+                $this->db->trans_commit();
+            } else {
+                $saved = FALSE;
+                $this->db->trans_rollback();
+            }
+        }
+
+        if (!$saved) {
             $this->session->set_flashdata('error', 'Unable to save the unit progress.');
         } else {
-            $this->session->set_flashdata('success', 'Unit progress saved.');
+            $this->session->set_flashdata('success', count($targets) > 1 ? 'Unit progress saved for ' . count($targets) . ' students.' : 'Unit progress saved.');
         }
 
         redirect('lesson_plan/progress/' . $plan->ID . '/' . (int) $student_id);

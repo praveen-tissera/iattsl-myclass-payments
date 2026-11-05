@@ -48,6 +48,28 @@ $this->load->view('lesson_plan/_header', array('page_title' => 'Unit Progress', 
         </table>
     </div>
     <?php if ($can_update): ?>
+        <?php if (!empty($other_students)): ?>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <strong>Also apply these statuses and notes to other students on this plan</strong>
+                    <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="select-all-others"><label class="form-check-label" for="select-all-others">Select all</label></div>
+                    <div class="form-row">
+                    <?php foreach ($other_students as $other): ?>
+                        <div class="col-md-4"><div class="form-check">
+                            <input class="form-check-input other-check" type="checkbox" name="extra_students[]" id="other-<?php echo (int) $other->ID; ?>" value="<?php echo (int) $other->ID; ?>">
+                            <label class="form-check-label" for="other-<?php echo (int) $other->ID; ?>"><?php echo html_escape($other->admission_number . ' - ' . $other->name); ?></label>
+                        </div></div>
+                    <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+            <script>
+                document.getElementById('select-all-others').addEventListener('change', function () {
+                    var checked = this.checked;
+                    document.querySelectorAll('.other-check').forEach(function (box) { box.checked = checked; });
+                });
+            </script>
+        <?php endif; ?>
         <button class="btn btn-primary" type="submit">Save progress</button>
         <?php echo form_close(); ?>
     <?php endif; ?>

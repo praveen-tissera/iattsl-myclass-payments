@@ -56,6 +56,9 @@ foreach ($plans as $plan) { $plan_titles[(int) $plan->ID] = $plan; }
                             <?php if ($mapped && isset($plan_titles[$mapped])): ?>
                                 <a class="btn btn-sm btn-outline-primary" href="<?php echo site_url('lesson_plan/progress/' . $mapped . '/' . (int) $student->ID); ?>">Update units</a>
                             <?php endif; ?>
+                            <?php if ($mapped): ?>
+                                <button class="btn btn-sm btn-outline-danger" type="submit" form="remove-form" name="student_ids[]" value="<?php echo (int) $student->ID; ?>" onclick="return confirm('Remove this student from the lesson plan?');">Remove</button>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -63,6 +66,7 @@ foreach ($plans as $plan) { $plan_titles[(int) $plan->ID] = $plan; }
             </table>
         </div>
     <?php echo form_close(); ?>
+    <?php echo form_open('lesson_plan/map_students/' . (int) $assignment->ID, array('id' => 'remove-form'), array('lesson_plan_id' => 0)); echo form_close(); ?>
     <script>
         document.getElementById('select-all').addEventListener('change', function () {
             var checked = this.checked;
