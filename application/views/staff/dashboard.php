@@ -199,6 +199,7 @@ foreach ($assignments as $assignment) {
             </div>
             <div class="d-flex align-items-center flex-wrap">
                 <div class="staff-dashboard-eyebrow mr-3"><?php echo count($class_tiles); ?> assigned <?php echo count($class_tiles) === 1 ? 'class' : 'classes'; ?></div>
+                <a class="btn btn-outline-primary mr-2" href="<?php echo site_url('lesson_plan'); ?>">My lesson plans</a>
                 <a class="btn btn-outline-primary" href="<?php echo site_url('staff_leave'); ?>">Apply for leave</a>
             </div>
         </header>
@@ -230,6 +231,7 @@ foreach ($assignments as $assignment) {
                                 <?php foreach ($class['subjects'] as $subject): ?>
                                     <section class="staff-subject-section">
                                         <span class="staff-subject-chip"><?php echo html_escape($subject['subject_name']); ?></span>
+                                        <a class="btn btn-sm btn-outline-primary ml-2" href="<?php echo site_url('lesson_plan/students/' . (int) $subject['assignment_id']); ?>">Map students</a>
                                         <?php if (!empty($subject['lesson_plans'])): ?>
                                             <div class="small text-muted mt-2">Assigned lesson plans</div>
                                             <div class="staff-lesson-plan-list" tabindex="0" role="region" aria-label="<?php echo html_escape($subject['subject_name']); ?> lesson plans">
@@ -238,24 +240,9 @@ foreach ($assignments as $assignment) {
                                                     <div class="staff-lesson-plan">
                                                     <div>
                                                         <div class="font-weight-bold"><?php echo html_escape($lesson_plan['title']); ?></div>
-                                                        <div class="small text-muted"><?php echo html_escape($lesson_plan['hours_to_complete']); ?> hours</div>
+                                                        <div class="small text-muted"><?php echo html_escape(rtrim(rtrim(number_format((float) $lesson_plan['hours_to_complete'], 2, '.', ''), '0'), '.') ?: '0'); ?> hours</div>
+                                                        <a class="small" href="<?php echo site_url('lesson_plan/manage/' . (int) $lesson_plan['ID']); ?>">View units</a>
                                                         <div class="small"><?php echo nl2br(html_escape($lesson_plan['description'])); ?></div>
-                                                        <?php if ($lesson_plan['status'] === 'completed'): ?>
-                                                            <span class="badge badge-success">Completed</span>
-                                                        <?php elseif ($lesson_plan['status'] === 'started'): ?>
-                                                            <span class="badge badge-info">Started</span>
-                                                        <?php else: ?>
-                                                            <span class="badge badge-warning">Pending</span>
-                                                        <?php endif; ?>
-                                                        <?php if ($lesson_plan['status'] === 'started' && !empty($lesson_plan['started_at'])): ?>
-                                                            <div class="small text-muted">Started: <?php echo html_escape($lesson_plan['started_at']); ?></div>
-                                                        <?php endif; ?>
-                                                        <?php if ($lesson_plan['status'] === 'completed' && !empty($lesson_plan['completed_at'])): ?>
-                                                            <div class="small text-muted">Completed: <?php echo html_escape($lesson_plan['completed_at']); ?></div>
-                                                        <?php endif; ?>
-                                                        <?php if (!empty($lesson_plan['staff_notes'])): ?>
-                                                            <div class="small mt-2"><strong>My notes:</strong><br><?php echo nl2br(html_escape($lesson_plan['staff_notes'])); ?></div>
-                                                        <?php endif; ?>
                                                         <?php if (is_array($lesson_plan['attachments']) && !empty($lesson_plan['attachments'])): ?>
                                                             <ul class="small mb-0 pl-3">
                                                                 <?php foreach ($lesson_plan['attachments'] as $attachment_index => $attachment): ?>
@@ -266,17 +253,7 @@ foreach ($assignments as $assignment) {
                                                             </ul>
                                                         <?php endif; ?>
                                                     </div>
-                                                    <?php echo form_open('staff_dashboard/update_lesson_plan_status/' . (int) $subject['assignment_id'] . '/' . (int) $lesson_plan['ID']); ?>
-                                                        <label class="small mb-1" for="lesson-status-<?php echo (int) $subject['assignment_id']; ?>-<?php echo (int) $lesson_plan['ID']; ?>">Progress</label>
-                                                        <select class="form-control form-control-sm mb-2" id="lesson-status-<?php echo (int) $subject['assignment_id']; ?>-<?php echo (int) $lesson_plan['ID']; ?>" name="status">
-                                                            <option value="pending"<?php echo $lesson_plan['status'] === 'pending' ? ' selected' : ''; ?>>Pending</option>
-                                                            <option value="started"<?php echo $lesson_plan['status'] === 'started' ? ' selected' : ''; ?>>Started</option>
-                                                            <option value="completed"<?php echo $lesson_plan['status'] === 'completed' ? ' selected' : ''; ?>>Completed</option>
-                                                        </select>
-                                                        <label class="small mb-1" for="lesson-notes-<?php echo (int) $subject['assignment_id']; ?>-<?php echo (int) $lesson_plan['ID']; ?>">Notes</label>
-                                                        <textarea class="form-control form-control-sm mb-2" id="lesson-notes-<?php echo (int) $subject['assignment_id']; ?>-<?php echo (int) $lesson_plan['ID']; ?>" name="staff_notes" rows="2" maxlength="5000" placeholder="Optional progress notes"><?php echo html_escape($lesson_plan['staff_notes']); ?></textarea>
-                                                        <button type="submit" class="btn btn-sm btn-outline-primary">Save progress</button>
-                                                    <?php echo form_close(); ?>
+
                                                     </div>
                                                 </div>
                                                 <?php endforeach; ?>

@@ -56,6 +56,14 @@ class Admin_lesson_plan_model extends CI_Model
             ->where('lesson_plan_id', $plan_id)
             ->delete('wp_wlsm_staff_assign_subject_lessonplan_iattsl');
         $this->db
+            ->where('lesson_plan_id', $plan_id)
+            ->delete('wp_wlsm_lesson_plan_student_iattsl');
+        $this->db
+            ->query('DELETE p FROM wp_wlsm_lesson_plan_unit_progress_iattsl p JOIN wp_wlsm_lesson_plan_unit_iattsl u ON u.ID = p.unit_id WHERE u.lesson_plan_id = ' . (int) $plan_id);
+        $this->db
+            ->where('lesson_plan_id', $plan_id)
+            ->delete('wp_wlsm_lesson_plan_unit_iattsl');
+        $this->db
             ->where('ID', $plan_id)
             ->delete($this->table);
 
@@ -72,6 +80,7 @@ class Admin_lesson_plan_model extends CI_Model
     {
         return $this->db
             ->select('plans.*, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year, users.display_name AS owner_name, users.user_login')
+            ->select('(SELECT COUNT(*) FROM wp_wlsm_lesson_plan_unit_iattsl u WHERE u.lesson_plan_id = plans.ID) AS unit_count, (SELECT COALESCE(SUM(u.hours), 0) FROM wp_wlsm_lesson_plan_unit_iattsl u WHERE u.lesson_plan_id = plans.ID) AS total_hours', FALSE)
             ->from($this->table . ' AS plans')
             ->join('wp_wlsm_classes AS classes', 'classes.ID = plans.class_id')
             ->join('wp_wlsm_sections AS sections', 'sections.ID = plans.subject_id')

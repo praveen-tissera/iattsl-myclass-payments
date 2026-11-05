@@ -64,22 +64,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <option value="">Choose a class first</option>
                             </select>
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-9">
                             <label for="title">Lesson plan title</label>
                             <input class="form-control" type="text" id="title" name="title" maxlength="255" value="<?php echo isset($edit_plan) && $edit_plan ? html_escape($edit_plan->title) : ''; ?>" required>
                         </div>
-                        <div class="form-group col-md-3">
-                            <label for="hours_to_complete">Hours to complete</label>
-                            <input class="form-control" type="number" id="hours_to_complete" name="hours_to_complete" min="0.01" max="9999.99" step="0.01" value="<?php echo isset($edit_plan) && $edit_plan ? html_escape($edit_plan->hours_to_complete) : ''; ?>" required>
-                        </div>
+
                         <div class="form-group col-md-3">
                             <label for="lesson_files">Attachments</label>
                             <input class="form-control-file" type="file" id="lesson_files" name="lesson_files[]" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png" multiple>
                             <small class="form-text text-muted">Optional. Existing files are kept unless unchecked below; add files up to five total. 10 MB each.</small>
                         </div>
                         <div class="form-group col-12">
-                            <label for="description">Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="5" maxlength="20000" required><?php echo isset($edit_plan) && $edit_plan ? html_escape($edit_plan->description) : ''; ?></textarea>
+                            <label for="description">Description (optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" maxlength="20000"><?php echo isset($edit_plan) && $edit_plan ? html_escape($edit_plan->description) : ''; ?></textarea>
                         </div>
                     </div>
                     <div id="subject-message" class="small text-muted mb-3" role="status">Select an academic year and branch to load available classes.</div>
@@ -131,13 +128,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <div class="small text-muted mb-2">
                                     <?php echo html_escape($plan->class_name); ?> · <?php echo html_escape($plan->subject_name); ?>
                                 </div>
-                                <div class="small mb-3"><strong>Hours:</strong> <?php echo html_escape($plan->hours_to_complete); ?></div>
+                                <div class="small mb-3"><strong>Units:</strong> <?php echo (int) $plan->unit_count; ?> · <strong>Hours:</strong> <?php echo html_escape(rtrim(rtrim(number_format((float) $plan->total_hours, 2, ".", ""), "0"), ".") ?: "0"); ?></div>
                                 <p class="lesson-description mb-3"><?php echo nl2br(html_escape($plan->description)); ?></p>
                                 <div class="small text-muted mb-2">
                                     Added by <?php echo html_escape($plan->owner_name ? $plan->owner_name : $plan->user_login); ?>
                                     · <?php echo html_escape($plan->created_at); ?>
                                 </div>
                                 <div class="lesson-plan-actions mb-3">
+                                    <a class="btn btn-sm btn-primary" href="<?php echo site_url('lesson_plan/manage/' . (int) $plan->ID); ?>">Manage units</a>
                                     <a class="btn btn-sm btn-outline-primary" href="<?php echo site_url('admin_lesson_plan/edit/' . (int) $plan->ID); ?>">Edit</a>
                                     <?php echo form_open('admin_lesson_plan/remove/' . (int) $plan->ID, array('onsubmit' => "return confirm('Remove this lesson plan? This cannot be undone.');")); ?>
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>

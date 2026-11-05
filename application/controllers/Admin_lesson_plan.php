@@ -135,7 +135,6 @@ class Admin_lesson_plan extends CI_Controller
             }
             $branches = array_values(array_unique($raw_branches));
         }
-        $raw_hours = $this->input->post('hours_to_complete', TRUE);
         $raw_title = $this->input->post('title', TRUE);
         $raw_description = $this->input->post('description', TRUE);
 
@@ -144,10 +143,8 @@ class Admin_lesson_plan extends CI_Controller
             !$this->is_positive_integer($raw_subject) ||
             empty($branches) ||
             !is_string($raw_title) || trim($raw_title) === '' || strlen(trim($raw_title)) > 255 ||
-            !is_string($raw_description) || trim($raw_description) === '' || strlen($raw_description) > 20000 ||
-            !is_string($raw_hours) || !preg_match('/^\d{1,4}(\.\d{1,2})?$/', $raw_hours) ||
-            (float) $raw_hours <= 0 || (float) $raw_hours > 9999.99) {
-            $this->redirect_with_error('Enter a title, description, valid class, subject, academic year, branch, and positive number of hours.', $plan_id);
+            ($raw_description !== NULL && (!is_string($raw_description) || strlen($raw_description) > 20000))) {
+            $this->redirect_with_error('Enter a title and a valid class, subject, academic year and branch. Units and hours are added after the plan is created.', $plan_id);
         }
 
         foreach ($branches as $branch) {
@@ -224,8 +221,7 @@ class Admin_lesson_plan extends CI_Controller
             'subject_id' => $subject_id,
             'acadamic_year' => $academic_year,
             'title' => trim($raw_title),
-            'description' => trim($raw_description),
-            'hours_to_complete' => $raw_hours,
+            'description' => trim((string) $raw_description),
             'attachments' => $attachments_json
         );
 
@@ -275,7 +271,7 @@ class Admin_lesson_plan extends CI_Controller
 
         $this->session->set_flashdata('success', $existing_plan
             ? 'Lesson plan updated successfully.'
-            : count($branches) . ' lesson plan record(s) added successfully.');
+            : count($branches) . ' lesson plan record(s) added. Open a plan and use "Manage units" to add its units.');
         $this->remove_uploaded_files($removed_attachments);
         redirect('admin_lesson_plan');
     }

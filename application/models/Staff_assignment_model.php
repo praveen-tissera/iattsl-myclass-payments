@@ -98,7 +98,7 @@ class Staff_assignment_model extends CI_Model
         }
 
         return $this->db
-            ->select('ID, title, description, hours_to_complete')
+            ->select('ID, title, description, (SELECT COALESCE(SUM(u.hours), 0) FROM wp_wlsm_lesson_plan_unit_iattsl u WHERE u.lesson_plan_id = wp_wlsm_lesson_plan_iattsl.ID) AS hours_to_complete', FALSE)
             ->where('acadamic_year', $academic_year)
             ->where('branch', $branch)
             ->where('class_id', $class_id)
@@ -429,7 +429,7 @@ class Staff_assignment_model extends CI_Model
         }
 
         return $this->db
-            ->select('assignments.ID AS assignment_id, assignments.branch, assignments.acadamic_year, assignments.class_id, assignments.subject_id, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year, lesson_assignments.lesson_plan_id, lesson_assignments.status AS lesson_status, lesson_assignments.started_at AS lesson_started_at, lesson_assignments.completed_at AS lesson_completed_at, lesson_assignments.staff_notes AS lesson_staff_notes, lesson_plans.title AS lesson_title, lesson_plans.description AS lesson_description, lesson_plans.hours_to_complete, lesson_plans.attachments AS lesson_attachments')
+            ->select('assignments.ID AS assignment_id, assignments.branch, assignments.acadamic_year, assignments.class_id, assignments.subject_id, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year, lesson_assignments.lesson_plan_id, lesson_assignments.status AS lesson_status, lesson_assignments.started_at AS lesson_started_at, lesson_assignments.completed_at AS lesson_completed_at, lesson_assignments.staff_notes AS lesson_staff_notes, lesson_plans.title AS lesson_title, lesson_plans.description AS lesson_description, (SELECT COALESCE(SUM(u.hours), 0) FROM wp_wlsm_lesson_plan_unit_iattsl u WHERE u.lesson_plan_id = lesson_plans.ID) AS hours_to_complete, lesson_plans.attachments AS lesson_attachments', FALSE)
             ->from('wp_wlsm_staff_assign_subject AS assignments')
             ->join('wp_wlsm_classes AS classes', 'classes.ID = assignments.class_id')
             ->join('wp_wlsm_sections AS sections', 'sections.ID = assignments.subject_id')
