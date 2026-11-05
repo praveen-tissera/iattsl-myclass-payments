@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?php echo base_url('css/institute-navigation.css'); ?>">
+﻿<link rel="stylesheet" href="<?php echo base_url('css/institute-navigation.css'); ?>">
 <nav class="navbar navbar-expand-lg navbar-dark institute-navigation" aria-label="Administrator navigation">
   <a class="navbar-brand" href="<?php echo base_url(); ?>" aria-label="Institute home">
     <img class="img-fluid" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="IATTSL">
@@ -49,6 +49,7 @@
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_create">Add Student</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_assign_staff_classes">Assign Staff to Classes</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_lesson_plan">Lesson Plans</a>
+          <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/lesson_plan/teachers">Teacher Lesson Coverage</a>
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/class_progress">Student Progress</a>
           
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/new_tutes">Add New Tutes</a>

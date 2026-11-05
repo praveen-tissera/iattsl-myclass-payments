@@ -94,6 +94,7 @@ $back = $role === 'administrator' ? site_url('admin_lesson_plan') : site_url('le
 <?php if (empty($mapped_students)): ?>
     <div class="alert alert-info">No students are mapped to this lesson plan yet.</div>
 <?php else: ?>
+    <?php $this->load->view('lesson_plan/_coverage', array('students' => $mapped_students, 'plan' => $plan)); ?>
     <div class="table-responsive">
         <table class="table table-sm table-striped bg-white">
             <thead><tr><th>Registration</th><th>Name</th><th>Completed units</th><th></th></tr></thead>

@@ -97,6 +97,45 @@ class Lesson_plan extends CI_Controller
         ));
     }
 
+    // Administrator: pick a teacher and see every assigned subject by academic year.
+    public function teachers()
+    {
+        if (!$this->is_admin()) {
+            show_error('Only administrators can view teacher coverage.', 403);
+        }
+
+        $staff_id = (int) $this->input->get('staff');
+        $staff = $staff_id > 0 ? $this->Lesson_plan_model->get_staff_member($staff_id) : NULL;
+        $this->render('lesson_plan/teachers', array(
+            'staff_list' => $this->Lesson_plan_model->get_staff_list(),
+            'staff' => $staff,
+            'assignments' => $staff ? $this->Lesson_plan_model->get_staff_assignments($staff->ID) : array()
+        ));
+    }
+
+    // Administrator: completion status of every plan the teacher uses for one assigned subject.
+    public function coverage($assignment_id)
+    {
+        if (!$this->is_admin()) {
+            show_error('Only administrators can view teacher coverage.', 403);
+        }
+
+        $assignment = $this->Lesson_plan_model->get_assignment((int) $assignment_id);
+        if (!$assignment) {
+            show_404();
+        }
+
+        $plans = array();
+        foreach ($this->Lesson_plan_model->get_usable_plans($assignment->staff_id, $assignment) as $summary) {
+            $plans[] = array(
+                'plan' => $this->Lesson_plan_model->get_plan($summary->ID),
+                'students' => $this->Lesson_plan_model->get_mapped_students($summary->ID)
+            );
+        }
+
+        $this->render('lesson_plan/coverage', array('assignment' => $assignment, 'plans' => $plans));
+    }
+
     public function create()
     {
         $this->require_post();

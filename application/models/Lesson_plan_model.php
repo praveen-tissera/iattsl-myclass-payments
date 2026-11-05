@@ -278,21 +278,88 @@ class Lesson_plan_model extends CI_Model
     // Plan summary for every mapped student: completed units out of the total.
     public function get_mapped_students($plan_id)
     {
-        $total = count($this->get_units($plan_id));
+        $units = $this->get_units($plan_id);
+        $total = count($units);
+        $total_hours = 0;
+        foreach ($units as $unit) {
+            $total_hours += (float) $unit->hours;
+        }
+
         $rows = $this->db
             ->select('records.ID, records.name, records.admission_number')
-            ->select("(SELECT COUNT(*) FROM {$this->progress} p JOIN {$this->units} u ON u.ID = p.unit_id WHERE u.lesson_plan_id = students.lesson_plan_id AND p.student_record_id = students.student_record_id AND p.status = 'completed') AS completed_units", FALSE)
             ->from($this->students . ' AS students')
             ->join('wp_wlsm_student_records AS records', 'records.ID = students.student_record_id')
             ->where('students.lesson_plan_id', (int) $plan_id)
             ->order_by('records.admission_number', 'ASC')
             ->get()
             ->result();
+
+        $stats = array();
+        $progress_rows = $this->db
+            ->select('progress.student_record_id, progress.status, units.hours')
+            ->from($this->progress . ' AS progress')
+            ->join($this->units . ' AS units', 'units.ID = progress.unit_id')
+            ->where('units.lesson_plan_id', (int) $plan_id)
+            ->get()
+            ->result();
+        foreach ($progress_rows as $p) {
+            $sid = (int) $p->student_record_id;
+            if (!isset($stats[$sid])) {
+                $stats[$sid] = array('completed' => 0, 'started' => 0, 'completed_hours' => 0.0, 'started_hours' => 0.0);
+            }
+            if ($p->status === 'completed') {
+                $stats[$sid]['completed']++;
+                $stats[$sid]['completed_hours'] += (float) $p->hours;
+            } elseif ($p->status === 'started') {
+                $stats[$sid]['started']++;
+                $stats[$sid]['started_hours'] += (float) $p->hours;
+            }
+        }
+
         foreach ($rows as $row) {
+            $s = isset($stats[(int) $row->ID]) ? $stats[(int) $row->ID] : array('completed' => 0, 'started' => 0, 'completed_hours' => 0.0, 'started_hours' => 0.0);
             $row->total_units = $total;
+            $row->total_hours = $total_hours;
+            $row->completed_units = $s['completed'];
+            $row->started_units = $s['started'];
+            $row->completed_hours = $s['completed_hours'];
+            // Coverage is weighted by unit hours; plans without hours fall back to unit counts.
+            if ($total_hours > 0) {
+                $row->completed_pct = round($s['completed_hours'] / $total_hours * 100);
+                $row->started_pct = round($s['started_hours'] / $total_hours * 100);
+            } else {
+                $row->completed_pct = $total > 0 ? round($s['completed'] / $total * 100) : 0;
+                $row->started_pct = $total > 0 ? round($s['started'] / $total * 100) : 0;
+            }
+            $row->started_pct = max(0, min($row->started_pct, 100 - $row->completed_pct));
         }
 
         return $rows;
+    }
+
+    public function get_assignment($assignment_id)
+    {
+        return $this->db
+            ->select('assignments.ID, assignments.staff_id, assignments.class_id, assignments.subject_id, assignments.acadamic_year, assignments.branch, classes.label AS class_name, sections.label AS subject_name, sessions.label AS academic_year, users.display_name AS staff_name')
+            ->from('wp_wlsm_staff_assign_subject AS assignments')
+            ->join('wp_wlsm_classes AS classes', 'classes.ID = assignments.class_id')
+            ->join('wp_wlsm_sections AS sections', 'sections.ID = assignments.subject_id')
+            ->join('wp_wlsm_sessions AS sessions', 'sessions.ID = assignments.acadamic_year', 'left')
+            ->join('wp_users AS users', 'users.ID = assignments.staff_id', 'left')
+            ->where('assignments.ID', (int) $assignment_id)
+            ->get()
+            ->row();
+    }
+
+    public function get_staff_member($staff_id)
+    {
+        return $this->db->select('ID, display_name')->where('ID', (int) $staff_id)->get('wp_users')->row();
+    }
+
+    public function get_staff_list()
+    {
+        $this->load->model('Staff_assignment_model');
+        return $this->Staff_assignment_model->get_staff();
     }
 
     public function get_student_progress($plan_id, $student_id)
