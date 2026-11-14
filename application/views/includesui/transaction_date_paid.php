@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 // Transaction date cell for a paid invoice. Administrators can edit the date; others see it read-only.
 $stamp = empty($completion->created_at) ? 0 : strtotime($completion->created_at);

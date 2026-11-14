@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 // Unit-wise lesson plans. Teachers create plans for their assigned subjects and map students to them;

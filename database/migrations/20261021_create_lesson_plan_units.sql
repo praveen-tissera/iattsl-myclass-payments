@@ -1,4 +1,4 @@
-﻿-- Unit-wise lesson plans. Apply manually after 20261020.
+-- Unit-wise lesson plans. Apply manually after 20261020.
 -- Plans no longer require hours; hours are recorded per unit instead.
 ALTER TABLE `wp_wlsm_lesson_plan_iattsl`
     MODIFY COLUMN `hours_to_complete` decimal(6,2) NOT NULL DEFAULT 0;

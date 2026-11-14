@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $private_root = getenv('IATTSL_PRIVATE_ROOT');

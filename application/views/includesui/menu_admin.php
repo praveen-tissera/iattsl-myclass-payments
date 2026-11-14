@@ -1,4 +1,4 @@
-﻿<link rel="stylesheet" href="<?php echo base_url('css/institute-navigation.css'); ?>">
+<link rel="stylesheet" href="<?php echo base_url('css/institute-navigation.css'); ?>">
 <nav class="navbar navbar-expand-lg navbar-dark institute-navigation" aria-label="Administrator navigation">
   <a class="navbar-brand" href="<?php echo base_url(); ?>" aria-label="Institute home">
     <img class="img-fluid" src="https://iattsl.edu.lk/wp-content/uploads/2025/03/IATTLS_LOGO.jpg" alt="IATTSL">

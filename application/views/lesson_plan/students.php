@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 $this->load->view('lesson_plan/_header', array('page_title' => 'Map Students', 'role' => $role, 'success' => $success, 'error' => $error));
 $plan_titles = array();

@@ -1,4 +1,4 @@
-﻿-- Admin-entered reminders that a staff member has a pending leave application for a date. Additive only.
+-- Admin-entered reminders that a staff member has a pending leave application for a date. Additive only.
 -- Apply manually. Without it the notice view and the staff dashboard notice are unavailable.
 CREATE TABLE IF NOT EXISTS `wp_wlsm_staff_leave_notice_iattsl` (
   `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,

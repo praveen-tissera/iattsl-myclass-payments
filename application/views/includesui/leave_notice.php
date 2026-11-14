@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 // Important notice for staff with a pending leave application reminder.
 if (empty($leave_notices)) { return; }

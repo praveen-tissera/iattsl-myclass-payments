@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 // Expects $students (from Lesson_plan_model::get_mapped_students) and $plan.
 ?>

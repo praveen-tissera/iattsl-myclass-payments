@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 // Recorded By and Transaction Date cells for an unpaid invoice. Only administrators can pick the transaction date.
 ?>

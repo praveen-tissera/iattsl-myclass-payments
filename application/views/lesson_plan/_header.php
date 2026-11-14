@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 $menu = $role === 'administrator' ? 'menu_admin' : ($role === 'cordinator' ? 'menu_cordinator' : 'menu_teacher');
 ?><!DOCTYPE html>
