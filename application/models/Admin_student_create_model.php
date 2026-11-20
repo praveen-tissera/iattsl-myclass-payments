@@ -106,6 +106,7 @@ class Admin_student_create_model extends CI_Model
             'name' => $student->name,
             'gender' => $student->gender,
             'phone' => $student->phone,
+            'note' => $student->note,
             'survey' => $username,
             'created_at' => date('Y-m-d H:i:s')
         );

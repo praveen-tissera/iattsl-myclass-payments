@@ -78,6 +78,7 @@ class Admin_student_create extends CI_Controller
         $this->form_validation->set_rules('name', 'Student name', 'required|trim|max_length[255]');
         $this->form_validation->set_rules('gender', 'Gender', 'required|in_list[male,female,other]');
         $this->form_validation->set_rules('phone', 'Phone number', 'trim|max_length[30]');
+        $this->form_validation->set_rules('note', 'Note', 'trim|max_length[1000]');
 
         if ($this->form_validation->run() === FALSE) {
             $this->session->set_flashdata('error', validation_errors('', ''));
@@ -112,6 +113,7 @@ class Admin_student_create extends CI_Controller
             'name' => $this->input->post('name', TRUE),
             'gender' => $this->input->post('gender', TRUE),
             'phone' => $this->input->post('phone', TRUE),
+            'note' => $this->input->post('note', TRUE),
             'survey' => $this->session->userdata('user_name'),
             'created_at' => date('Y-m-d H:i:s')
         ));

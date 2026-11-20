@@ -18,6 +18,7 @@
         </a>
         <div class="dropdown-menu">
           <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/welcome/income">Day Income </a>
+          <a class="dropdown-item" href="<?php echo site_url('admin_income_analysis'); ?>">Income Analysis</a>
            <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_due_payment_report">Due Payment Report</a>
            <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/admin_student_registration_report">Student Registration Report</a>
           

@@ -284,6 +284,10 @@ include APPPATH.'libraries/phpqrcode/qrlib.php';
                   <h5 class="card-title">Student Profile</h5>
                   <p class="card-text">Name: <?php echo $student_data[0]['profile']->name;?></p>
                   <p class="card-text">Course : <?php echo $student_data[0]['course']; ?>  <?php echo $student_data[0]['grade'][0]->label; ?></p>
+                  <p class="card-text">Note: <?php
+                    $student_note = isset($student_data[0]['profile']->note) ? trim($student_data[0]['profile']->note) : '';
+                    echo $student_note !== '' ? nl2br(html_escape($student_note)) : '-';
+                  ?></p>
                 <?php
                 $student_id_array = explode('/', $student_data[0]['profile']->admission_number);
                if($student_id_array[0] == 'ONL'){

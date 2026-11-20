@@ -153,6 +153,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <label for="phone">Phone number</label>
                 <input class="form-control" type="tel" id="phone" name="phone" maxlength="30">
             </div>
+            <div class="form-group col-12">
+                <label for="note">Note</label>
+                <textarea class="form-control" id="note" name="note" rows="3" maxlength="1000"></textarea>
+                <small class="form-text text-muted">Optional, up to 1000 characters.</small>
+            </div>
         </div>
         <button class="btn btn-primary" type="submit">Add student</button>
         <?php echo form_close(); ?>
